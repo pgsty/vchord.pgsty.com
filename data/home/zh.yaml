@@ -51,24 +51,27 @@ metrics:
   title: 以极低内存开销实现企业级向量检索规模
   desc: 基于 GIST-1M、Cohere-10M 与 LAION-100M 数据集，与 HNSW 及主流专用向量数据库进行全方位基准对比。
   columns: 2
-  link_label: 查看基准测试
   items:
     - value: "400k / $1"
+      title: 每美元存储向量数
       label: 每美元存储向量数
       desc: 在 AWS 上每美元可存储向量数为 pgvector HNSW 的 26 倍
       icon: fa-solid fa-coins
       url: /docs/vchord/benchmark/price/
     - value: "20 分钟"
+      title: 1 亿向量索引构建
       label: 1 亿向量索引构建
       desc: 支持外部预计算构建索引，数据库内构建速度提升 6 倍以上
       icon: fa-solid fa-bolt
       url: /docs/vchord/usage/external-build/
     - value: "16×"
+      title: 写入吞吐提升
       label: 写入吞吐提升
       desc: 相比全内存 HNSW 显著降低写放大与写入开销
       icon: fa-solid fa-gauge-high
       url: /docs/vchord/benchmark/performance/
     - value: "95%+"
+      title: Recall@10 召回率
       label: Recall@10 召回率
       desc: RaBitQ4 与 RaBitQ8 提供具备严格理论误差下界的距离估计
       icon: fa-solid fa-bullseye
@@ -158,16 +161,19 @@ capabilities:
         - '**`pg_tokenizer`**：数据库内多语言词法分析与预训练词表分词器'
       value: 在单条 SQL 中通过 RRF 或 ColBERT 融合向量语义与全文检索。
       visual:
-        type: components
-        aria_label: Vchord 检索生态组件
-        columns: 2
-        items:
-          - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/vchord/ }
-          - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 索引, url: /docs/bm25/ }
-          - { icon: fa-solid fa-language, title: pg_tokenizer, detail: 多语言与 LLM 分词器, url: /docs/tokenizer/ }
-          - { icon: fa-solid fa-circle-nodes, title: pgvector, detail: vector · halfvec · sparsevec, url: /docs/vector/ }
-          - { icon: fa-solid fa-code-merge, title: RRF 混合检索, detail: 单条 SQL 融合向量与全文, url: /docs/bm25/usage/hybrid-search/ }
-          - { icon: fa-solid fa-ranking-star, title: pg_bestmatch, detail: BM25 稀疏向量生成器, url: /docs/bestmatch/ }
+        type: code
+        aria_label: SQL 中的向量与 BM25 混合检索示例
+        title: hybrid_search.sql
+        lines:
+          - { class: c, prefix: '-- ', text: '启用向量检索与 BM25 全文排序扩展' }
+          - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord CASCADE;' }
+          - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;' }
+          - { class: c, prefix: '-- ', text: '在同一张表上构建稠密向量与 BM25 索引' }
+          - { class: k, prefix: '', text: 'CREATE INDEX docs_vec_idx ON docs USING vchordrq (emb vector_l2_ops);' }
+          - { class: k, prefix: '', text: 'CREATE INDEX docs_bm25_idx ON docs USING bm25 (tsv bm25_ops);' }
+          - { class: c, prefix: '-- ', text: '使用 Block-WeakAnd BM25 (<&>) 算子执行检索' }
+          - { class: k, prefix: '', text: 'SELECT id, tsv <&> to_bm25query(''postgres vector'', ''docs_bm25_idx'') AS score' }
+          - { class: k, prefix: '  ', text: 'FROM docs ORDER BY score LIMIT 10;' }
 
 suite:
   eyebrow: 文档导航

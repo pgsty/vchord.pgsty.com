@@ -51,24 +51,27 @@ metrics:
   title: Enterprise vector scale at a fraction of the RAM
   desc: Benchmarks on GIST-1M, Cohere-10M, and LAION-100M against HNSW and commercial vector databases.
   columns: 2
-  link_label: View benchmark
   items:
     - value: "400k / $1"
+      title: Vectors per dollar
       label: Vectors per dollar
       desc: 26x more vectors stored per $1 on AWS vs pgvector HNSW
       icon: fa-solid fa-coins
       url: /docs/vchord/benchmark/price/
     - value: "20 min"
+      title: 100M index build
       label: 100M index build
       desc: External index precomputation or 6x faster in-DB build
       icon: fa-solid fa-bolt
       url: /docs/vchord/usage/external-build/
     - value: "16×"
+      title: Faster insert throughput
       label: Faster insert throughput
       desc: Minimal write amplification compared to in-memory HNSW
       icon: fa-solid fa-gauge-high
       url: /docs/vchord/benchmark/performance/
     - value: "95%+"
+      title: Recall@10 accuracy
       label: Recall@10 accuracy
       desc: Guaranteed theoretical error bounds with RaBitQ4 and RaBitQ8
       icon: fa-solid fa-bullseye
@@ -158,16 +161,19 @@ capabilities:
         - '**`pg_tokenizer`**: In-database multilingual and LLM tokenizers'
       value: Unify relational data, vector search, and BM25 in one database.
       visual:
-        type: components
-        aria_label: Vchord retrieval ecosystem components
-        columns: 2
-        items:
-          - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/vchord/ }
-          - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 index, url: /docs/bm25/ }
-          - { icon: fa-solid fa-language, title: pg_tokenizer, detail: Multilingual & LLM tokenizers, url: /docs/tokenizer/ }
-          - { icon: fa-solid fa-circle-nodes, title: pgvector, detail: vector · halfvec · sparsevec, url: /docs/vector/ }
-          - { icon: fa-solid fa-code-merge, title: RRF Hybrid Search, detail: Fuse vector & BM25 in SQL, url: /docs/bm25/usage/hybrid-search/ }
-          - { icon: fa-solid fa-ranking-star, title: pg_bestmatch, detail: BM25 sparse vector generator, url: /docs/bestmatch/ }
+        type: code
+        aria_label: Hybrid vector and BM25 search in SQL
+        title: hybrid_search.sql
+        lines:
+          - { class: c, prefix: '-- ', text: 'Enable vector search & BM25 lexical ranking' }
+          - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord CASCADE;' }
+          - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;' }
+          - { class: c, prefix: '-- ', text: 'Index both dense vectors and BM25 tokens' }
+          - { class: k, prefix: '', text: 'CREATE INDEX docs_vec_idx ON docs USING vchordrq (emb vector_l2_ops);' }
+          - { class: k, prefix: '', text: 'CREATE INDEX docs_bm25_idx ON docs USING bm25 (tsv bm25_ops);' }
+          - { class: c, prefix: '-- ', text: 'Query with Block-WeakAnd BM25 (<&>) ranking' }
+          - { class: k, prefix: '', text: 'SELECT id, tsv <&> to_bm25query(''postgres vector'', ''docs_bm25_idx'') AS score' }
+          - { class: k, prefix: '  ', text: 'FROM docs ORDER BY score LIMIT 10;' }
 
 suite:
   eyebrow: Documentation Sections

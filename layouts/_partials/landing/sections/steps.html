@@ -25,13 +25,13 @@
           {{- $lang := strings.TrimSpace (printf "%v" (.lang | default "bash")) -}}
           {{- $hl := transform.Highlight $code $lang (dict "noClasses" false) -}}
           {{- $inner := $hl | replaceRE `^<div class="highlight"><pre[^>]*><code[^>]*>` "" | replaceRE `</code></pre></div>\s*$` "" -}}
-          {{- $inner = $inner | replaceRE `^(<span class="line"><span class="cl">)(docker|psql|pig)(\s+run\b)?` `$1<span class="gp" aria-hidden="true">$ </span><span class="nb">$2</span><span class="nf">$3</span>` -}}
+          {{- $inner = $inner | replaceRE `^(<span class="line"><span class="cl">)(docker|psql|pig)\b` `$1<span class="nb">$2</span>` -}}
+          {{- $inner = $inner | replaceRE `(<span class="nb">docker</span>\s+)(run)\b` `$1<span class="nf">$2</span>` -}}
           {{- $inner = $inner | replaceRE `(\s)(-[a-zA-Z0-9-]+)\b` `$1<span class="na">$2</span>` -}}
           {{- $inner = $inner | replaceRE `(\s)(5432:5432|127\.0\.0\.1)\b` `$1<span class="m">$2</span>` -}}
-          {{- $inner = $inner | replaceRE `(tensorchord/vchord-postgres)(:)(pg18-v[0-9.]+)` `<span class="s">$1</span><span class="o">$2</span><span class="nf">$3</span>` -}}
-          {{- $inner = $inner | replaceRE `\b(CREATE|EXTENSION|IF|NOT|EXISTS|CASCADE|INDEX|ON|USING)\b` `<span class="k">$1</span>` -}}
-          {{- $inner = $inner | replaceRE `\b(vchordrq|vchordg|vector_l2_ops)\b` `<span class="nf">$1</span>` -}}
-        <div class="td-landing-step-command" data-bs-theme="dark"><code class="chroma">{{ $inner | safeHTML }}</code>{{ if $interactive }}<button type="button" data-td-copy-text="{{ $code }}" data-td-label-copied="{{ T "ui_code_copied" }}" aria-label="{{ T "ui_code_copy_label" }}"><i class="fa-regular fa-copy" aria-hidden="true"></i><span data-td-copy-status aria-live="polite"></span></button>{{ end }}</div>
+          {{- $inner = $inner | replaceRE `(\s|<span class="o">=</span>)(postgres)\b` `$1<span class="kc">$2</span>` -}}
+          {{- $inner = $inner | replaceRE `(tensorchord/vchord-postgres)(:)(pg18-v[0-9.]+)` `<span class="s">$1</span><span class="o">$2</span><span class="kc">$3</span>` -}}
+        <div class="td-landing-step-command" data-bs-theme="dark"><code class="chroma language-bash" data-lang="bash">{{ $inner | safeHTML }}</code>{{ if $interactive }}<button type="button" data-td-copy-text="{{ $code }}" data-td-label-copied="{{ T "ui_code_copied" }}" aria-label="{{ T "ui_code_copy_label" }}"><i class="fa-regular fa-copy" aria-hidden="true"></i><span data-td-copy-status aria-live="polite"></span></button>{{ end }}</div>
           {{- end -}}
           {{- end -}}
         {{- end }}

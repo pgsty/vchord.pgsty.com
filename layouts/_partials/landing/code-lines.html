@@ -14,8 +14,13 @@
 {{- $inner := $hl | replaceRE `^<div class="highlight"><pre[^>]*><code[^>]*>` "" | replaceRE `</code></pre></div>\s*$` "" -}}
 {{- $inner = $inner | replaceRE `<span class="err">\$\$</span>` `<span class="dl">$$$$</span>` -}}
 {{- $inner = $inner | replaceRE `<span class="err">@#</span>` `<span class="o">@#</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="o">&lt;</span><span class="err">&amp;</span><span class="o">&gt;</span>` `<span class="o">&lt;&amp;&gt;</span>` -}}
 {{- $inner = $inner | replaceRE `<span class="n">(EXTENSION)</span>` `<span class="k">$1</span>` -}}
-{{- $inner = $inner | replaceRE `<span class="n">(bigserial|vector|halfvec|rabitq4|rabitq8|bm25vector)</span>` `<span class="kt">$1</span>` -}}
-{{- $inner = $inner | replaceRE `<span class="n">(vchordrq|vchordg|vector_l2_ops|vector_ip_ops|vector_cosine_ops|vector_maxsim_ops)</span>` `<span class="nf">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="k">(options)</span>` `<span class="na">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="k">(true|false)</span>` `<span class="kc">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(bigserial|vector|halfvec|rabitq4|rabitq8|tsvector|bm25vector|bm25query)</span>` `<span class="kt">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(vchord|vchord_bm25|pg_tokenizer)</span>` `<span class="nc">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(vchordrq|vchordg|bm25|vector_l2_ops|vector_ip_ops|vector_cosine_ops|vector_maxsim_ops|bm25_ops|to_bm25query|tokenize)</span>` `<span class="nf">$1</span>` -}}
 {{- $inner = $inner | replaceRE `<span class="n">(residual_quantization|lists|m|ef_construction|alpha|bits)</span>` `<span class="na">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="p">\[</span><span class="n">build</span><span class="p">\.</span><span class="n">internal</span><span class="p">\]</span>` `<span class="nt">[build.internal]</span>` -}}
 {{- `<span class="chroma">` | safeHTML -}}{{- $inner | safeHTML -}}{{- `</span>` | safeHTML -}}

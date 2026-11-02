@@ -1,8 +1,9 @@
 // Project-level SCSS refinements for vchord.pgsty.com (OINK v1.4.0 hook)
 
-// 1. Capabilities (Value Proposition): step down module heading font-size so
-//    all subheadings fit cleanly on a single line without wrapping, and
-//    let Chroma syntax highlighting render transparently on dark codeplates.
+// 1. Capabilities (Value Proposition) & Landing Syntax Highlighting:
+//    step down module heading font-size so subheadings fit on a single line,
+//    and apply vivid, distinct Chroma syntax highlighting across the 4 feature
+//    SQL codeplates and the 3 Quick Start Bash command blocks.
 .td-landing-module__copy {
   h3 {
     font-size: clamp(1.32rem, 1.9vw, 1.62rem);
@@ -17,24 +18,106 @@
     margin: 0;
     border: 0;
     background: transparent;
+    color: #e6edf3;
+  }
+
+  .chroma {
+    // Punctuation & identifiers (override _landing.scss .p prompt rule)
+    .p,
+    .n,
+    .nx {
+      color: #e6edf3;
+    }
+
+    // Comments
+    .c,
+    .c1,
+    .cm,
+    .cs,
+    .cp {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    // Keywords & operators (SQL / Bash keywords, @#, <&>, <->, =, ::)
+    .k,
+    .kd,
+    .kn,
+    .kr,
+    .o,
+    .ow {
+      color: #ff7b72;
+      font-weight: 600;
+    }
+
+    // Data types, builtins & CLI commands (vector, bigserial, ARRAY, docker, psql, vchord)
+    .kt,
+    .nb,
+    .nc {
+      color: #ffa657;
+      font-weight: 600;
+    }
+
+    // Access methods, operator classes, functions & subcommands
+    // (vchordrq, vchordg, bm25, vector_l2_ops, vector_ip_ops, vector_maxsim_ops, bm25_ops, run)
+    .nf,
+    .fm {
+      color: #d2a8ff;
+      font-weight: 600;
+    }
+
+    // Option keys, CLI flags & environment variables
+    // (residual_quantization, lists, m, ef_construction, alpha, bits, -d, -p, -e, -h, -U, -c)
+    .na,
+    .nv,
+    .py {
+      color: #79c0ff;
+    }
+
+    // Numbers, booleans, ports, IPs & image tags
+    // (4096, 32, 64, 1.0, 1.2, 8, 128, 1000, 10, true, 5432:5432, 127.0.0.1)
+    .kc,
+    .m,
+    .mi,
+    .mf,
+    .mh {
+      color: #56d4dd;
+      font-weight: 500;
+    }
+
+    // Strings, dollar-quote delimiters ($$), & TOML section headers ([build.internal])
+    .s,
+    .s1,
+    .s2,
+    .dl,
+    .nt {
+      color: #7ee787;
+    }
   }
 }
 
-// 2. Proven at 100M+ Scale (Metrics 2x2 Grid): spacious 2x2 cards where
-//    descriptions fit on a single line, with icon badge, clear visual
-//    hierarchy, and full-card click target.
+// 2. Proven at 100M+ Scale (Metrics 2x2 Grid): compact 3-line horizontal cards
+//    with icon badge on the left, big value + subtitle + description stacked on
+//    the right, no bottom button, and full-card click navigation.
 .td-landing-metric-grid {
-  gap: 18px;
+  gap: 16px;
 
-  @media (max-width: 575.98px) {
+  @media (max-width: 767.98px) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .td-landing-metric {
   position: relative;
-  gap: 6px;
-  padding: clamp(22px, 2.6vw, 28px) clamp(20px, 2.8vw, 32px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: 18px;
+  row-gap: 2px;
+  align-items: center;
+  justify-items: start;
+  padding: 16px 22px;
+  text-align: start;
   cursor: pointer;
   transition:
     transform 180ms ease,
@@ -42,58 +125,59 @@
     box-shadow 180ms ease;
 
   &:hover {
+    border-color: var(--td-copper-dim);
     box-shadow: var(--td-shadow);
-
-    > .td-landing-card-link {
-      color: var(--td-blue-strong);
-
-      i {
-        transform: translateX(3px);
-      }
-    }
   }
 
   > i {
+    grid-column: 1;
+    grid-row: 1 / span 3;
     display: grid;
-    width: 42px;
-    height: 42px;
-    margin-bottom: 6px;
+    width: 48px;
+    height: 48px;
+    margin: 0;
     place-items: center;
     border: 1px solid var(--td-line);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--td-blue) 7%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--td-blue) 8%, transparent);
     color: var(--td-blue);
-    font-size: 1.12rem;
+    font-size: 1.2rem;
   }
 
   strong {
-    font-size: clamp(1.9rem, 2.8vw, 2.45rem);
+    grid-column: 2;
+    grid-row: 1;
+    font-size: clamp(1.25rem, 1.6vw, 1.42rem);
     font-weight: 800;
+    line-height: 1.2;
     letter-spacing: -0.02em;
   }
 
   span {
+    grid-column: 2;
+    grid-row: 2;
     color: var(--td-ink);
-    font-size: 0.98rem;
-    font-weight: 750;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.35;
   }
 
   small {
+    grid-column: 2;
+    grid-row: 3;
     color: var(--td-soft);
-    font-size: 0.86rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    line-height: 1.4;
   }
 
   > .td-landing-card-link {
-    padding-top: 10px;
-    font-size: 0.78rem;
-
-    &::after {
-      position: absolute;
-      content: '';
-      inset: 0;
-      border-radius: inherit;
-    }
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    font-size: 0;
 
     &:focus-visible {
       outline: none;
@@ -173,7 +257,7 @@
 
 // 4. Quick Start Three Steps: 3 full-width horizontal step bars stacked
 //    vertically, with inline step badge + icon + title + description on the
-//    header row and a single-line syntax-highlighted shell command below.
+//    header row and a single-line syntax-highlighted Bash command below.
 .td-landing-landing-steps {
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
@@ -256,11 +340,6 @@
 
         .line {
           display: inline;
-        }
-
-        .gp {
-          user-select: none;
-          margin-inline-end: 0.35em;
         }
       }
 

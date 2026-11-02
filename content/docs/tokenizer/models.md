@@ -229,3 +229,38 @@ SELECT remove_preload_model('llmlingua2');
 ```
 
 Restart PostgreSQL after calling `add_preload_model(...)` (with `shared_preload_libraries = 'pg_tokenizer.so'` set in `postgresql.conf`) for preloading to take effect across all backends.
+
+## Custom model updates in 0.1.2 (unreleased)
+
+### Concurrent writes (0.1.2)
+
+Vocabulary triggers deduplicate and sort new tokens and take a transaction-level advisory lock per model before writing. This serializes writers to the same vocabulary across all rows and statements in a transaction, preventing the opposite token-lock order that caused concurrent batch inserts to deadlock. Ordinary tokenization reads and writes to different models can proceed independently. Keep transactions short; when writing multiple models or locking application rows, use a consistent order and retain normal deadlock/serialization retry handling.
+
+The embedding trigger refreshes its SPI snapshot after the vocabulary trigger, so at `READ COMMITTED` it can see token IDs committed by a writer it waited for. At `REPEATABLE READ` or `SERIALIZABLE`, a conflicting writer can receive SQLSTATE `40001` and must retry the whole transaction. Existing vocabulary IDs are preserved during upgrade; new IDs are internal mappings and are not guaranteed to match a separately created model.
+
+### Filtering a corpus (0.1.2)
+
+Set `filter` in the custom model's TOML configuration, or pass a seventh `filter` argument to the convenience helper:
+
+```sql
+SELECT create_custom_model('tenant_a', $$
+table = 'public.documents'
+column = 'passage'
+text_analyzer = 'text_analyzer1'
+filter = "tenant_id = 42 AND published IS TRUE"
+$$);
+
+-- Alternative: create the model, tokenizer, and embedding trigger together.
+SELECT create_custom_model_tokenizer_and_trigger(
+    tokenizer_name => 'tenant_b_tok', model_name => 'tenant_b',
+    text_analyzer_name => 'text_analyzer1', table_name => 'public.documents',
+    source_column => 'passage', target_column => 'embedding',
+    filter => 'tenant_id = 43 AND published IS TRUE'
+);
+```
+
+The predicate uses source column names without `NEW.` or `WHERE`, and is evaluated with the caller's privileges. Only `TRUE` matches; `FALSE` and `NULL` do not. Use a deterministic predicate of ordinary source columns, independent of the embedding target column; system columns such as `ctid` and volatile predicates are not supported. Provide a trusted SQL expression, with schema-qualified functions if needed; corpus selection does not replace row-level security. Empty or invalid expressions raise an error even for an empty table.
+
+The filter applies to the initial vocabulary scan, embedding backfill, and future inserts/updates. Filtered models observe every UPDATE so changing only a predicate column can bring a row into the corpus. Nonmatching rows are left untouched, including existing embeddings; when a row leaves the corpus, its old embedding and vocabulary entries remain. Apply the same predicate when querying the corpus, or clear excluded embeddings in the application. Vocabulary is append-only and is not pruned on UPDATE/DELETE. A matching row with a NULL source has a NULL embedding.
+
+Omitting `filter` (or passing SQL `NULL` to the helper) retains the whole-table behavior. Existing models and six-argument helper calls remain supported. Schema-qualified table names and quoted column names are supported; the stored table name is qualified when the model is created. Qualified names take precedence over a literal name containing a dot; use SQL double quotes (for example, `'"corpus.docs"'`) to select the latter explicitly.

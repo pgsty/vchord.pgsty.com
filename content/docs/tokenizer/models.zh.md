@@ -229,3 +229,36 @@ SELECT remove_preload_model('llmlingua2');
 ```
 
 调用 `add_preload_model(...)` 后（请确保已在 `postgresql.conf` 中设置 `shared_preload_libraries = 'pg_tokenizer.so'`），重启 PostgreSQL 即可使预加载对所有后端连接生效。
+
+## 0.1.2 自定义模型更新（未发布） {#custom-model-012}
+
+词表触发器会去重、排序新词元，并在写入前获取按模型划分的事务级咨询锁，直到事务结束才释放。同一词表的写入在整个事务内串行执行，覆盖多行批次与多条语句，避免相反词元顺序导致的唯一索引死锁。普通分词读取及不同模型的写入仍可并发。请缩短事务；写入多个模型或锁定业务行时，仍需保持一致顺序并处理普通死锁、序列化失败重试。
+
+生成 embedding 的触发器会在词表触发器完成后刷新 SPI 快照，因此在 `READ COMMITTED` 下可以读取等待期间由其他事务提交的词元 ID。在 `REPEATABLE READ` 或 `SERIALIZABLE` 下，冲突的写事务可能收到 SQLSTATE `40001`，需要重试整个事务。升级保留已有词表 ID；新模型的 ID 属于内部映射，不保证与独立创建的其他模型相同。
+
+### 按条件选择语料 {#corpus-filter}
+
+```sql
+SELECT create_custom_model('tenant_a', $$
+table = 'public.documents'
+column = 'passage'
+text_analyzer = 'text_analyzer1'
+filter = "tenant_id = 42 AND published IS TRUE"
+$$);
+
+-- 或通过便捷函数同时创建模型、分词器和 embedding 触发器。
+SELECT create_custom_model_tokenizer_and_trigger(
+    tokenizer_name => 'tenant_b_tok', model_name => 'tenant_b',
+    text_analyzer_name => 'text_analyzer1', table_name => 'public.documents',
+    source_column => 'passage', target_column => 'embedding',
+    filter => 'tenant_id = 43 AND published IS TRUE'
+);
+```
+
+`filter` 是使用源表列名的 SQL 布尔表达式，不带 `WHERE` 或 `NEW.`，按调用者权限求值。仅 TRUE 匹配，FALSE 和 NULL 均跳过；空表达式或非法表达式即使面对空表也会报错。条件应由普通源列确定，不应依赖 embedding 目标列；不支持 `ctid` 等系统列及非确定性条件。应传入可信表达式，必要时为函数加上模式限定。该功能用于选择语料，不能替代行级安全策略。
+
+过滤条件同时作用于初始词表扫描、embedding 回填和后续插入/更新。配置过滤条件后，触发器监听所有 UPDATE，因此只修改租户字段也会重新判断。匹配行的源文本变为 NULL 时，embedding 同步设为 NULL。
+
+不匹配行保持原值，包括已有 embedding；行退出语料范围后，不会删除其原 embedding 或词表条目。查询时应使用相同过滤条件，或由应用清空排除行的 embedding。词表只增不减，UPDATE/DELETE 不会裁剪词表。省略 `filter` 或向便捷函数传入 SQL NULL，仍处理整张表。原六参调用与旧模型配置兼容，并支持带模式的表名及含特殊字符的列名。
+
+带模式的表名优先按限定名解析；如需选择名称本身含点号的表，请使用 SQL 双引号，例如 `'"corpus.docs"'`。

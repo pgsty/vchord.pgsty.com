@@ -69,3 +69,14 @@ upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/00
 | `table` | 字符串 | 存放训练语料的数据表名称。 |
 | `column` | 字符串 | 存放原始文本的 `TEXT` 列名称。 |
 | `text_analyzer` | 字符串 | 用于提取词表词元的 `text_analyzer` 名称。 |
+
+## 0.1.2 新增接口（未发布） {#api-012}
+
+| 接口 | 返回类型 | 行为 |
+| :--- | :--- | :--- |
+| `tokenizer_catalog.analyze_to_tsvector(text TEXT, text_analyzer_name TEXT)` | `TSVECTOR` | 将分析器输出的字符串词元转换为带位置的原生词素。 |
+| `tokenizer_catalog.tokenize_to_tsvector(text TEXT, tokenizer_name TEXT)` | `TSVECTOR` | 将模型输出的词元 ID 转为十进制词素，保留输出位置。 |
+
+两个函数均为 `STABLE`；先存入列，再为该列创建 GIN/GiST 索引。文档与查询必须采用相同的词素表示，详见[原生全文检索](/zh/docs/tokenizer/overview/#native-fts)。
+
+`create_custom_model` 的 TOML 配置新增可选字符串 `filter`，内容为源表列上的 SQL 布尔表达式，不包含 `WHERE` 或 `NEW.`。`create_custom_model_tokenizer_and_trigger` 新增七参重载，最后一参为 `filter TEXT`；原六参调用继续可用，省略过滤条件或传入 SQL NULL 表示选取全部行。`table` 支持带模式名的表名。详见[过滤与并发语义](/zh/docs/tokenizer/models/#custom-model-012)。

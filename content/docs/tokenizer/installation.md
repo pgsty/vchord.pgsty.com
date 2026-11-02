@@ -70,3 +70,19 @@ git clone https://github.com/pgsty/pg_tokenizer.git
 cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
+
+## Upgrading to 0.1.2
+
+The 0.1.2 source changes are not yet a published release. After installing the matching library and SQL files, restart PostgreSQL to load the new preloaded library, then update each database as the extension owner/administrator:
+
+```sql
+ALTER EXTENSION pg_tokenizer UPDATE TO '0.1.2';
+```
+
+Both 0.1.0 and 0.1.1 have upgrade paths. The upgrade replaces trigger/helper definitions and grants catalog access without rebuilding custom vocabularies or changing existing token IDs. Six-argument helper dependencies remain valid. Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. Lindera's separate dictionary-ID migration still requires re-tokenization as described in the [model notes](/docs/tokenizer/models/).
+
+### Database-owner permissions
+
+Installation and upgrade grant `pg_database_owner` USAGE/CREATE on `tokenizer_catalog`, EXECUTE on its functions, SELECT/INSERT/UPDATE/DELETE on catalog and model tables, and USAGE/SELECT on their sequences. Future objects created in that schema by the installing role receive the same table/sequence/function defaults; newly created custom models also explicitly grant access. The grants follow a database ownership change.
+
+A non-superuser database owner can create/drop its own custom models, analyzers, tokenizers, stopwords, and synonyms after an administrator installs the extension. Grants do not transfer table ownership: dropping a model created by a different role still needs that object's owner or an administrator. Other application roles require explicit grants; the extension does not give PUBLIC schema access or catalog write privileges. Functions continue to execute with the caller's privileges.

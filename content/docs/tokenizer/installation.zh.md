@@ -70,3 +70,19 @@ git clone https://github.com/pgsty/pg_tokenizer.git
 cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
+
+## 升级到 0.1.2（未发布） {#upgrade-012}
+
+以下为 0.1.2 源码中的变更，尚未发布。安装匹配的动态库和 SQL 脚本后，先重启 PostgreSQL 以加载新的预加载库，再由扩展拥有者或管理员对各数据库执行：
+
+```sql
+ALTER EXTENSION pg_tokenizer UPDATE TO '0.1.2';
+```
+
+0.1.0 与 0.1.1 均有升级路径。升级替换触发器及便捷函数定义，并授予目录权限，不重建自定义词表、不改变已有词元 ID，保留原六参函数的依赖关系。标准 `cargo pgrx install/package` 与 `tools/package.sh` 均会包含升级脚本。Lindera 字典版本变化引起的 ID 迁移仍须按照[模型说明](/zh/docs/tokenizer/models/)重新分词。
+
+### 数据库拥有者权限 {#database-owner-permissions}
+
+安装与升级向 `pg_database_owner` 授予 `tokenizer_catalog` 的 USAGE/CREATE、函数的 EXECUTE，目录表与模型表的 SELECT/INSERT/UPDATE/DELETE，以及序列的 USAGE/SELECT。安装角色以后在该模式中创建的表、序列和函数也有相同默认授权；新建自定义模型还会显式授权。授权随数据库拥有者变更而生效。
+
+管理员安装扩展后，非超级用户的数据库拥有者可以创建、删除自己创建的模型、分析器、分词器、停用词及同义词。授权不转移对象所有权：删除其他角色创建的模型仍需原对象拥有者或管理员。其他应用角色需要显式授权；扩展不会向 PUBLIC 开放模式访问或目录写权限，函数继续以调用者权限执行。

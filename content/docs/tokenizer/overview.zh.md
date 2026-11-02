@@ -89,3 +89,33 @@ SELECT name FROM tokenizer_catalog.tokenizer;
 -- 删除指定分词器
 SELECT drop_tokenizer('wiki_eng');
 ```
+
+## 原生 PostgreSQL 全文检索（0.1.2，未发布） {#native-fts}
+
+`analyze_to_tsvector` 将文本分析器输出的字符串词元转换为 PostgreSQL 原生 `tsvector`，适合 Jieba 及自定义词干、停用词流水线。`tokenize_to_tsvector` 将模型输出的整数 ID 转为十进制词素，适用于内置、自定义、Hugging Face 和 Lindera 模型。它们不解码模型 ID，也不会再次使用 PostgreSQL 分词器归一化文本。
+
+```sql
+SELECT create_text_analyzer('fts_words', $$
+pre_tokenizer = "unicode_segmentation"
+[[character_filters]]
+to_lowercase = {}
+$$);
+SELECT analyze_to_tsvector('Cat dog cat', 'fts_words');
+-- 'cat':1,3 'dog':2
+
+CREATE TABLE fts_documents (id int PRIMARY KEY, passage text, terms tsvector);
+INSERT INTO fts_documents VALUES
+    (1, 'Cat dog cat', analyze_to_tsvector('Cat dog cat', 'fts_words'));
+CREATE INDEX ON fts_documents USING gin (terms);
+SELECT id FROM fts_documents WHERE terms @@ 'cat <-> dog'::tsquery;
+
+SELECT create_tokenizer('fts_bert', 'model = "bert_base_uncased"');
+SELECT tokenize_to_tsvector('hello hello', 'fts_bert');
+-- '7592':1,2
+```
+
+位置来自最终输出序列，默认权重为 D；它不代表原始文本偏移，因为过滤器会删除、展开或重排词元，模型也可能输出子词。引号、反斜杠、空白和标点会保留，空词元被忽略；空输出返回空向量，NULL 输入返回 NULL。
+
+原生类型限制仍然适用：单个词素小于 2 KB，每个词素最多保存 256 个位置，超过 16,383 的位置被截到 16,383。长文本的词频与距离信息可能因此丢失，详见 [PostgreSQL 全文检索限制](https://www.postgresql.org/docs/current/textsearch-limitations.html)。
+
+文档与查询应使用相同分析器或模型、相同词素表示；`plainto_tsquery('english', ...)` 不会生成模型 ID，也不能复现自定义中文分析器。本次不增加文本搜索解析器或 `tsquery` 构造器。两个函数因读取目录配置而标记为 `STABLE`：先将结果存入列，再为该列创建 GIN/GiST 索引。接受原生 `tsvector` 的 BM25 实现也能使用这些值；迁移旧 `bm25vector` 索引前，应核对所安装 BM25 版本的 SQL API。

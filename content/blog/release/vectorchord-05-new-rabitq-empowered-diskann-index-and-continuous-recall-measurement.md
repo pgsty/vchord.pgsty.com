@@ -12,6 +12,8 @@ upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
   - "/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
+authors: ["xieydd"]
+images: ["/blog/covers/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement.png"]
 ---
 
 We're thrilled to announce the release of **VectorChord 0.5**! This release marks a significant step forward in our mission to provide more flexible, powerful, and controllable vector search capabilities. In the 0.5 release, we're introducing two major updates: **experimental support for the DiskANN graph index** and a new **recall measurement tool to monitor the health of your IVF+RaBitQ indexes proactively**.
@@ -105,7 +107,7 @@ postgres=# SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 (5 rows)
 ```
 
-Check out our official documentation for detailed instructions on configuring and using the new graph index: [**Guide to Using Graph Index in VectorChord**](/docs/usage/graph-index/)
+Check out our official documentation for detailed instructions on configuring and using the new graph index: [**Guide to Using Graph Index in VectorChord**](/docs/vchord/usage/graph-index/)
 
 <a id="proactive-monitoring-recall-measurement-tool-for-ivf-rabitq"></a>
 ## Proactive Monitoring: Recall Measurement Tool for IVF+RaBitQ
@@ -141,7 +143,7 @@ postgres=# SELECT vchordrq_evaluate_query_recall(query => $$
 (1 row)
 ```
 
-For more details and configuration, you can refer to [**Measuring Recall for IVF+RaBitQ Indexes**](/docs/usage/measure-recall/)
+For more details and configuration, you can refer to [**Measuring Recall for IVF+RaBitQ Indexes**](/docs/vchord/usage/measure-recall/)
 
 ## Automatically Record Queries for Recall Tracking
 

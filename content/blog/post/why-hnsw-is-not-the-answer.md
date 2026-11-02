@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/why-hnsw-is-not-the-answer/"
   - "/why-hnsw-is-not-the-answer/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/why-hnsw-is-not-the-answer.png"]
 ---
 
 HNSW (Hierarchical Navigable Small World) has become the go-to algorithm for many vector databases. Its multi-layered graph structure and ability to efficiently navigate vector embeddings make it particularly appealing. However, despite its apparent advantages, HNSW may not be the optimal solution for large-scale and dynamic vector similarity search. In this blog post, we challenge the dominance of HNSW and explore why disk-based alternatives, such as IVF (Inverted File Index), might be more practical for massive datasets.

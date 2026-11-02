@@ -11,6 +11,8 @@ math: true
 aliases:
   - "/blog/unleash-the-power-of-sparse-vector/"
   - "/unleash-the-power-of-sparse-vector/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/unleash-the-power-of-sparse-vector.png"]
 ---
 
 在过去，混合搜索（hybrid search）通常结合两种搜索方式：传统的基于关键词的搜索与基于向量的相似度搜索。然而，稀疏向量（sparse vector）可以作为关键词搜索的替代方案，通过纯向量搜索释放数据流水线的全部潜能。

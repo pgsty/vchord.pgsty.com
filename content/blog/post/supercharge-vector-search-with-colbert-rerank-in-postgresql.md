@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/supercharge-vector-search-with-colbert-rerank-in-postgresql/"
   - "/supercharge-vector-search-with-colbert-rerank-in-postgresql/"
+authors: ["keming"]
+images: ["/blog/covers/supercharge-vector-search-with-colbert-rerank-in-postgresql.png"]
 ---
 
 Traditional vector search methods typically employ sentence embeddings to locate similar content. However, generating sentence embeddings through pooling token embeddings can potentially sacrifice fine-grained details present at the token level. [ColBERT](https://github.com/stanford-futuredata/ColBERT) overcomes this by representing text as token-level multi-vectors rather than a single, aggregated vector. This approach, leveraging contextual late interaction at the token level, allows ColBERT to retain more nuanced information and improve search accuracy compared to methods relying solely on sentence embeddings.
@@ -24,7 +26,7 @@ One possible solution is to combine sentence-level vector search with token-leve
 
 The multi-vector approach is not limited to pure text retrieval tasks; it can also be used in visual document understanding. For multimodal retrieval models, state-of-the-art models like [ColPali](https://huggingface.co/vidore/colpali-v1.3) and [ColQwen](https://huggingface.co/vidore/colqwen2-v1.0-merged) directly encode document images into multi-vectors and demonstrate stronger performance compared to OCR-to-text approaches.
 
-This blog will demonstrate using the PostgreSQL extension [VectorChord](https://github.com/tensorchord/VectorChord/) and pgvector with ColBERT rerank.
+This blog will demonstrate using the PostgreSQL extension [VectorChord](/docs/vchord/) and pgvector with ColBERT rerank.
 
 <a id="Tutorial"></a>
 ## Tutorial
@@ -193,7 +195,7 @@ All the related benchmark codes can be found [here](https://github.com/kemingy/v
 
 ## Future work
 
-Vector search and full-text search with ColBERT rerank can further improve performance. We’re also working on the [PostgreSQL BM25 extensions](https://github.com/tensorchord/VectorChord-bm25). Stay tuned.
+Vector search and full-text search with ColBERT rerank can further improve performance. We’re also working on the [PostgreSQL BM25 extensions](/docs/bm25/). Stay tuned.
 
 <a id="References"></a>
 ### References

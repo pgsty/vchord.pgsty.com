@@ -11,9 +11,11 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-at-10000-qps-in-postgresql-with-vectorchord/"
   - "/vector-search-at-10000-qps-in-postgresql-with-vectorchord/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/vector-search-at-10000-qps-in-postgresql-with-vectorchord.png"]
 ---
 
-VectorChord is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search, and serves as the successor to [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs). In our previous [blog post](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/), we showed that with just $250 per month, VectorChord achieved 131 QPS with 0.95 precision on 100 million vectors—demonstrating impressive cost-effective performance for large-scale vector search.
+VectorChord is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search, and serves as the successor to [pgvecto.rs](/docs/vectors/). In our previous [blog post](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/), we showed that with just $250 per month, VectorChord achieved 131 QPS with 0.95 precision on 100 million vectors—demonstrating impressive cost-effective performance for large-scale vector search.
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194599461/eb1cf21d-4eb0-4427-8b39-bbb96d125182.png?auto=compress,format&format=webp)
 
@@ -68,7 +70,7 @@ In the following table, we provide the appropriate machine which can hold everyt
 
 ## **Results**
 
-As outlined in [our documentation](/docs/usage/indexing/), VectorChord accepts two key parameters: `nprob` and `epsilon`. Here, `nprob` defines the number of candidate vectors to scan during a query, while `epsilon` serves as the threshold for determining whether to rerank results. Both parameters play a critical role in influencing both **QPS** and **recall**, allowing users to fine-tune the balance between search speed and accuracy.
+As outlined in [our documentation](/docs/vchord/usage/indexing/), VectorChord accepts two key parameters: `nprob` and `epsilon`. Here, `nprob` defines the number of candidate vectors to scan during a query, while `epsilon` serves as the threshold for determining whether to rerank results. Both parameters play a critical role in influencing both **QPS** and **recall**, allowing users to fine-tune the balance between search speed and accuracy.
 
 * Lower `nprob` will result in higher QPS and lower recall.
     

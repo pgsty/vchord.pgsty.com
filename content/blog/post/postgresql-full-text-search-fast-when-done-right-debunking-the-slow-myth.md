@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Jinjing Zhou, Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth/"
   - "/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth/"
+authors: ["jinjing-zhou", "junyu-chen"]
+images: ["/blog/covers/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth.png"]
 ---
 
 You might have come across discussions or blog posts suggesting that PostgreSQL's built-in full-text search (FTS) struggles with performance compared to dedicated search engines or specialized extensions. A notable recent example comes from **Neon's blog post, "Performance Benchmark: pg\_search on Neon"** ([link](https://neon.tech/blog/pgsearch-on-neon)).
@@ -160,9 +162,9 @@ Neon's analysis *did* likely highlight a valid point regarding ranking speed. Fu
 
 ## **Beyond Standard FTS: Advanced Ranking with VectorChord-BM25**
 
-While standard FTS excels at *finding* matches quickly, if sophisticated, high-performance *ranking* is critical, specialized tools are often required. Instead of relying solely on built-in functions, consider [**VectorChord-BM25**](https://github.com/tensorchord/VectorChord-bm25).
+While standard FTS excels at *finding* matches quickly, if sophisticated, high-performance *ranking* is critical, specialized tools are often required. Instead of relying solely on built-in functions, consider [**VectorChord-BM25**](/docs/bm25/).
 
-[**VectorChord-BM25**](https://github.com/tensorchord/VectorChord-bm25) is a PostgreSQL extension specifically designed for fast, relevance-based ranking using the well-regarded **BM25 algorithm**. BM25 goes beyond simple term matching, estimating relevance based on term frequency within a document and inverse document frequency across the entire collection.
+[**VectorChord-BM25**](/docs/bm25/) is a PostgreSQL extension specifically designed for fast, relevance-based ranking using the well-regarded **BM25 algorithm**. BM25 goes beyond simple term matching, estimating relevance based on term frequency within a document and inverse document frequency across the entire collection.
 
 ![Benchmark against ElasticSearch](https://cdn.hashnode.com/res/hashnode/image/upload/v1740189817247/5a81c020-1aa2-452d-8e8d-b9653c5b3489.png?auto=compress,format&format=webp)
 
@@ -177,7 +179,7 @@ Key advantages reported for VectorChord-BM25 include:
 * **Dedicated Data Type:** Introduces a bm25vector type to store tokenized representations suitable for BM25.
     
 
-If your application heavily relies on the quality and speed of relevance ranking, and standard ts\_rank proves insufficient, [**VectorChord-BM25**](https://github.com/tensorchord/VectorChord-bm25) presents a powerful, integrated alternative within PostgreSQL.
+If your application heavily relies on the quality and speed of relevance ranking, and standard ts\_rank proves insufficient, [**VectorChord-BM25**](/docs/bm25/) presents a powerful, integrated alternative within PostgreSQL.
 
 ## **Conclusion: Standard FTS is Faster Than You Might Think**
 

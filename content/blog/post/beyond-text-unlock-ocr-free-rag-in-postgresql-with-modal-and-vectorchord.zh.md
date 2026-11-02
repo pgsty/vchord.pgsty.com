@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/"
   - "/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/"
+authors: ["xieydd"]
+images: ["/blog/covers/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord.png"]
 ---
 
 为文档构建高效的检索增强生成（RAG）系统，往往让人感觉像是在与杂乱复杂的流水线搏斗。尤其是在处理 PDF 或扫描图像时，传统方法高度依赖光学字符识别（OCR）和版面分析。这些步骤不仅耗时、容易出错，而且经常会丢失表格、图表和排版格式等至关重要的视觉上下文信息。**但如果可以直接根据文档的“视觉外观”进行查询，而不仅仅依赖提取出来的纯文本呢？**

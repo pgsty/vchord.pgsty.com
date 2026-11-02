@@ -12,6 +12,8 @@ math: true
 aliases:
   - "/blog/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/"
   - "/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch.png"]
 ---
 
 我们非常高兴与大家分享一款重磅新作：**VectorChord-BM25**，这是一款旨在让 PostgreSQL 全文检索更上一层楼的全新扩展。无论您是在构建小型应用还是管理大规模系统，这款工具都能将先进的 BM25 评分与排序能力直接引入 PostgreSQL，让您的搜索更智能、更迅速。
@@ -237,7 +239,7 @@ ElasticSearch 默认使用 Lucene 的 Standard Tokenizer，它依赖一个相对
 
 目前该项目仍处于早期阶段，我们已经明确了多个可进一步优化性能的方向。分词本身是一个天然复杂的过程——即便是处理英文，我们也面临着诸多权衡与决策。我们的下一步计划是**将分词过程彻底解耦**，将其转化为一个独立且可扩展的扩展。这将使我们能够支持更多语言，允许用户自定义分词流程以获得更好的效果，甚至引入同义词处理等高级特性。
 
-我们的最终目标是让用户能够在 PostgreSQL 上轻松执行**高质量、基于相关性的全文检索**。结合 [**VectorChord**](https://github.com/tensorchord/VectorChord/)，我们致力于为 **RAG（检索增强生成）提供一流的数据基础设施**。毕竟，选择 PostgreSQL 永远是一个稳健的决定！
+我们的最终目标是让用户能够在 PostgreSQL 上轻松执行**高质量、基于相关性的全文检索**。结合 [**VectorChord**](/zh/docs/vchord/)，我们致力于为 **RAG（检索增强生成）提供一流的数据基础设施**。毕竟，选择 PostgreSQL 永远是一个稳健的决定！
 
 如果您对 PostgreSQL 中的向量搜索或全文检索有任何疑问，欢迎随时联系我们：
 

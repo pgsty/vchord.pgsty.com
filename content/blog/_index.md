@@ -1,5 +1,5 @@
 ---
-title: "VectorChord Engineering Blog & Releases"
+title: "Vchord Engineering Blog"
 linkTitle: "Blog"
 description: "Engineering deep-dives on RaBitQ quantization, billion-scale PostgreSQL vector search benchmarks, BM25 ranking, ColBERT late interaction, and release announcements."
 weight: 20
@@ -12,4 +12,5 @@ cascade:
   type: blog
   upstream_source: blog
   reading_time: True
+  featured_image: banner
 ---

@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"
   - "/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"
+authors: ["xieydd"]
+images: ["/blog/covers/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql.png"]
 ---
 
 Retrieval-Augmented Generation (RAG) is revolutionizing our interaction with vast datasets and language models. RAG systems offer more precise, contextually aware, and current answers by retrieving pertinent information before generating responses. Nonetheless, constructing robust, scalable, and efficient RAG pipelines poses considerable challenges, particularly for production use.
@@ -25,11 +27,11 @@ Enter the **VectorChord Suite**, a collection of PostgreSQL extensions designed 
 
 The suite comprises three key PostgreSQL extensions working in concert:
 
-1. [**VectorChord:**](https://github.com/tensorchord/VectorChord) The core vector search engine. It's specifically designed for scalable, high-performance, and disk-efficient vector similarity search within PostgreSQL.
+1. [**VectorChord:**](/docs/vchord/) The core vector search engine. It's specifically designed for scalable, high-performance, and disk-efficient vector similarity search within PostgreSQL.
     
-2. [**VectorChord-bm25:**](https://github.com/tensorchord/VectorChord-bm25) This extension implements the sophisticated BM25 ranking algorithm directly inside PostgreSQL, leveraging efficient Block-WeakAnd algorithms. BM25 is a standard for relevance ranking based on keyword frequency and document characteristics.
+2. [**VectorChord-bm25:**](/docs/bm25/) This extension implements the sophisticated BM25 ranking algorithm directly inside PostgreSQL, leveraging efficient Block-WeakAnd algorithms. BM25 is a standard for relevance ranking based on keyword frequency and document characteristics.
     
-3. [**pg_tokenizer.rs:**](https://github.com/tensorchord/pg_tokenizer.rs) Provides essential text tokenization capabilities needed for effective full-text search, enabling fine-grained control over how text is processed for full-text search.
+3. [**pg_tokenizer.rs:**](/docs/tokenizer/) Provides essential text tokenization capabilities needed for effective full-text search, enabling fine-grained control over how text is processed for full-text search.
     
 
 By combining these extensions, you unlock powerful capabilities for building advanced RAG systems entirely within PostgreSQL.

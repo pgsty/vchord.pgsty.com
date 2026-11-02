@@ -12,6 +12,8 @@ math: true
 aliases:
   - "/blog/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/"
   - "/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch.png"]
 ---
 
 We’re excited to share something special with you: **VectorChord-BM25**, a new extension designed to make PostgreSQL’s full-text search even better. Whether you’re building a small app or managing a large-scale system, this tool brings advanced BM25 scoring and ranking right into PostgreSQL, making your searches smarter and faster.
@@ -237,7 +239,7 @@ This experience highlights the challenges of conducting fair performance compari
 
 We’re still in the early stages of this project, and we’ve already pinpointed several areas for performance optimization. Tokenization is an inherently complex process—even for English, we face numerous decisions and trade-offs. Our next step is to **fully decouple the tokenization process**, transforming it into an independent and extensible extension. This will enable us to support multiple languages, allow users to customize tokenization for better results, and even incorporate advanced features like synonym handling.
 
-Our ultimate goal is to empower users to perform **high-quality, relevance-based full-text searches** on PostgreSQL with ease. Combined with [**VectorChord**](https://github.com/tensorchord/VectorChord/), we aim to deliver a **first-class data infrastructure for RAG (Retrieval-Augmented Generation)**. After all, choosing PostgreSQL is always a solid decision!
+Our ultimate goal is to empower users to perform **high-quality, relevance-based full-text searches** on PostgreSQL with ease. Combined with [**VectorChord**](/docs/vchord/), we aim to deliver a **first-class data infrastructure for RAG (Retrieval-Augmented Generation)**. After all, choosing PostgreSQL is always a solid decision!
 
 If you have any questions about vector search or full-text search in PostgreSQL, feel free to reach out to us! You can connect with us at:
 

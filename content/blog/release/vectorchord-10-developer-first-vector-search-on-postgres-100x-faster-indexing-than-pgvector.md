@@ -11,9 +11,11 @@ upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
   - "/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector.png"]
 ---
 
-Two years ago, when we published the very first [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) blog post, we made a bet: **Postgres is the best place to do vector search**. Since then we’ve been iterating on that bet — from VBASE with filtered vector search, to longer vector support, to the RaBitQ quantization scheme and disk‑friendly index layouts.
+Two years ago, when we published the very first [pgvecto.rs](/docs/vectors/) blog post, we made a bet: **Postgres is the best place to do vector search**. Since then we’ve been iterating on that bet — from VBASE with filtered vector search, to longer vector support, to the RaBitQ quantization scheme and disk‑friendly index layouts.
 
 With VectorChord 1.0 we’re moving the needle again. On a 16 vCPU machine, we can now build an index over 100M vectors in under 20 minutes. On the same scale, pgvector needs more than 50 hours. That number sounds impressive, but the point of this release isn’t just to win a benchmark slide. It’s to make your **actual** development and iteration loop much faster.
 

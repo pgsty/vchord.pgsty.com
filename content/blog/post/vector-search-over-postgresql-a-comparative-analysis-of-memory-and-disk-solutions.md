@@ -10,11 +10,13 @@ upstream_copyright: "© 2025 Junyu Chen, xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"
   - "/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"
+authors: ["junyu-chen", "xieydd"]
+images: ["/blog/covers/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions.png"]
 ---
 
 ## Introduction: real-world challenges
 
-Specialized vector databases aren’t always needed. With PostgreSQL extensions like [pgvector](https://github.com/pgvector/pgvector), [pgvectorscale](https://github.com/timescale/pgvectorscale), [VectorChord](https://github.com/tensorchord/VectorChord) (which evolved from [pgvecto.rs](/docs/vectors/))****, you get vector search *plus* relational power—no extra infrastructure. But adoption isn’t seamless. Here’s what real users say:
+Specialized vector databases aren’t always needed. With PostgreSQL extensions like [pgvector](/docs/vector/), [pgvectorscale](https://github.com/timescale/pgvectorscale), [VectorChord](/docs/vchord/) (which evolved from [pgvecto.rs](/docs/vectors/))****, you get vector search *plus* relational power—no extra infrastructure. But adoption isn’t seamless. Here’s what real users say:
 
 > * The query **takes 30 seconds** for the first time and 100ms if it's a repeat query. The problem is very slow IO.
 >     
@@ -188,6 +190,6 @@ If you want to see more detailed differences, this table shows them between the 
 | Peak Index Build Memory Usage | **2.1 GB** | 15.2 GB | **1.1 GB** (external), 9.8 GB (internal) |
 | Total Disk Usage | Nearly largest | **Smallest** | Largest |
 
-Want to know more about how VectorChord compares to other extensions? In future blogs, we will explore the differences of PostgreSQL vector extensions in more scenarios, such as [**bm25 hybrid search**](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/) (combining traditional keyword search with vector similarity search) and **filtered vector search**. Ready to try VectorChord for your vector search needs? Download the [extension](https://github.com/tensorchord/VectorChord) and feel free to join our [Discord community](https://discord.gg/KqswhpVgdU) or contact us at [support@tensorchord.ai](mailto:support@tensorchord.ai).
+Want to know more about how VectorChord compares to other extensions? In future blogs, we will explore the differences of PostgreSQL vector extensions in more scenarios, such as [**bm25 hybrid search**](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/) (combining traditional keyword search with vector similarity search) and **filtered vector search**. Ready to try VectorChord for your vector search needs? Download the [extension](/docs/vchord/) and feel free to join our [Discord community](https://discord.gg/KqswhpVgdU) or contact us at [support@tensorchord.ai](mailto:support@tensorchord.ai).
 
 %[https://github.com/tensorchord/VectorChord]

@@ -12,6 +12,8 @@ math: true
 aliases:
   - "/blog/benefits-and-steps-of-external-centroids-building-in-vectorchord/"
   - "/benefits-and-steps-of-external-centroids-building-in-vectorchord/"
+authors: ["keming"]
+images: ["/blog/covers/benefits-and-steps-of-external-centroids-building-in-vectorchord.png"]
 ---
 
 聚类（Clustering）是向量搜索中的重要组成部分，而 K-means 算法依然是目前应用最广泛的技术之一。然而，它的简洁性也伴随着一个显著的缺点：密集的计算资源消耗使其在处理大规模数据集时往往力不从心。本文将探讨这一挑战产生的原因，并介绍如何利用外部构建（External Builds）来克服它，同时分享我们在实现这一方案过程中的技术洞察。
@@ -75,7 +77,7 @@ $$
 
 我们提供了一些脚本，方便你快速上手：
 
-[外部构建文档](/zh/docs/usage/external-build/)
+[外部构建文档](/zh/docs/vchord/usage/external-build/)
 
 你可以克隆代码仓库并亲自尝试：
 

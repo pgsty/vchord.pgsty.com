@@ -11,9 +11,11 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-at-10000-qps-in-postgresql-with-vectorchord/"
   - "/vector-search-at-10000-qps-in-postgresql-with-vectorchord/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/vector-search-at-10000-qps-in-postgresql-with-vectorchord.png"]
 ---
 
-VectorChord 是一款专为可扩展、高性能且磁盘友好的向量相似度搜索而设计的 PostgreSQL 扩展，也是 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 的继任者。在我们之前的[博客文章](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)中，我们展示了仅需每月 $250 的成本，VectorChord 就能在 1 亿规模的向量数据集上以 0.95 的精度实现 131 QPS——展现了大规模向量搜索中令人印象深刻的高性价比。
+VectorChord 是一款专为可扩展、高性能且磁盘友好的向量相似度搜索而设计的 PostgreSQL 扩展，也是 [pgvecto.rs](/zh/docs/vectors/) 的继任者。在我们之前的[博客文章](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)中，我们展示了仅需每月 $250 的成本，VectorChord 就能在 1 亿规模的向量数据集上以 0.95 的精度实现 131 QPS——展现了大规模向量搜索中令人印象深刻的高性价比。
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194599461/eb1cf21d-4eb0-4427-8b39-bbb96d125182.png?auto=compress,format&format=webp)
 
@@ -68,7 +70,7 @@ VectorChord 是一款专为可扩展、高性能且磁盘友好的向量相似�
 
 ## **测试结果** {#results}
 
-正如[我们的文档](/zh/docs/usage/indexing/)所述，VectorChord 接收两个关键参数：`nprob` 和 `epsilon`。其中，`nprob` 定义了查询期间需要扫描的候选向量聚类数量，而 `epsilon` 则作为决定是否对结果进行重排序的阈值。这两个参数对 **QPS** 和 **召回率（recall）** 都有着关键影响，允许用户在搜索速度与准确度之间进行精细权衡。
+正如[我们的文档](/zh/docs/vchord/usage/indexing/)所述，VectorChord 接收两个关键参数：`nprob` 和 `epsilon`。其中，`nprob` 定义了查询期间需要扫描的候选向量聚类数量，而 `epsilon` 则作为决定是否对结果进行重排序的阈值。这两个参数对 **QPS** 和 **召回率（recall）** 都有着关键影响，允许用户在搜索速度与准确度之间进行精细权衡。
 
 * 较低的 `nprob` 会带来更高的 QPS 和更低的召回率。
     

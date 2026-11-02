@@ -9,6 +9,8 @@ math: true
 aliases:
   - "/blog/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/"
   - "/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/"
+authors: ["ce-gao"]
+images: ["/blog/covers/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql.png"]
 ---
 
 pgvector and [pgvecto.rs](/docs/vectors/) are both vector search extensions designed to enhance the capabilities of PostgreSQL. These extensions revolutionize the way vector search is performed within the database, providing scalable, low-latency, and hybrid-enabled solutions. In this blog post, we will illustrate the differences between pgvector and [pgvecto.rs](/docs/vectors/).

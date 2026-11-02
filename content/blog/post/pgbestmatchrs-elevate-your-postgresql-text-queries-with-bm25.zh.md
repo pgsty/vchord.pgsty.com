@@ -11,6 +11,8 @@ math: true
 aliases:
   - "/blog/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25/"
   - "/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25.png"]
 ---
 
 > [!TIP]
@@ -18,7 +20,7 @@ aliases:
 
 %[https://github.com/tensorchord/VectorChord-bm25] 
 
-我们非常高兴地宣布发布 [**pg\_bestmatch.rs**](https://github.com/tensorchord/pg_bestmatch.rs)——一款将 Best Matching 25（BM25）文本查询能力引入 PostgreSQL 数据库的扩展，助你执行更高效、更精准的文本检索。借助该扩展，用户可以根据文本生成 BM25 统计稀疏向量，在数据库中直接发挥 BM25 在各类基准测试任务中久经验证的卓越表现。
+我们非常高兴地宣布发布 [**pg\_bestmatch.rs**](/zh/docs/bestmatch/)——一款将 Best Matching 25（BM25）文本查询能力引入 PostgreSQL 数据库的扩展，助你执行更高效、更精准的文本检索。借助该扩展，用户可以根据文本生成 BM25 统计稀疏向量，在数据库中直接发挥 BM25 在各类基准测试任务中久经验证的卓越表现。
 
 ### 为什么选择 BM25？ {#why-bm25}
 
@@ -82,6 +84,6 @@ BM25 的计算过程可以分解为查询（query）和文档（document）两�
 
 ### 加入社区 {#join-the-community}
 
-我们诚邀你试用 [pg\_bestmatch.rs](https://github.com/tensorchord/pg_bestmatch.rs) 并分享你的反馈。在我们持续改进和打磨这一扩展的过程中，你的贡献与建议至关重要。欢迎为我们的 [GitHub 仓库](https://github.com/tensorchord/pg_bestmatch.rs)点亮 Star，并加入我们的 [Discord 服务器](https://discord.gg/KqswhpVgdU)，成为我们不断壮大的社区中的一员！
+我们诚邀你试用 [pg\_bestmatch.rs](/zh/docs/bestmatch/) 并分享你的反馈。在我们持续改进和打磨这一扩展的过程中，你的贡献与建议至关重要。欢迎为我们的 [GitHub 仓库](https://github.com/tensorchord/pg_bestmatch.rs)点亮 Star，并加入我们的 [Discord 服务器](https://discord.gg/KqswhpVgdU)，成为我们不断壮大的社区中的一员！
 
-立即使用 [pg\_bestmatch.rs](https://github.com/tensorchord/pg_bestmatch.rs) 体验 PostgreSQL 中 BM25 文本查询的强大威力——你高效、精准文本检索的全新得力工具。
+立即使用 [pg\_bestmatch.rs](/zh/docs/bestmatch/) 体验 PostgreSQL 中 BM25 文本查询的强大威力——你高效、精准文本检索的全新得力工具。

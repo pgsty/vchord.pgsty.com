@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/why-hnsw-is-not-the-answer/"
   - "/why-hnsw-is-not-the-answer/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/why-hnsw-is-not-the-answer.png"]
 ---
 
 HNSW（Hierarchical Navigable Small World，分层可导航小世界图）已成为众多向量数据库的首选算法。其多层图结构以及高效导航向量嵌入的能力使其格外具有吸引力。然而，尽管拥有诸多显著优势，对于大规模且动态变化的向量相似度搜索而言，HNSW 可能并非最优解。在本文中，我们将挑战 HNSW 的主导地位，并探讨为什么基于磁盘的替代方案——例如 IVF（Inverted File Index，倒排文件索引）——在面对海量数据集时更具实用价值。

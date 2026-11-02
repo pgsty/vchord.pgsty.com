@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-llm-applications-in-langchain-using-pgvectors/"
   - "/building-llm-applications-in-langchain-using-pgvectors/"
+authors: ["ce-gao"]
+images: ["/blog/covers/building-llm-applications-in-langchain-using-pgvectors.png"]
 ---
 
 **LangChain** is a framework for developing applications powered by language models. It enables applications that:

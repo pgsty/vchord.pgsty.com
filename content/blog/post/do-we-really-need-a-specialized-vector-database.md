@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/do-we-really-need-a-specialized-vector-database/"
   - "/do-we-really-need-a-specialized-vector-database/"
+authors: ["ce-gao"]
+images: ["/blog/covers/do-we-really-need-a-specialized-vector-database.png"]
 ---
 
 With the popularity of LLM (Large Language Model), vector databases have also become a hot topic. With just a few lines of simple Python code, a vector database can act as a cheap but highly effective "external brain" for your LLM. But do we really need a specialized vector database?
@@ -147,7 +149,7 @@ Traditional databases do have the capability to support vector data types and pr
 
 ## **Vectors in traditional databases**
 
-Since we see vectors as a new data type in traditional databases, let's take a look at how to support vector data types in traditional databases, using PostgreSQL as an example. [**pgvector**](https://github.com/pgvector/pgvector) is an open-source PostgreSQL plugin that supports vector data types. pgvector uses exact calculation by default, but it also supports building an IVFFlat index and precomputing ANN results using the IVFFlat algorithm, sacrificing calculation accuracy for performance.
+Since we see vectors as a new data type in traditional databases, let's take a look at how to support vector data types in traditional databases, using PostgreSQL as an example. [**pgvector**](/docs/vector/) is an open-source PostgreSQL plugin that supports vector data types. pgvector uses exact calculation by default, but it also supports building an IVFFlat index and precomputing ANN results using the IVFFlat algorithm, sacrificing calculation accuracy for performance.
 
 pgvector has done an excellent job of supporting vectors and is used by products such as [**supabase**](https://supabase.com/blog/openai-embeddings-postgres-vector). However, the supported index algorithm is limited, with only the simplest IVFFlat algorithm supported, and no quantization or storage optimization is implemented. Moreover, the index algorithm of pgvector is not disk-friendly and is designed for use in memory. Therefore, vector index algorithms designed for disk, such as [**DiskANN**](https://proceedings.neurips.cc/paper_files/paper/2019/file/09853c7fb1d3f8ee67a61b6bf4a7f8e6-Paper.pdf), are also valuable in the traditional database ecosystem.
 
@@ -161,7 +163,7 @@ Rewriting pgvector in Rust can enable the code to be organized in a more modern 
 
 pgvecto.rs
 
-As a result, [**pgvecto.rs**](https://github.com/tensorchord/pgvecto.rs) was created. pgvecto.rs currently supports exact vector query operations and three distance calculation operators. Work is underway to design and implement index support. In addition to IVFFlat, we also hope to support more indexing algorithms such as DiskANN, SPTAG, and ScaNN. We welcome contributions and feedback from the community!
+As a result, [**pgvecto.rs**](/docs/vectors/) was created. pgvecto.rs currently supports exact vector query operations and three distance calculation operators. Work is underway to design and implement index support. In addition to IVFFlat, we also hope to support more indexing algorithms such as DiskANN, SPTAG, and ScaNN. We welcome contributions and feedback from the community!
 
 pgvecto.rs offers a modern and extensible codebase with improved performance and concurrency. Its design and implementation allow seamless integration with other machine learning libraries and tools, making it an ideal choice for similarity search scenarios.
 

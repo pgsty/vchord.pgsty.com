@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Jinjing Zhou, Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth/"
   - "/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth/"
+authors: ["jinjing-zhou", "junyu-chen"]
+images: ["/blog/covers/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth.png"]
 ---
 
 你可能在一些技术讨论或博客文章中看到过这样的观点：与专用搜索引擎或特定扩展相比，PostgreSQL 内置的全文检索（Full-Text Search，简称 FTS）在性能上表现不佳。近期一个典型的例子是 **Neon 发布的博客文章《Performance Benchmark: pg\_search on Neon》**（[链接](https://neon.tech/blog/pgsearch-on-neon)）。
@@ -160,9 +162,9 @@ WITH (fastupdate = off);
 
 ## **超越标准 FTS：使用 VectorChord-BM25 实现高性能排序** {#beyond-standard-fts-advanced-ranking-with-vectorchord-bm25}
 
-虽然标准 FTS 非常擅长快速*过滤出*匹配文档，但如果业务对精细、高性能的*相关性排序（ranking）*有严格要求，通常就需要借助专门的工具了。与其仅依赖内置排序函数，不如考虑使用 [**VectorChord-BM25**](https://github.com/tensorchord/VectorChord-bm25)。
+虽然标准 FTS 非常擅长快速*过滤出*匹配文档，但如果业务对精细、高性能的*相关性排序（ranking）*有严格要求，通常就需要借助专门的工具了。与其仅依赖内置排序函数，不如考虑使用 [**VectorChord-BM25**](/zh/docs/bm25/)。
 
-[**VectorChord-BM25**](https://github.com/tensorchord/VectorChord-bm25) 是一款专为基于广受认可的 **BM25 算法**进行快速相关性排序而设计的 PostgreSQL 扩展。BM25 超越了简单的词项匹配，通过综合词项在文档内的词频（TF）以及在整个文档集合中的逆文档频率（IDF）来精准评估相关性。
+[**VectorChord-BM25**](/zh/docs/bm25/) 是一款专为基于广受认可的 **BM25 算法**进行快速相关性排序而设计的 PostgreSQL 扩展。BM25 超越了简单的词项匹配，通过综合词项在文档内的词频（TF）以及在整个文档集合中的逆文档频率（IDF）来精准评估相关性。
 
 ![Benchmark against ElasticSearch](https://cdn.hashnode.com/res/hashnode/image/upload/v1740189817247/5a81c020-1aa2-452d-8e8d-b9653c5b3489.png?auto=compress,format&format=webp)
 
@@ -177,7 +179,7 @@ VectorChord-BM25 的核心优势包括：
 * **专用数据类型**：引入了 `bm25vector` 类型，专门用于存储适配 BM25 计算的分词表征。
     
 
-如果你的应用高度依赖相关性排序的质量与速度，且标准 `ts_rank` 难以满足需求，[**VectorChord-BM25**](https://github.com/tensorchord/VectorChord-bm25) 在 PostgreSQL 内部提供了一个强大、原生集成的替代方案。
+如果你的应用高度依赖相关性排序的质量与速度，且标准 `ts_rank` 难以满足需求，[**VectorChord-BM25**](/zh/docs/bm25/) 在 PostgreSQL 内部提供了一个强大、原生集成的替代方案。
 
 ## **总结：标准 FTS 比你想象的要快得多** {#conclusion-standard-fts-is-faster-than-you-might-think}
 

@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-the-rag-pipeline-with-llamaindex-and-pgvectors/"
   - "/building-the-rag-pipeline-with-llamaindex-and-pgvectors/"
+authors: ["ce-gao"]
+images: ["/blog/covers/building-the-rag-pipeline-with-llamaindex-and-pgvectors.png"]
 ---
 
 LlamaIndex is a simple, flexible data framework for connecting custom data sources to large language models (LLMs).

@@ -10,6 +10,8 @@ upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/scaling-vector-search-to-1-billion-on-postgresql/"
   - "/scaling-vector-search-to-1-billion-on-postgresql/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/scaling-vector-search-to-1-billion-on-postgresql.png"]
 ---
 
 For teams trying to run vector search at billion scale themselves, the challenge is often not raw performance, but practicality. Many solutions designed for billion-scale, low-latency vector search come with practical constraints, requiring tradeoffs that affect how easily they can be adopted.
@@ -79,15 +81,15 @@ $$);
 
 Here’s what each option does in our build configuration:
 
-* [`build.pin`](/docs/usage/indexing/#build-pin): Enables build-time pinning, caching the hot portion of the index in shared memory to speed up indexing on large datasets.
+* [`build.pin`](/docs/vchord/usage/indexing/#build-pin): Enables build-time pinning, caching the hot portion of the index in shared memory to speed up indexing on large datasets.
     
-* [`residual_quantization`](/docs/usage/indexing/#residual-quantization): On DEEP-1B, we find that enabling **residual quantization** improves query performance, so we keep it on for this benchmark.
+* [`residual_quantization`](/docs/vchord/usage/indexing/#residual-quantization): On DEEP-1B, we find that enabling **residual quantization** improves query performance, so we keep it on for this benchmark.
     
-* [`build.internal.build_threads`](/docs/usage/indexing/#build-internal-build-threads): Uses 24 threads for the K-means build stage, helping saturate available CPU resources on the instance.
+* [`build.internal.build_threads`](/docs/vchord/usage/indexing/#build-internal-build-threads): Uses 24 threads for the K-means build stage, helping saturate available CPU resources on the instance.
     
-* [`build.internal.lists`](/docs/usage/indexing/#build-internal-lists): Based on our experience, we choose the appropriate list according to the number of rows. Using a **two-level list** helps significantly at large scale, improving both index build efficiency and query performance.
+* [`build.internal.lists`](/docs/vchord/usage/indexing/#build-internal-lists): Based on our experience, we choose the appropriate list according to the number of rows. Using a **two-level list** helps significantly at large scale, improving both index build efficiency and query performance.
     
-* [`build.internal.kmeans_algorithm.hierarchical`](/docs/usage/indexing/#build-internal-kmeans-algorithm): Enables the **Hierarchical K-means** path introduced in VectorChord 1.0, which significantly accelerates index construction at scale.
+* [`build.internal.kmeans_algorithm.hierarchical`](/docs/vchord/usage/indexing/#build-internal-kmeans-algorithm): Enables the **Hierarchical K-means** path introduced in VectorChord 1.0, which significantly accelerates index construction at scale.
     
 
 ## Our results
@@ -102,13 +104,13 @@ For Top-10, throughput ranges from over 117 QPS at ~0.91 recall to around 69 QPS
 
 The table below lists the exact search parameters behind each data point, varying the number of probes while keeping `epsilon = 1.9` fixed. Together, the figure and table show that even at the 1B-vector scale, VectorChord provides stable and tunable query performance on a single machine.
 
-| [probes](/docs/usage/indexing/#vchordrq-probes) / [epsilon](/docs/usage/indexing/#vchordrq-epsilon) | Recall@Top 10 | QPS | P99 latency / ms |
+| [probes](/docs/vchord/usage/indexing/#vchordrq-probes) / [epsilon](/docs/vchord/usage/indexing/#vchordrq-epsilon) | Recall@Top 10 | QPS | P99 latency / ms |
 | --- | --- | --- | --- |
 | 40,120 / 1.9 | 0.9132 | 117.45 | 12.33 |
 | 40,160 / 1.9 | 0.9305 | 97.32 | 14.61 |
 | 40,250 / 1.9 | 0.9511 | 68.87 | 20.53 |
 
-| [probes](/docs/usage/indexing/#vchordrq-probes) / [epsilon](/docs/usage/indexing/#vchordrq-epsilon) | Recall@Top 100 | QPS | P99 latency / ms |
+| [probes](/docs/vchord/usage/indexing/#vchordrq-probes) / [epsilon](/docs/vchord/usage/indexing/#vchordrq-epsilon) | Recall@Top 100 | QPS | P99 latency / ms |
 | --- | --- | --- | --- |
 | 40,180 / 1.9 | 0.9051 | 66.12 | 22.60 |
 | 40,270 / 1.9 | 0.9318 | 49.55 | 30.40 |

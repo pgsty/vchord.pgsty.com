@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-the-rag-pipeline-with-llamaindex-and-pgvectors/"
   - "/building-the-rag-pipeline-with-llamaindex-and-pgvectors/"
+authors: ["ce-gao"]
+images: ["/blog/covers/building-the-rag-pipeline-with-llamaindex-and-pgvectors.png"]
 ---
 
 LlamaIndex 是一个简单、灵活的数据框架，用于将自定义数据源连接到大语言模型（LLM）。

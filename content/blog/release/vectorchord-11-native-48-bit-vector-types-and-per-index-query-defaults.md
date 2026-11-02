@@ -12,6 +12,8 @@ upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"
   - "/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults.png"]
 ---
 
 We’re excited to announce the release of VectorChord 1.1 as we kick off the new year of horse.
@@ -114,7 +116,7 @@ UNION ALL
 SELECT 'table_2' AS src, id FROM table_2 ORDER BY emb <=> '[4,5,6]' LIMIT 5;
 ```
 
-In addition to `vchordrq.probes`, other query-time parameters can also be given per-index defaults at index creation time, so multi-index queries can rely on independent, index-specific settings. For the full list of configurable parameters, see [Fallback Parameters](/docs/usage/fallback-parameters/).
+In addition to `vchordrq.probes`, other query-time parameters can also be given per-index defaults at index creation time, so multi-index queries can rely on independent, index-specific settings. For the full list of configurable parameters, see [Fallback Parameters](/docs/vchord/usage/fallback-parameters/).
 
 <a id="Summary"></a>
 ## Summary

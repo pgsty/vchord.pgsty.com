@@ -12,11 +12,13 @@ math: true
 aliases:
   - "/blog/hybrid-search-with-postgres-native-bm25-and-vectorchord/"
   - "/hybrid-search-with-postgres-native-bm25-and-vectorchord/"
+authors: ["xieydd"]
+images: ["/blog/covers/hybrid-search-with-postgres-native-bm25-and-vectorchord.png"]
 ---
 
 在 RAG（检索增强生成）时代，如何从海量数据集中高效检索相关数据，对企业和开发者而言至关重要。传统的基于关键词的检索方法（例如使用 **BM25** 作为评分机制的方法）擅长根据词频和精确关键词匹配对文档进行排序，因此对于结构化查询和关键词密集型内容非常有效。然而，它们在理解同义词、上下文细微差别和语义意图方面往往力不从心。相反，基于向量的检索能够捕捉深层语义，在多样化查询上具备更好的泛化能力，但有时会在精确关键词匹配上牺牲准确性。混合搜索（Hybrid Search）通过将 BM25 的精确性与向量搜索的上下文理解能力相结合，弥合了这一差距，从而提供更快、更准确且具备语义感知的检索结果。
 
-本文将探讨如何使用 [VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25) 进行关键词检索、使用 [VectorChord](https://github.com/tensorchord/VectorChord) 进行语义搜索，在 Postgres 中实现混合搜索。借助 VectorChord-bm25 基于 **Block-WeakAnd** 算法的 BM25 排序，以及 VectorChord 先进的向量相似度检索能力，你可以构建一个将关键词精确性与语义理解无缝融合的强大搜索系统。无论你是在构建推荐引擎、文档检索系统还是企业级搜索解决方案，本指南都将带你一步步释放混合搜索的全部潜力。
+本文将探讨如何使用 [VectorChord-bm25](/zh/docs/bm25/) 进行关键词检索、使用 [VectorChord](/zh/docs/vchord/) 进行语义搜索，在 Postgres 中实现混合搜索。借助 VectorChord-bm25 基于 **Block-WeakAnd** 算法的 BM25 排序，以及 VectorChord 先进的向量相似度检索能力，你可以构建一个将关键词精确性与语义理解无缝融合的强大搜索系统。无论你是在构建推荐引擎、文档检索系统还是企业级搜索解决方案，本指南都将带你一步步释放混合搜索的全部潜力。
 
 所有相关的基准测试代码均可在[这里](https://github.com/xieydd/vectorchord-hybrid-search)找到。
 
@@ -30,7 +32,7 @@ aliases:
 
 ## 什么是 VectorChord？ {#what-is-the-vectorchord}
 
-你可能已经熟悉 [pgvector](https://github.com/pgvector/pgvector)——一个开源的 Postgres 向量相似度搜索扩展。然而，面对大规模或性能敏感的场景，往往需要更先进的向量搜索解决方案，[VectorChord](https://github.com/tensorchord/VectorChord) 正是一个绝佳选择。
+你可能已经熟悉 [pgvector](/zh/docs/vector/)——一个开源的 Postgres 向量相似度搜索扩展。然而，面对大规模或性能敏感的场景，往往需要更先进的向量搜索解决方案，[VectorChord](/zh/docs/vchord/) 正是一个绝佳选择。
 
 欢迎阅读博客文章《[VectorChord：在 PostgreSQL 中以 $1 存储 40 万个向量](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)》，深入了解它的设计初衷与架构。
 

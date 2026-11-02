@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 Zoie Wang (TensorChord Inc.)"
 aliases:
   - "/blog/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"
   - "/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"
+authors: ["zoie-wang"]
+images: ["/blog/covers/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25.png"]
 ---
 
 现代应用普遍依赖 PostgreSQL 完全符合 ACID 的事务特性、表达力丰富的 SQL 以及繁荣的扩展生态系统。虽然 PostgreSQL 在处理关系型负载方面表现得无与伦比，但许多项目同样需要在庞大的文本集合（如商品描述、客服工单、技术文档）中进行搜索，并将最相关的行优先呈现给用户。PostgreSQL 的原生工具为此提供了一定基础，但其默认的排序逻辑往往会让最理想的匹配结果被淹没在不太有用的结果之下。VectorChord‑BM25 通过将 BM25 相关性评分算法直接引入 PostgreSQL，彻底改变了这一局面。

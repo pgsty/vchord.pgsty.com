@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/3-billion-vectors-in-postgresql-to-protect-the-earth/"
   - "/3-billion-vectors-in-postgresql-to-protect-the-earth/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/3-billion-vectors-in-postgresql-to-protect-the-earth.png"]
 ---
 
 监测地球的健康状况是我们这个时代最严峻的挑战之一。我们的星球正面临巨大的环境压力，而要理解这些变化，就必须筛选超乎想象的海量卫星数据——持续不断捕获的 PB 级像素图像。从追踪亚马逊雨林的森林砍伐，到识别偏远地区的非法采矿作业，再到监测农业活动对敏感生态系统的影响，将这些原始数据转化为可落地的行动情报至关重要。
@@ -18,7 +20,7 @@ Earth Genome 打造的 [**Earth Index**](https://www.earthgenome.org/earth-index
 
 %[https://www.earthgenome.org/] 
 
-在 [VectorChord](https://github.com/tensorchord/VectorChord) 团队，我们无比自豪地看到我们的 PostgreSQL 向量搜索扩展正在为这一宏伟而至关重要的使命提供核心动力。
+在 [VectorChord](/zh/docs/vchord/) 团队，我们无比自豪地看到我们的 PostgreSQL 向量搜索扩展正在为这一宏伟而至关重要的使命提供核心动力。
 
 ## Earth Index 在做什么？将像素转化为地球洞察 {#what-is-earth-index-doing-turning-pixels-into-planetary-insights}
 
@@ -92,7 +94,7 @@ Earth Genome 打造的 [**Earth Index**](https://www.earthgenome.org/earth-index
 
 > 当我们为这 32 亿个向量评估解决方案时——充分考虑到日新月异的技术版图——标准 pgvector 在这一规模下无法满足我们的性能要求。像 Qdrant 这样的专用方案也面临困难：托管版本过于昂贵，而在我们的 Kubernetes 基础设施上自建集群部署在当时看来还不够成熟。我们也考察了云服务（例如 Google 的 Vertex AI Vector Search），但针对我们的数据集，每月高达 237,000 美元的目录报价实在令人望而却步。
 
-这正是 [VectorChord](https://github.com/tensorchord/VectorChord) 成为关键赋能技术的原因：
+这正是 [VectorChord](/zh/docs/vchord/) 成为关键赋能技术的原因：
 
 * **超越原版 PGVector 的卓越性能**：VectorChord 带来了亟需的速度提升——**查询速度最高提升 5 倍、插入吞吐量提升 16 倍、索引构建速度提升 16 倍**——彻底解决了标准 pgvector 在如此庞大规模下遇到的性能瓶颈。
     
@@ -119,8 +121,8 @@ VectorChord 在 Earth Index 所熟悉且强大的 PostgreSQL 环境中，直接�
 
 立即[**加入 Earth Index 候补名单**](https://app.earthindex.ai/waitlist/)，探索你周边的环境挑战，了解你的生态足迹，并成为守护地球全球行动的一份子。
 
-看到 Earth Index 利用 [VectorChord](https://github.com/tensorchord/VectorChord) 将卫星数据转化为可落地的环境情报，我们感到无比振奋。他们的成功充分证明了将前沿 AI、稳健的数据库技术与高效的向量搜索相结合，在应对全球重大挑战时所能迸发出的巨大能量。
+看到 Earth Index 利用 [VectorChord](/zh/docs/vchord/) 将卫星数据转化为可落地的环境情报，我们感到无比振奋。他们的成功充分证明了将前沿 AI、稳健的数据库技术与高效的向量搜索相结合，在应对全球重大挑战时所能迸发出的巨大能量。
 
-有兴趣将大规模向量搜索引入你的 PostgreSQL 数据库吗？欢迎进一步了解 [VectorChord](https://github.com/tensorchord/VectorChord) 或立即开始体验！
+有兴趣将大规模向量搜索引入你的 PostgreSQL 数据库吗？欢迎进一步了解 [VectorChord](/zh/docs/vchord/) 或立即开始体验！
 
 %[https://github.com/tensorchord/VectorChord]

@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-llm-applications-in-langchain-using-pgvectors/"
   - "/building-llm-applications-in-langchain-using-pgvectors/"
+authors: ["ce-gao"]
+images: ["/blog/covers/building-llm-applications-in-langchain-using-pgvectors.png"]
 ---
 
 **LangChain** 是一个用于开发由语言模型驱动的应用程序的框架。它使应用程序能够：

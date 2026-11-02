@@ -11,13 +11,15 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws/"
   - "/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws.png"]
 ---
 
 In this article, we will describe one method for uploading, indexing, and searching a big dataset of vector data in a cost-efficient manner using the real-world [LAION-400M](https://laion.ai/blog/laion-400-open-dataset/) dataset and the VectorChord extension in PostgreSQL.
 
 We're attempting to show you what kind of hardware setup you need to allow you to search through this vast dataset using VectorChord. We want to make sure that you have a good experience with a search that is both accurate and fast.
 
-[VectorChord](https://github.com/tensorchord/VectorChord) is a PostgreSQL extension that may bring high-performance vector database capabilities directly into your PostgreSQL database with high compatibility with the popular pgvector extension's interface where possible.
+[VectorChord](/docs/vchord/) is a PostgreSQL extension that may bring high-performance vector database capabilities directly into your PostgreSQL database with high compatibility with the popular pgvector extension's interface where possible.
 
 The version of VectorChord to be used for this tutorial must be `v0.3.0` or later. While VectorChord is compatible with most of the recent pgvector versions, `pgvector 0.8.0` was extensively tested.
 
@@ -45,7 +47,7 @@ However, being derived from [HNSW](https://en.wikipedia.org/wiki/Hierarchical_na
 VectorChord addresses these problems with its VChordRQ index, which combines a **cluster-based index (ivf)** with a clever data compression scheme called [RabitQ](https://arxiv.org/abs/2405.12497). In addition to **better precision and latency** in both [memory](/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/#vectors-in-memory-for-small-scale-data) and [disk](/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/#vectors-in-disk-for-large-scale-data), RabitQ's strength lies in its strong theoretical guarantee of accuracy, which is different from other compression techniques. This helps us achieve an excellent trade-off between accuracy and efficiency!
 
 > [!TIP]
-> For more comparisons with VChordRQ([VectorChord](https://github.com/tensorchord/VectorChord)), HNSW([pgvector](https://github.com/pgvector/pgvector)) and StreamDiskANN([pgvectorscale](https://github.com/timescale/pgvectorscale)), please see our previous [blog](/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/).
+> For more comparisons with VChordRQ([VectorChord](/docs/vchord/)), HNSW([pgvector](/docs/vector/)) and StreamDiskANN([pgvectorscale](https://github.com/timescale/pgvectorscale)), please see our previous [blog](/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/).
 
 ## **Hardware**
 

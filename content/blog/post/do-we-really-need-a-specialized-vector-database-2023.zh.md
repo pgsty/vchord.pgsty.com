@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/do-we-really-need-a-specialized-vector-database-2023/"
   - "/do-we-really-need-a-specialized-vector-database-2023/"
+authors: ["ce-gao"]
+images: ["/blog/covers/do-we-really-need-a-specialized-vector-database-2023.jpg"]
 ---
 
 > 注：本文最初发表于 2023 年，探讨了专用向量数据库的适用性与必要性，特别是它与 Postgres 及其能力之间的关系。如需了解关于此话题的更多见解与讨论，请参阅以下链接：[Do we really need a specialized vector database? | Hacker News](https://news.ycombinator.com/item?id=37097004)。
@@ -145,7 +147,7 @@ SELECT * FROM documents ORDER BY embedding <-> openai_embedding('hello world') L
 
 ## 传统数据库中的向量支持 {#vectors-in-traditional-databases}
 
-既然我们将向量视为传统数据库中的一种新数据类型，那么不妨以 PostgreSQL 为例，看看如何在传统数据库中支持向量数据类型。[pgvector](https://github.com/pgvector/pgvector) 是一个支持向量数据类型的开源 PostgreSQL 插件。pgvector 默认使用精确计算，但也支持构建 IVFFlat 索引并使用 IVFFlat 算法预计算 ANN 结果，通过牺牲一定的计算精度来换取性能。
+既然我们将向量视为传统数据库中的一种新数据类型，那么不妨以 PostgreSQL 为例，看看如何在传统数据库中支持向量数据类型。[pgvector](/zh/docs/vector/) 是一个支持向量数据类型的开源 PostgreSQL 插件。pgvector 默认使用精确计算，但也支持构建 IVFFlat 索引并使用 IVFFlat 算法预计算 ANN 结果，通过牺牲一定的计算精度来换取性能。
 
 pgvector 在支持向量方面做得非常出色，并已被 [supabase](https://supabase.com/blog/openai-embeddings-postgres-vector) 等产品采用。然而，它当时支持的索引算法较为有限，仅支持最简单的 IVFFlat 算法，且未实现量化或存储优化。此外，pgvector 的索引算法对磁盘不够友好，主要是为内存使用场景设计的。因此，专为磁盘设计的向量索引算法（如 [DiskANN](https://proceedings.neurips.cc/paper_files/paper/2019/file/09853c7fb1d3f8ee67a61b6bf4a7f8e6-Paper.pdf)）在传统数据库生态中同样具有极高的价值。
 

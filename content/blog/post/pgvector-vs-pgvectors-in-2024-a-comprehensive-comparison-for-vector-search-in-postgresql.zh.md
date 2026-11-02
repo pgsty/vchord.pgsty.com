@@ -9,6 +9,8 @@ math: true
 aliases:
   - "/blog/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/"
   - "/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/"
+authors: ["ce-gao"]
+images: ["/blog/covers/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql.png"]
 ---
 
 pgvector 和 [pgvecto.rs](/zh/docs/vectors/) 都是旨在增强 PostgreSQL 向量检索能力的扩展。这些扩展彻底改变了数据库内部执行向量搜索的方式，提供了可扩展、低延迟且支持混合检索的解决方案。在这篇博客文章中，我们将详细阐述 pgvector 与 [pgvecto.rs](/zh/docs/vectors/) 之间的核心差异。

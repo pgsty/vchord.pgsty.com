@@ -10,11 +10,13 @@ upstream_copyright: "© 2025 Junyu Chen, xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"
   - "/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"
+authors: ["junyu-chen", "xieydd"]
+images: ["/blog/covers/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions.png"]
 ---
 
 ## 引言：真实场景中的挑战 {#introduction-real-world-challenges}
 
-并非所有场景都需要专用的向量数据库。借助 [pgvector](https://github.com/pgvector/pgvector)、[pgvectorscale](https://github.com/timescale/pgvectorscale)、[VectorChord](https://github.com/tensorchord/VectorChord)（演进自 [pgvecto.rs](/zh/docs/vectors/)）等 PostgreSQL 扩展，您可以在无需额外基础设施的情况下同时获得向量搜索与关系型数据库的能力。但实际落地并非总是顺风顺水，以下是真实用户的反馈：
+并非所有场景都需要专用的向量数据库。借助 [pgvector](/zh/docs/vector/)、[pgvectorscale](https://github.com/timescale/pgvectorscale)、[VectorChord](/zh/docs/vchord/)（演进自 [pgvecto.rs](/zh/docs/vectors/)）等 PostgreSQL 扩展，您可以在无需额外基础设施的情况下同时获得向量搜索与关系型数据库的能力。但实际落地并非总是顺风顺水，以下是真实用户的反馈：
 
 > * 首次查询**耗时 30 秒**，而重复查询只需 100 毫秒。问题出在极其缓慢的 I/O 上。
 >     
@@ -188,6 +190,6 @@ aliases:
 | 索引构建峰值内存占用 | **2.1 GB** | 15.2 GB | **1.1 GB**（外部构建），9.8 GB（内部构建） |
 | 总磁盘占用 | 接近最大 | **最小** | 最大 |
 
-想了解更多关于 VectorChord 与其他扩展的对比吗？在未来的博客中，我们将探索 PostgreSQL 向量扩展在更多场景下的差异，例如 [**BM25 混合搜索**](/zh/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)（将传统关键词搜索与向量相似度搜索相结合）以及**带过滤条件的向量搜索（filtered vector search）**。准备好在您的向量搜索场景中试用 VectorChord 了吗？欢迎下载[扩展](https://github.com/tensorchord/VectorChord)，加入我们的 [Discord 社区](https://discord.gg/KqswhpVgdU)，或通过 [support@tensorchord.ai](mailto:support@tensorchord.ai) 联系我们。
+想了解更多关于 VectorChord 与其他扩展的对比吗？在未来的博客中，我们将探索 PostgreSQL 向量扩展在更多场景下的差异，例如 [**BM25 混合搜索**](/zh/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)（将传统关键词搜索与向量相似度搜索相结合）以及**带过滤条件的向量搜索（filtered vector search）**。准备好在您的向量搜索场景中试用 VectorChord 了吗？欢迎下载[扩展](/zh/docs/vchord/)，加入我们的 [Discord 社区](https://discord.gg/KqswhpVgdU)，或通过 [support@tensorchord.ai](mailto:support@tensorchord.ai) 联系我们。
 
 %[https://github.com/tensorchord/VectorChord]

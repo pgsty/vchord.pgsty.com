@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/"
   - "/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/"
+authors: ["xieydd"]
+images: ["/blog/covers/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord.png"]
 ---
 
 Building effective Retrieval-Augmented Generation (RAG) systems for documents often feels like wrestling with messy, complex pipelines. Especially when dealing with PDFs or scanned images, traditional methods rely heavily on Optical Character Recognition (OCR) and layout analysis. These steps can be slow, error-prone, and often lose crucial visual context like tables, figures, and formatting. **But what if you could query documents based on *how they look*, not just the extracted text?**

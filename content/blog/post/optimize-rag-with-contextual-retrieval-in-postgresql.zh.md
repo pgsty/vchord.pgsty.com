@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/optimize-rag-with-contextual-retrieval-in-postgresql/"
   - "/optimize-rag-with-contextual-retrieval-in-postgresql/"
+authors: ["keming"]
+images: ["/blog/covers/optimize-rag-with-contextual-retrieval-in-postgresql.png"]
 ---
 
 在标准的检索增强生成（RAG）方案中，一种常见做法是将长篇文档切分为更小、更易于管理的文本块（chunk）。这样做主要是为了结合句子嵌入（sentence embedding）与关键词 BM25 评分来提升检索效率，使系统能够快速定位并提取出相关的信息片段。虽然这种方法在许多场景下行之有效，但它也带来了一个显著的挑战：单个文本块很可能会丢失其原本所处的上下文语境。

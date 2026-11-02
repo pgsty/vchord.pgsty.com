@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"
   - "/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql.png"]
 ---
 
 ## 1\. 引言 {#1-introduction}
@@ -184,7 +186,7 @@ VectorChord 中使用的索引类型 **vchordrq** 在逻辑上是一棵高度为
 
 ## 6\. 总结 {#6-conclusion}
 
-在此之前，使用 VectorChord `0.5.3` 在 Amazon i7i.4xlarge 实例上为 `LAION-100M` 数据集构建索引是不可行的，因为会发生内存溢出（OOM）错误。[将聚类卸载到 GPU](/zh/docs/usage/external-build/) 使得索引构建成为可能，在查询 Top 10 结果时，可在 **120** QPS 下达到 **95.6%** 的召回率（recall），但需要在 GPU 上耗时 **30 分钟**，并在 i7i.4xlarge 上耗时 **420 分钟**。
+在此之前，使用 VectorChord `0.5.3` 在 Amazon i7i.4xlarge 实例上为 `LAION-100M` 数据集构建索引是不可行的，因为会发生内存溢出（OOM）错误。[将聚类卸载到 GPU](/zh/docs/vchord/usage/external-build/) 使得索引构建成为可能，在查询 Top 10 结果时，可在 **120** QPS 下达到 **95.6%** 的召回率（recall），但需要在 GPU 上耗时 **30 分钟**，并在 i7i.4xlarge 上耗时 **420 分钟**。
 
 凭借 VectorChord `1.0.0` 引入的一系列优化，现在完全可以在单台 i7i.4xlarge 实例上用仅仅 **18 分钟**完成整个索引构建，并在相同 QPS 下达到 **94.9%** 的召回率。
 

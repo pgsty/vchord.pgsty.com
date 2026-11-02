@@ -11,9 +11,11 @@ upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
   - "/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector.png"]
 ---
 
-两年前，当我们发布第一篇 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 博客文章时，我们下了一个赌注：**Postgres 是进行向量搜索的最佳场所**。从那时起，我们一直围绕这个信念持续迭代——从支持过滤向量搜索的 VBASE，到更长维度的向量支持，再到 RaBitQ 量化方案以及对磁盘友好的索引布局。
+两年前，当我们发布第一篇 [pgvecto.rs](/zh/docs/vectors/) 博客文章时，我们下了一个赌注：**Postgres 是进行向量搜索的最佳场所**。从那时起，我们一直围绕这个信念持续迭代——从支持过滤向量搜索的 VBASE，到更长维度的向量支持，再到 RaBitQ 量化方案以及对磁盘友好的索引布局。
 
 随着 VectorChord 1.0 的到来，我们再次实现了突破。在一台 16 vCPU 的机器上，我们现在可以在 20 分钟内为 1 亿（100M）个向量构建好索引；而在相同规模下，pgvector 需要超过 50 个小时。这个数字听起来很惊人，但本次发布的目的绝不仅仅是为了在基准测试幻灯片上赢下比赛，而是为了让你的**实际**开发与迭代周期变得更快。
 

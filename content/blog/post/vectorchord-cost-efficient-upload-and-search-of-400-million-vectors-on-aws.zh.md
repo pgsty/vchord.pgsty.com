@@ -11,13 +11,15 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws/"
   - "/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws.png"]
 ---
 
 在本文中，我们将介绍一种利用真实世界的 [LAION-400M](https://laion.ai/blog/laion-400-open-dataset/) 数据集和 PostgreSQL 中的 VectorChord 扩展，以高性价比方式上传、构建索引并搜索大规模向量数据的方法。
 
 我们将向您展示需要什么样的硬件配置，才能使用 VectorChord 在这一海量数据集上进行搜索，并确保您获得既准确又快速的搜索体验。
 
-[VectorChord](https://github.com/tensorchord/VectorChord) 是一款 PostgreSQL 扩展，能够将高性能向量数据库能力直接引入您的 PostgreSQL 数据库中，并尽可能高度兼容热门的 pgvector 扩展接口。
+[VectorChord](/zh/docs/vchord/) 是一款 PostgreSQL 扩展，能够将高性能向量数据库能力直接引入您的 PostgreSQL 数据库中，并尽可能高度兼容热门的 pgvector 扩展接口。
 
 本教程所使用的 VectorChord 版本必须为 `v0.3.0` 或更高版本。虽然 VectorChord 兼容大多数近期版本的 pgvector，但我们在测试中主要针对 `pgvector 0.8.0` 进行了全面验证。
 
@@ -45,7 +47,7 @@ LAION-400M 被划分为 409 个数据分块（chunks），每个分块包含约 
 VectorChord 通过其 VChordRQ 索引解决了这些问题。VChordRQ 将**基于聚类的索引（IVF）**与巧妙的数据压缩方案 [RaBitQ](https://arxiv.org/abs/2405.12497) 结合在一起。除了在[内存](/zh/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/#vectors-in-memory-for-small-scale-data)和[磁盘](/zh/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/#vectors-in-disk-for-large-scale-data)场景下均具备**更优的精度和更低的延迟**外，RaBitQ 的核心优势还在于它拥有严谨的准确度理论下界保证——这与传统的启发式压缩技术截然不同，帮助我们在准确度与效率之间实现了绝佳的平衡！
 
 > [!TIP]
-> 有关 VChordRQ（[VectorChord](https://github.com/tensorchord/VectorChord)）、HNSW（[pgvector](https://github.com/pgvector/pgvector)）与 StreamDiskANN（[pgvectorscale](https://github.com/timescale/pgvectorscale)）的更多对比，请参阅我们之前的[博客文章](/zh/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/)。
+> 有关 VChordRQ（[VectorChord](/zh/docs/vchord/)）、HNSW（[pgvector](/zh/docs/vector/)）与 StreamDiskANN（[pgvectorscale](https://github.com/timescale/pgvectorscale)）的更多对比，请参阅我们之前的[博客文章](/zh/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/)。
 
 ## **硬件配置** {#hardware}
 

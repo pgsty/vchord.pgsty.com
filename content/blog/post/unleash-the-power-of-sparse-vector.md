@@ -11,6 +11,8 @@ math: true
 aliases:
   - "/blog/unleash-the-power-of-sparse-vector/"
   - "/unleash-the-power-of-sparse-vector/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/unleash-the-power-of-sparse-vector.png"]
 ---
 
 In the past, hybrid search combined two search methods: traditional keyword-based search and vector-based similarity search. However, sparse vector can act as a substitute for keyword search, unlocking the full potential of the data pipeline with pure vector search.

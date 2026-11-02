@@ -10,6 +10,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud/"
   - "/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud/"
+authors: ["ce-gao"]
+images: ["/blog/covers/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud.png"]
 ---
 
 In an exciting development, we are thrilled to announce the launch of [PGVecto.rs](/docs/vectors/) Cloud - bringing the power of scalable vector search to your PostgreSQL databases, now available as a fully managed cloud service.

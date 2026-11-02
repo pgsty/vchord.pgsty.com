@@ -10,15 +10,17 @@ upstream_copyright: "© 2024 Ce Gao, Jinjing Zhou, Junyu Chen (TensorChord Inc.)
 aliases:
   - "/blog/vectorchord-store-400k-vectors-for-1-in-postgresql/"
   - "/vectorchord-store-400k-vectors-for-1-in-postgresql/"
+authors: ["ce-gao", "jinjing-zhou", "junyu-chen"]
+images: ["/blog/covers/vectorchord-store-400k-vectors-for-1-in-postgresql.png"]
 ---
 
-We’re pleased to announce our new vector search extension for PostgreSQL, providing a highly cost-effective way to manage large vectors. Using [VectorChord](https://github.com/tensorchord/VectorChord), you can achieve a QPS of 131 with 0.95 precision on 100 million 768-dimensional vectors for the top 10 queries. This setup costs only $250 monthly and can be hosted on a single machine.
+We’re pleased to announce our new vector search extension for PostgreSQL, providing a highly cost-effective way to manage large vectors. Using [VectorChord](/docs/vchord/), you can achieve a QPS of 131 with 0.95 precision on 100 million 768-dimensional vectors for the top 10 queries. This setup costs only $250 monthly and can be hosted on a single machine.
 
 This means you can **store 400k vectors for only $1**, allowing you to save significantly: 6x more vectors compared to Pinecone (storage optimized instance) and 26x more than pgvector/pgvecto.rs for the same price.
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194327962/8b0f2610-af64-4104-98db-7f94416f354e.png)
 
-In the monthly cost comparison for storing vectors, based on [MyScale benchmark data](https://myscale.github.io/benchmark/#/), the chart highlights how [VectorChord](https://github.com/tensorchord/VectorChord) emerges as an affordable option, priced at just $247 for storing 100 million vectors. In contrast, Pinecone, despite its optimized storage, costs $1,600 per month, while Qdrant is priced at $4,374. pgvector/[pgvecto.rs](/docs/vectors/) has a considerably higher cost of $6,580.
+In the monthly cost comparison for storing vectors, based on [MyScale benchmark data](https://myscale.github.io/benchmark/#/), the chart highlights how [VectorChord](/docs/vchord/) emerges as an affordable option, priced at just $247 for storing 100 million vectors. In contrast, Pinecone, despite its optimized storage, costs $1,600 per month, while Qdrant is priced at $4,374. pgvector/[pgvecto.rs](/docs/vectors/) has a considerably higher cost of $6,580.
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194599461/eb1cf21d-4eb0-4427-8b39-bbb96d125182.png)
 

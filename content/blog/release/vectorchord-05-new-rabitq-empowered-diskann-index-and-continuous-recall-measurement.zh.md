@@ -12,6 +12,8 @@ upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
   - "/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
+authors: ["xieydd"]
+images: ["/blog/covers/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement.png"]
 ---
 
 我们非常激动地宣布发布 **VectorChord 0.5**！此次发布标志着我们在提供更灵活、更强大、更可控的向量搜索能力这一使命上迈出了重要一步。在 0.5 版本中，我们引入了两项重大更新：**对 DiskANN 图索引的实验性支持**，以及全新的**用于主动监控 IVF+RaBitQ 索引健康状况的召回率评估工具**。
@@ -105,7 +107,7 @@ postgres=# SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 (5 rows)
 ```
 
-关于配置和使用新图索引的详细说明，请查阅我们的官方文档：[**VectorChord 图索引使用指南**](/zh/docs/usage/graph-index/)
+关于配置和使用新图索引的详细说明，请查阅我们的官方文档：[**VectorChord 图索引使用指南**](/zh/docs/vchord/usage/graph-index/)
 
 <a id="proactive-monitoring-recall-measurement-tool-for-ivf-rabitq"></a>
 ## 主动监控：面向 IVF+RaBitQ 的召回率评估工具 {#proactive-monitoring-recall-measurement-tool-for-ivfrabitq}
@@ -141,7 +143,7 @@ postgres=# SELECT vchordrq_evaluate_query_recall(query => $$
 (1 row)
 ```
 
-关于更多细节与配置说明，请参阅[**评估 IVF+RaBitQ 索引的召回率**](/zh/docs/usage/measure-recall/)。
+关于更多细节与配置说明，请参阅[**评估 IVF+RaBitQ 索引的召回率**](/zh/docs/vchord/usage/measure-recall/)。
 
 ## 自动记录查询以进行召回率追踪 {#automatically-record-queries-for-recall-tracking}
 

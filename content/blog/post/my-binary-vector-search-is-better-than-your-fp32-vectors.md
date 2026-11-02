@@ -11,6 +11,8 @@ math: true
 aliases:
   - "/blog/my-binary-vector-search-is-better-than-your-fp32-vectors/"
   - "/my-binary-vector-search-is-better-than-your-fp32-vectors/"
+authors: ["ce-gao"]
+images: ["/blog/covers/my-binary-vector-search-is-better-than-your-fp32-vectors.png"]
 ---
 
 Within the field of vector search, an intriguing development has arisen: binary vector search. This approach shows promise in tackling the long-standing issue of memory consumption by achieving a remarkable 30x reduction. However, a critical aspect that sparks debate is its effect on accuracy.
@@ -47,7 +49,7 @@ Surprisingly, our experiments showed that the **decrease in accuracy was not as 
 
 # Experiment
 
-To evaluate the performance metrics in comparison to the original vector approach, we conducted benchmarking using the [`dbpedia-entities-openai3-text-embedding-3-large-3072-1M`](https://huggingface.co/datasets/Qdrant/dbpedia-entities-openai3-text-embedding-3-large-3072-1M) dataset. The benchmark was performed on a Google Cloud virtual machine (VM) with specifications of n2-standard-8, which includes 8 virtual CPUs and 32GB of memory. We used [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) v0.2.1 as the vector database.
+To evaluate the performance metrics in comparison to the original vector approach, we conducted benchmarking using the [`dbpedia-entities-openai3-text-embedding-3-large-3072-1M`](https://huggingface.co/datasets/Qdrant/dbpedia-entities-openai3-text-embedding-3-large-3072-1M) dataset. The benchmark was performed on a Google Cloud virtual machine (VM) with specifications of n2-standard-8, which includes 8 virtual CPUs and 32GB of memory. We used [pgvecto.rs](/docs/vectors/) v0.2.1 as the vector database.
 
 After inserting 1 million vectors into the database table, we built indexes for both the original float32 vectors and the binary vectors.
 

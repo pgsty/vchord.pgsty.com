@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/"
   - "/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search.png"]
 ---
 
 我们很高兴地宣布发布 **VectorChord-BM25 0.2 版本**！这款 PostgreSQL 扩展旨在将先进的基于 BM25 的全文检索排序能力直接引入您的数据库中。

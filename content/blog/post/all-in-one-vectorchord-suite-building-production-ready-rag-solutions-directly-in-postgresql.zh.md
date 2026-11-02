@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"
   - "/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"
+authors: ["xieydd"]
+images: ["/blog/covers/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql.png"]
 ---
 
 检索增强生成（Retrieval-Augmented Generation, RAG）正在彻底改变我们与海量数据集及语言模型的交互方式。通过在生成回答之前先检索相关信息，RAG 系统能够提供更准确、更具上下文感知能力且实时更新的答案。然而，构建稳健、可扩展且高效的 RAG 流水线依然面临诸多挑战，在生产环境中更是如此。
@@ -25,11 +27,11 @@ aliases:
 
 该套件由三个协同工作的核心 PostgreSQL 扩展组成：
 
-1. [**VectorChord：**](https://github.com/tensorchord/VectorChord)核心向量搜索引擎。专为在 PostgreSQL 内部实现可扩展、高性能且磁盘高效的向量相似度搜索而设计。
+1. [**VectorChord：**](/zh/docs/vchord/)核心向量搜索引擎。专为在 PostgreSQL 内部实现可扩展、高性能且磁盘高效的向量相似度搜索而设计。
     
-2. [**VectorChord-bm25：**](https://github.com/tensorchord/VectorChord-bm25)该扩展利用高效的 Block-WeakAnd 算法，直接在 PostgreSQL 内部实现了成熟的 BM25 排序算法。BM25 是基于关键词频率和文档特征进行相关性排序的行业标准。
+2. [**VectorChord-bm25：**](/zh/docs/bm25/)该扩展利用高效的 Block-WeakAnd 算法，直接在 PostgreSQL 内部实现了成熟的 BM25 排序算法。BM25 是基于关键词频率和文档特征进行相关性排序的行业标准。
     
-3. [**pg\_tokenizer.rs：**](https://github.com/tensorchord/pg_tokenizer.rs)提供高效全文搜索所必需的文本分词（Tokenization）能力，支持对全文搜索的文本处理方式进行细粒度控制。
+3. [**pg\_tokenizer.rs：**](/zh/docs/tokenizer/)提供高效全文搜索所必需的文本分词（Tokenization）能力，支持对全文搜索的文本处理方式进行细粒度控制。
     
 
 通过组合这些扩展，你可以完全在 PostgreSQL 内部解锁构建高级 RAG 系统的强大能力。

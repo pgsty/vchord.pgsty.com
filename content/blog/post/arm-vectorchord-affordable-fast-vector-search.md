@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/arm-vectorchord-affordable-fast-vector-search/"
   - "/arm-vectorchord-affordable-fast-vector-search/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/arm-vectorchord-affordable-fast-vector-search.png"]
 ---
 
 ARM64 is quietly becoming a go-to for cost-effective cloud servers, especially on AWS. With ARM-based processors like the Graviton series (Graviton3 and Graviton4), you can save a good chunk of money without sacrificing performance. These ARM64 instances are way more affordable than traditional x86 ones, making them a solid choice for balancing cost and performance in the cloud.

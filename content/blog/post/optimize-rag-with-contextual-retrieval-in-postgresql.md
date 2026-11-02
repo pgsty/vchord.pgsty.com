@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/optimize-rag-with-contextual-retrieval-in-postgresql/"
   - "/optimize-rag-with-contextual-retrieval-in-postgresql/"
+authors: ["keming"]
+images: ["/blog/covers/optimize-rag-with-contextual-retrieval-in-postgresql.png"]
 ---
 
 In the standard approach to Retrieval Augmented Generation (RAG), a common practice is to break down large documents into smaller, more manageable chunks. This is primarily done to improve the efficiency of the retrieval process, leveraging the sentence embedding and keyword bm25 scoring, allowing systems to quickly find and pull relevant pieces of information. While effective in many scenarios, this method can introduce a significant challenge: the potential for individual chunks to lose their surrounding context.

@@ -10,13 +10,15 @@ upstream_copyright: "© 2024 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-terraform-support-for-pgvectors-cloud/"
   - "/introducing-terraform-support-for-pgvectors-cloud/"
+authors: ["xieydd"]
+images: ["/blog/covers/introducing-terraform-support-for-pgvectors-cloud.png"]
 ---
 
 We are thrilled to announce the release of our [Terraform provider for PGVecto.rs Cloud](https://registry.terraform.io/providers/tensorchord/pgvecto-rs-cloud/latest). This new provider is designed to simplify the process of managing resources on our [cloud service](/cloud/), providing users with an intuitive and streamlined experience for managing their Postgres cluster setup and operation through infrastructure as a code tool — **Terraform**. For those unfamiliar with [Terraform](https://www.terraform.io/), it is an open-source tool for building, changing, and versioning infrastructure safely and efficiently. It enables users to define their infrastructure as code, allowing them to provision and manage resources programmatically.
 
 # A word about PGVecto.rs: Scalable Vector Search in Postgres
 
-[PGVecto.rs](https://github.com/tensorchord/pgvecto.rs) is a Postgres extension that enables scalable vector search, allowing you to build powerful similarity-based applications on top of your Postgres database.
+[PGVecto.rs](/docs/vectors/) is a Postgres extension that enables scalable vector search, allowing you to build powerful similarity-based applications on top of your Postgres database.
 
 PGVecto.rs distinguishes itself with several robust features:
 

@@ -11,6 +11,8 @@ math: true
 aliases:
   - "/blog/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25/"
   - "/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25.png"]
 ---
 
 > [!TIP]
@@ -18,7 +20,7 @@ aliases:
 
 %[https://github.com/tensorchord/VectorChord-bm25] 
 
-We're excited to announce the release of [**pg\_bestmatch.rs**](https://github.com/tensorchord/pg_bestmatch.rs), a PostgreSQL extension that brings the power of Best Matching 25 Score (BM25) text queries to your database, enhancing your ability to perform efficient and accurate text retrieval. This extension allows users to generate BM25 statistic sparse vectors from text, leveraging the proven performance of BM25 in various benchmark tasks.
+We're excited to announce the release of [**pg\_bestmatch.rs**](/docs/bestmatch/), a PostgreSQL extension that brings the power of Best Matching 25 Score (BM25) text queries to your database, enhancing your ability to perform efficient and accurate text retrieval. This extension allows users to generate BM25 statistic sparse vectors from text, leveraging the proven performance of BM25 in various benchmark tasks.
 
 ### Why BM25?
 
@@ -82,6 +84,6 @@ Here's a step-by-step overview of how it works:
 
 ### Join the Community
 
-We invite you to try [pg\_bestmatch.rs](https://github.com/tensorchord/pg_bestmatch.rs) and share your feedback. Your contributions and suggestions are invaluable as we continue to enhance and refine this extension. Star our [GitHub repository](https://github.com/tensorchord/pg_bestmatch.rs) and join our [Discord server](https://discord.gg/KqswhpVgdU) to get started and become part of our growing community and share your feedback with us.
+We invite you to try [pg\_bestmatch.rs](/docs/bestmatch/) and share your feedback. Your contributions and suggestions are invaluable as we continue to enhance and refine this extension. Star our [GitHub repository](https://github.com/tensorchord/pg_bestmatch.rs) and join our [Discord server](https://discord.gg/KqswhpVgdU) to get started and become part of our growing community and share your feedback with us.
 
-Experience the power of BM25 text queries in PostgreSQL with [pg\_bestmatch.rs](https://github.com/tensorchord/pg_bestmatch.rs) —your new go-to tool for efficient and accurate text retrieval.
+Experience the power of BM25 text queries in PostgreSQL with [pg\_bestmatch.rs](/docs/bestmatch/) —your new go-to tool for efficient and accurate text retrieval.

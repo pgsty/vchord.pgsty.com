@@ -13,6 +13,8 @@ math: true
 aliases:
   - "/blog/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql/"
   - "/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql/"
+authors: ["keming", "jinjing-zhou"]
+images: ["/blog/covers/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql.png"]
 ---
 
 We're thrilled to announce the release of **VectorChord 0.3**, a major milestone that significantly boosts the performance and applicability of advanced vector search techniques directly within your Postgres database! Building on our 0.2 release, which brought ARM support and faster indexing, version 0.3 tackles one of the biggest hurdles in modern retrieval: **efficient multi-vector search with late interaction**.

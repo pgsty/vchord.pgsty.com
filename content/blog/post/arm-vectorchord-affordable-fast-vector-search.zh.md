@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/arm-vectorchord-affordable-fast-vector-search/"
   - "/arm-vectorchord-affordable-fast-vector-search/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/arm-vectorchord-affordable-fast-vector-search.png"]
 ---
 
 ARM64 正悄然成为高性价比云服务器的首选架构，尤其是在 AWS 上。借助 Graviton 系列（Graviton3 和 Graviton4）等基于 ARM 的处理器，你可以在不牺牲性能的前提下节省一大笔开销。这些 ARM64 实例比传统的 x86 实例实惠得多，是在云端平衡成本与性能的可靠选择。

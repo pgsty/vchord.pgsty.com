@@ -12,6 +12,8 @@ math: true
 aliases:
   - "/blog/benefits-and-steps-of-external-centroids-building-in-vectorchord/"
   - "/benefits-and-steps-of-external-centroids-building-in-vectorchord/"
+authors: ["keming"]
+images: ["/blog/covers/benefits-and-steps-of-external-centroids-building-in-vectorchord.png"]
 ---
 
 Clustering is an important component in vector search, and the k-means algorithm remains one of the most widely used techniques. However, its simplicity comes with a significant drawback: resource-intensive computation can render it impractical for large datasets. This blog explores why this challenge arises and how leveraging external builds to overcome it. We also share insights into our approach to implementing this solution.
@@ -75,7 +77,7 @@ Assuming we already have the vectors stored in VectorChord, we will need to:
 
 We provide some scripts to make it easy to get started:
 
-[External Build Documentation](/docs/usage/external-build/)
+[External Build Documentation](/docs/vchord/usage/external-build/)
 
 You can clone the repo and try it by yourself:
 

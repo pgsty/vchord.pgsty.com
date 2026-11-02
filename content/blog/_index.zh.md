@@ -12,4 +12,5 @@ cascade:
   type: blog
   upstream_source: blog
   reading_time: True
+  featured_image: banner
 ---

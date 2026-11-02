@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"
   - "/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql.png"]
 ---
 
 ## 1\. Introduction
@@ -184,7 +186,7 @@ You may notice that an effective index also requires this compaction occasionall
 
 ## 6\. Conclusion
 
-Previously, indexing the `LAION-100M` dataset with VectorChord `0.5.3` on an Amazon i7i.4xlarge instance was infeasible due to out-of-memory (OOM) failures. [Offloading clustering to a GPU](/docs/usage/external-build/) made the build possible, yielding a recall of **95.6%** at **120** QPS for querying the top 10 results, with a build time of **30 minutes** on the GPU and **420 minutes** on the i7i.4xlarge.
+Previously, indexing the `LAION-100M` dataset with VectorChord `0.5.3` on an Amazon i7i.4xlarge instance was infeasible due to out-of-memory (OOM) failures. [Offloading clustering to a GPU](/docs/vchord/usage/external-build/) made the build possible, yielding a recall of **95.6%** at **120** QPS for querying the top 10 results, with a build time of **30 minutes** on the GPU and **420 minutes** on the i7i.4xlarge.
 
 With the optimizations introduced in VectorChord `1.0.0`, the index can now be built entirely on the i7i.4xlarge instance in only **18 minutes**, achieving a recall of **94.9%** under the same QPS setting.
 

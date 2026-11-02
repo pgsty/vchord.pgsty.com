@@ -10,15 +10,17 @@ upstream_copyright: "© 2024 Ce Gao, Jinjing Zhou, Junyu Chen (TensorChord Inc.)
 aliases:
   - "/blog/vectorchord-store-400k-vectors-for-1-in-postgresql/"
   - "/vectorchord-store-400k-vectors-for-1-in-postgresql/"
+authors: ["ce-gao", "jinjing-zhou", "junyu-chen"]
+images: ["/blog/covers/vectorchord-store-400k-vectors-for-1-in-postgresql.png"]
 ---
 
-我们很高兴地宣布推出全新的 PostgreSQL 向量搜索扩展，为大规模向量管理提供极具性价比的解决方案。使用 [VectorChord](https://github.com/tensorchord/VectorChord)，您可以在 1 亿条 768 维向量数据集上执行 Top 10 查询时，以 0.95 的精度实现 131 QPS。整套环境可在单台机器上运行，每月成本仅为 $250。
+我们很高兴地宣布推出全新的 PostgreSQL 向量搜索扩展，为大规模向量管理提供极具性价比的解决方案。使用 [VectorChord](/zh/docs/vchord/)，您可以在 1 亿条 768 维向量数据集上执行 Top 10 查询时，以 0.95 的精度实现 131 QPS。整套环境可在单台机器上运行，每月成本仅为 $250。
 
 这意味着您**只需花费 $1 即可存储 40 万条向量**，从而大幅节省成本：在同等价格下，可存储的向量数量是 Pinecone（存储优化型实例）的 6 倍，更是 pgvector/pgvecto.rs 的 26 倍。
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194327962/8b0f2610-af64-4104-98db-7f94416f354e.png)
 
-基于 [MyScale 基准测试数据](https://myscale.github.io/benchmark/#/)的向量存储月度成本对比图清晰地显示，[VectorChord](https://github.com/tensorchord/VectorChord) 是极具性价比的选择，存储 1 亿条向量每月仅需 $247。相比之下，即便采用了优化存储，Pinecone 每月仍需 $1,600，Qdrant 定价为 $4,374，而 pgvector/[pgvecto.rs](/zh/docs/vectors/) 的成本更是高达 $6,580。
+基于 [MyScale 基准测试数据](https://myscale.github.io/benchmark/#/)的向量存储月度成本对比图清晰地显示，[VectorChord](/zh/docs/vchord/) 是极具性价比的选择，存储 1 亿条向量每月仅需 $247。相比之下，即便采用了优化存储，Pinecone 每月仍需 $1,600，Qdrant 定价为 $4,374，而 pgvector/[pgvecto.rs](/zh/docs/vectors/) 的成本更是高达 $6,580。
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194599461/eb1cf21d-4eb0-4427-8b39-bbb96d125182.png)
 

@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/supercharge-vector-search-with-colbert-rerank-in-postgresql/"
   - "/supercharge-vector-search-with-colbert-rerank-in-postgresql/"
+authors: ["keming"]
+images: ["/blog/covers/supercharge-vector-search-with-colbert-rerank-in-postgresql.png"]
 ---
 
 传统的向量搜索方法通常采用句子级嵌入（sentence embeddings）来定位相似内容。然而，通过对词元嵌入（token embeddings）进行池化来生成句子嵌入，可能会牺牲词元级别所蕴含的细粒度细节。[ColBERT](https://github.com/stanford-futuredata/ColBERT) 通过将文本表示为词元级多向量（multi-vectors）而非单个聚合向量，克服了这一局限。这种方法利用词元级的上下文后期交互（contextual late interaction），使 ColBERT 相比仅依赖句子嵌入的方法能够保留更微妙的语义信息，并提高搜索准确度。
@@ -24,7 +26,7 @@ aliases:
 
 多向量方法不仅局限于纯文本检索任务，还可以应用于视觉文档理解。在多模态检索模型中，诸如 [ColPali](https://huggingface.co/vidore/colpali-v1.3) 和 [ColQwen](https://huggingface.co/vidore/colqwen2-v1.0-merged) 等前沿模型直接将文档图像编码为多向量，展现出比传统“OCR 转文本”方法更强大的性能。
 
-本文将演示如何结合 PostgreSQL 扩展 [VectorChord](https://github.com/tensorchord/VectorChord/) 和 pgvector 来实现 ColBERT 重排序。
+本文将演示如何结合 PostgreSQL 扩展 [VectorChord](/zh/docs/vchord/) 和 pgvector 来实现 ColBERT 重排序。
 
 <a id="Tutorial"></a>
 ## 教程 {#tutorial}
@@ -193,7 +195,7 @@ class PgClient:
 
 ## 未来计划 {#future-work}
 
-将向量搜索、全文检索与 ColBERT 重排序相结合，可以进一步提升检索效果。我们目前也在开发 [PostgreSQL BM25 扩展](https://github.com/tensorchord/VectorChord-bm25)，敬请期待。
+将向量搜索、全文检索与 ColBERT 重排序相结合，可以进一步提升检索效果。我们目前也在开发 [PostgreSQL BM25 扩展](/zh/docs/bm25/)，敬请期待。
 
 <a id="References"></a>
 ### 参考资料 {#references}

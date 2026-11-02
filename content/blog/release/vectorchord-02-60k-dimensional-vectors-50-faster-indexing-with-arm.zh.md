@@ -12,6 +12,8 @@ upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"
   - "/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm.png"]
 ---
 
 今天，我们非常激动地向大家分享 VectorChord 0.2——这是一个凝聚了社区反馈、旨在应对 PostgreSQL 向量搜索不断演进的挑战而打造的新版本。

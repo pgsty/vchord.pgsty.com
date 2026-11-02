@@ -11,6 +11,8 @@ upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"
   - "/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"
+authors: ["ce-gao"]
+images: ["/blog/covers/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql.png"]
 ---
 
 我们很高兴地宣布发布 [pgvecto.rs](/zh/docs/vectors/) 0.2，这是弥合 PostgreSQL 中关系型查询与向量搜索之间鸿沟的重要里程碑。此次更新将两者的强大能力融为一体，不仅提升了执行效率，还支持在 PostgreSQL 内部直接运行复杂的混合查询。

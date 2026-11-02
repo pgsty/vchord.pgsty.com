@@ -11,6 +11,8 @@ math: true
 aliases:
   - "/blog/my-binary-vector-search-is-better-than-your-fp32-vectors/"
   - "/my-binary-vector-search-is-better-than-your-fp32-vectors/"
+authors: ["ce-gao"]
+images: ["/blog/covers/my-binary-vector-search-is-better-than-your-fp32-vectors.png"]
 ---
 
 在向量搜索领域，一项引人注目的技术进展正在兴起：二值向量搜索（binary vector search）。这种方法有望通过实现惊人的 30 倍内存缩减，攻克长期存在的内存消耗难题。然而，一个引发广泛讨论的关键问题是：它会对检索精度产生怎样的影响？
@@ -47,7 +49,7 @@ $$
 
 # 实验评估 {#experiment}
 
-为了评估其与原始向量方法相比的性能指标，我们使用 [`dbpedia-entities-openai3-text-embedding-3-large-3072-1M`](https://huggingface.co/datasets/Qdrant/dbpedia-entities-openai3-text-embedding-3-large-3072-1M) 数据集进行了基准测试。测试运行在 Google Cloud 的 `n2-standard-8` 虚拟机（VM）上（配备 8 个 vCPU 和 32GB 内存），并使用 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) v0.2.1 作为向量数据库。
+为了评估其与原始向量方法相比的性能指标，我们使用 [`dbpedia-entities-openai3-text-embedding-3-large-3072-1M`](https://huggingface.co/datasets/Qdrant/dbpedia-entities-openai3-text-embedding-3-large-3072-1M) 数据集进行了基准测试。测试运行在 Google Cloud 的 `n2-standard-8` 虚拟机（VM）上（配备 8 个 vCPU 和 32GB 内存），并使用 [pgvecto.rs](/zh/docs/vectors/) v0.2.1 作为向量数据库。
 
 向数据库表中插入 100 万个向量后，我们分别为原始 float32 向量和二值向量构建了索引：
 

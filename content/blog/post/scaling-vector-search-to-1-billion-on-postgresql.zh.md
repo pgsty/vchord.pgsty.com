@@ -10,6 +10,8 @@ upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/scaling-vector-search-to-1-billion-on-postgresql/"
   - "/scaling-vector-search-to-1-billion-on-postgresql/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/scaling-vector-search-to-1-billion-on-postgresql.png"]
 ---
 
 对于希望自行部署十亿级规模向量搜索的团队而言，真正的挑战往往不在于原始性能，而在于实用性。许多专为十亿级规模、低延迟向量搜索而设计的解决方案都伴随着诸多现实约束，需要在各种权衡中做出妥协，从而影响了落地的难易程度。
@@ -79,15 +81,15 @@ $$);
 
 构建配置中各个选项的作用如下：
 
-* [`build.pin`](/zh/docs/usage/indexing/#build-pin)：启用构建期内存固定（pinning），将索引的热点部分缓存在共享内存中，从而加速大规模数据集上的索引构建。
+* [`build.pin`](/zh/docs/vchord/usage/indexing/#build-pin)：启用构建期内存固定（pinning），将索引的热点部分缓存在共享内存中，从而加速大规模数据集上的索引构建。
     
-* [`residual_quantization`](/zh/docs/usage/indexing/#residual-quantization)：在 DEEP-1B 上，我们发现启用**残差量化（residual quantization）**能够提升查询性能，因此在本基准测试中保持开启。
+* [`residual_quantization`](/zh/docs/vchord/usage/indexing/#residual-quantization)：在 DEEP-1B 上，我们发现启用**残差量化（residual quantization）**能够提升查询性能，因此在本基准测试中保持开启。
     
-* [`build.internal.build_threads`](/zh/docs/usage/indexing/#build-internal-build-threads)：在 K-means 构建阶段使用 24 个线程，充分跑满实例上的可用 CPU 资源。
+* [`build.internal.build_threads`](/zh/docs/vchord/usage/indexing/#build-internal-build-threads)：在 K-means 构建阶段使用 24 个线程，充分跑满实例上的可用 CPU 资源。
     
-* [`build.internal.lists`](/zh/docs/usage/indexing/#build-internal-lists)：根据我们的经验，应根据数据行数选择合适的聚类列表大小。在大规模场景下，使用**双层列表（two-level list）**效果显著，能同时提升索引构建效率与查询性能。
+* [`build.internal.lists`](/zh/docs/vchord/usage/indexing/#build-internal-lists)：根据我们的经验，应根据数据行数选择合适的聚类列表大小。在大规模场景下，使用**双层列表（two-level list）**效果显著，能同时提升索引构建效率与查询性能。
     
-* [`build.internal.kmeans_algorithm.hierarchical`](/zh/docs/usage/indexing/#build-internal-kmeans-algorithm)：启用 VectorChord 1.0 引入的**层次化 K-means（Hierarchical K-means）**路径，大幅加快大规模索引的构建速度。
+* [`build.internal.kmeans_algorithm.hierarchical`](/zh/docs/vchord/usage/indexing/#build-internal-kmeans-algorithm)：启用 VectorChord 1.0 引入的**层次化 K-means（Hierarchical K-means）**路径，大幅加快大规模索引的构建速度。
     
 
 ## 测试结果 {#our-results}
@@ -102,13 +104,13 @@ $$);
 
 下表列出了每个数据点对应的具体搜索参数（固定 `epsilon = 1.9`，改变探测聚类数 `probes`）。综合图表数据可以看出，即使在 10 亿向量规模下，VectorChord 依然能在单机上提供稳定且可调优的查询性能。
 
-| [probes](/zh/docs/usage/indexing/#vchordrq-probes) / [epsilon](/zh/docs/usage/indexing/#vchordrq-epsilon) | Recall@Top 10 | QPS | P99 延迟 / ms |
+| [probes](/zh/docs/vchord/usage/indexing/#vchordrq-probes) / [epsilon](/zh/docs/vchord/usage/indexing/#vchordrq-epsilon) | Recall@Top 10 | QPS | P99 延迟 / ms |
 | --- | --- | --- | --- |
 | 40,120 / 1.9 | 0.9132 | 117.45 | 12.33 |
 | 40,160 / 1.9 | 0.9305 | 97.32 | 14.61 |
 | 40,250 / 1.9 | 0.9511 | 68.87 | 20.53 |
 
-| [probes](/zh/docs/usage/indexing/#vchordrq-probes) / [epsilon](/zh/docs/usage/indexing/#vchordrq-epsilon) | Recall@Top 100 | QPS | P99 延迟 / ms |
+| [probes](/zh/docs/vchord/usage/indexing/#vchordrq-probes) / [epsilon](/zh/docs/vchord/usage/indexing/#vchordrq-epsilon) | Recall@Top 100 | QPS | P99 延迟 / ms |
 | --- | --- | --- | --- |
 | 40,180 / 1.9 | 0.9051 | 66.12 | 22.60 |
 | 40,270 / 1.9 | 0.9318 | 49.55 | 30.40 |

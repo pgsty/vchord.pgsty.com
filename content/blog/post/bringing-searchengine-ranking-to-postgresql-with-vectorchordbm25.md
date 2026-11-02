@@ -11,6 +11,8 @@ upstream_copyright: "© 2025 Zoie Wang (TensorChord Inc.)"
 aliases:
   - "/blog/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"
   - "/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"
+authors: ["zoie-wang"]
+images: ["/blog/covers/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25.png"]
 ---
 
 Modern applications rely on PostgreSQL for its fully ACID‑compliant, expressive SQL, and rich ecosystem of extensions. The database handles relational workloads exceptionally well, but many projects also need to search for large text collections—product descriptions, support tickets, documentation—and present the most relevant rows first. PostgreSQL’s native tools offer a foundation for this, yet their default ranking logic can leave ideal matches buried under less useful results. VectorChord‑BM25 changes that equation by introducing the BM25 relevance‑scoring algorithm directly into PostgreSQL.

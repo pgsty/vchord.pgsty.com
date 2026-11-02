@@ -10,13 +10,15 @@ upstream_copyright: "© 2024 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-terraform-support-for-pgvectors-cloud/"
   - "/introducing-terraform-support-for-pgvectors-cloud/"
+authors: ["xieydd"]
+images: ["/blog/covers/introducing-terraform-support-for-pgvectors-cloud.png"]
 ---
 
 我们非常高兴地宣布发布适用于 [PGVecto.rs Cloud 的 Terraform Provider](https://registry.terraform.io/providers/tensorchord/pgvecto-rs-cloud/latest)。这一全新 Provider 旨在简化我们[云服务](/zh/cloud/)上的资源管理流程，让用户能够通过基础设施即代码（IaC）工具 **Terraform**，以直观、高效的方式管理 Postgres 集群的部署与运维。对于尚不熟悉 [Terraform](https://www.terraform.io/) 的读者，它是一款开源工具，用于安全、高效地构建、变更和版本化管理基础设施。它支持用户将基础设施定义为代码，从而以编程方式调配和管理各类资源。
 
 # 关于 PGVecto.rs：Postgres 中的可扩展向量搜索 {#a-word-about-pgvectors-scalable-vector-search-in-postgres}
 
-[PGVecto.rs](https://github.com/tensorchord/pgvecto.rs) 是一款 Postgres 扩展，支持可扩展的向量搜索，让你能够在 Postgres 数据库之上构建强大的相似度检索应用。
+[PGVecto.rs](/zh/docs/vectors/) 是一款 Postgres 扩展，支持可扩展的向量搜索，让你能够在 Postgres 数据库之上构建强大的相似度检索应用。
 
 PGVecto.rs 凭借多项强大特性脱颖而出：
 

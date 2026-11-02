@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/3-billion-vectors-in-postgresql-to-protect-the-earth/"
   - "/3-billion-vectors-in-postgresql-to-protect-the-earth/"
+authors: ["jinjing-zhou"]
+images: ["/blog/covers/3-billion-vectors-in-postgresql-to-protect-the-earth.png"]
 ---
 
 Monitoring the health of our planet is one of the most critical challenges of our time. Our planet faces immense environmental pressures, and understanding these changes requires sifting through an unimaginable amount of satellite data – petabytes of pixels captured constantly. From tracking deforestation in the Amazon to identifying illegal mining operations in remote regions or monitoring agricultural impacts on sensitive ecosystems, turning this data into actionable intelligence is paramount.
@@ -18,7 +20,7 @@ Earth Genome's [**Earth Index**](https://www.earthgenome.org/earth-index) platfo
 
 %[https://www.earthgenome.org/] 
 
-We at [VectorChord](https://github.com/tensorchord/VectorChord) are incredibly proud that our PostgreSQL vector search extension is playing a crucial role in powering this ambitious and vital mission.
+We at [VectorChord](/docs/vchord/) are incredibly proud that our PostgreSQL vector search extension is playing a crucial role in powering this ambitious and vital mission.
 
 ## What is Earth Index Doing? Turning Pixels into Planetary Insights
 
@@ -92,7 +94,7 @@ Finding the right balance of performance, cost, and integration was challenging.
 
 > When we evaluated solutions for our 3.2 billion vectors – recognizing the rapidly evolving tech landscape – standard pgvector didn't meet our performance requirements at that scale. Dedicated options like Qdrant posed difficulties: hosted versions were too expensive, and self-hosting clustered deployments on our Kubernetes infrastructure seemed insufficiently mature at the time. We also examined cloud services, such as Google's Vertex AI Vector Search, but the list price of $237,000 per month for our dataset was simply prohibitive.
 
-This is where [VectorChord](https://github.com/tensorchord/VectorChord) became the enabling technology:
+This is where [VectorChord](/docs/vchord/) became the enabling technology:
 
 * **Performance Beyond Vanilla PGVector:** VectorChord delivers the necessary speed enhancements – **up to 5x faster queries, 16x higher insert throughput, and 16x quicker index building** – addressing the performance limitations encountered with standard pgvector at this massive scale.
     
@@ -119,8 +121,8 @@ By providing a cost-effective, scalable, and tightly integrated vector search so
 
 [**Join the Earth Index waitlist**](https://app.earthindex.ai/waitlist/) today to explore the environmental challenges in your neighborhood, understand your ecological footprint, and be part of a global effort to protect the planet.
 
-We are thrilled to see Earth Index leverage [VectorChord](https://github.com/tensorchord/VectorChord) to turn satellite data into actionable environmental intelligence. Their success demonstrates the power of combining cutting-edge AI, robust database technology, and efficient vector search to address critical global challenges.
+We are thrilled to see Earth Index leverage [VectorChord](/docs/vchord/) to turn satellite data into actionable environmental intelligence. Their success demonstrates the power of combining cutting-edge AI, robust database technology, and efficient vector search to address critical global challenges.
 
-Interested in bringing large-scale vector search to your PostgreSQL database? Learn more about [VectorChord](https://github.com/tensorchord/VectorChord) or get started today!
+Interested in bringing large-scale vector search to your PostgreSQL database? Learn more about [VectorChord](/docs/vchord/) or get started today!
 
 %[https://github.com/tensorchord/VectorChord]

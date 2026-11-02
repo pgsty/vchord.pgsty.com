@@ -10,6 +10,8 @@ upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way/"
   - "/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way/"
+authors: ["keming"]
+images: ["/blog/covers/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way.png"]
 ---
 
 Today, we're thrilled to announce the release of [**Vechord**](https://github.com/tensorchord/vechord), a new Python library designed to dramatically simplify building robust search infrastructure directly on top of the PostgreSQL database.
@@ -29,7 +31,7 @@ Building search capabilities often means:
 
 ## **Vechord: The Simple, Pythonic Solution Built on Top of PostgreSQL**
 
-Vechord tackles these challenges head-on by leveraging the power and extensibility of PostgreSQL, enhanced with the powerful [**VectorChord**](https://github.com/tensorchord/VectorChord/) and [**VectorChord-bm25**](https://github.com/tensorchord/VectorChord-bm25) extensions. Our core philosophy is **simplicity and focus**.
+Vechord tackles these challenges head-on by leveraging the power and extensibility of PostgreSQL, enhanced with the powerful [**VectorChord**](/docs/vchord/) and [**VectorChord-bm25**](/docs/bm25/) extensions. Our core philosophy is **simplicity and focus**.
 
 Vechord provides a clean, Pythonic interface to:
 

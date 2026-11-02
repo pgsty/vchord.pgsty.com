@@ -12,6 +12,8 @@ upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"
   - "/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"
+authors: ["junyu-chen"]
+images: ["/blog/covers/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults.png"]
 ---
 
 值此马年新春开启之际，我们非常高兴地宣布发布 VectorChord 1.1。
@@ -114,7 +116,7 @@ UNION ALL
 SELECT 'table_2' AS src, id FROM table_2 ORDER BY emb <=> '[4,5,6]' LIMIT 5;
 ```
 
-除了 `vchordrq.probes` 之外，其他查询期参数也可以在创建索引时指定每索引默认值，从而让多索引查询能够依赖各自独立的、特定于索引的设置。有关可配置参数的完整列表，请参阅[回退参数（Fallback Parameters）](/zh/docs/usage/fallback-parameters/)。
+除了 `vchordrq.probes` 之外，其他查询期参数也可以在创建索引时指定每索引默认值，从而让多索引查询能够依赖各自独立的、特定于索引的设置。有关可配置参数的完整列表，请参阅[回退参数（Fallback Parameters）](/zh/docs/vchord/usage/fallback-parameters/)。
 
 <a id="Summary"></a>
 ## 总结 {#summary}

@@ -1,7 +1,7 @@
 brand:
   name: VCHORD
   tagline: 'PostgreSQL **向量**与 **BM25 全文检索**套件'
-  slogan: '高性能、可扩展、磁盘友好的 PostgreSQL 检索扩展。<br>由 TensorChord 开发，并由 [PGSTY](https://pgsty.com/zh) 接手维护。'
+  slogan: '高性能、可扩展、磁盘友好的 PostgreSQL 检索扩展。<br>原由 [TensorChord](https://github.com/tensorchord) 开发，现在由 [PGSTY](https://pgsty.com/zh) 接手维护。'
 columns:
   - title: "核心文档"
     links:

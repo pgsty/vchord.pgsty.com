@@ -18,7 +18,7 @@ hero:
     Store 400,000 vectors per $1 and index 100 million vectors in 20 minutes.
     Powered by RaBitQ 4-bit/8-bit quantization, disk-friendly IVF (`vchordrq`),
     high-QPS graphs (`vchordg`), MaxSim multi-vector retrieval, and native `pgvector` compatibility.
-  note: 'Forked from [tensorchord/VectorChord](https://github.com/tensorchord/VectorChord) · Maintained by [PGSTY](https://pigsty.io/) · [AGPL-3.0](/docs/about/license/) Open-Source License'
+  note: 'Forked from [VectorChord](https://github.com/tensorchord/VectorChord), created by [TensorChord](https://github.com/tensorchord), and now maintained by [PGSTY](https://pgsty.com/) · [AGPL-3.0](/docs/about/license/)'
   image:
     light: img/vchord-architecture-light.svg
     dark: img/vchord-architecture-dark.svg

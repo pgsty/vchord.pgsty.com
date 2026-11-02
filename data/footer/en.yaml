@@ -1,7 +1,7 @@
 brand:
   name: VCHORD
   tagline: '**V**ector & **BM25** Search for PostgreSQL'
-  slogan: 'Scalable, fast, and disk-friendly retrieval extensions for PostgreSQL.<br>Originally developed by TensorChord, maintained by [PGSTY](https://pgsty.com/).'
+  slogan: 'Scalable, fast, and disk-friendly retrieval extensions for PostgreSQL.<br>Originally developed by [TensorChord](https://github.com/tensorchord), now maintained by [PGSTY](https://pgsty.com/).'
 columns:
   - title: "Documentation"
     links:

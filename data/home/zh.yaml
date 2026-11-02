@@ -18,7 +18,7 @@ hero:
     每 1 美元即可存储 40 万条向量，20 分钟完成 1 亿条向量索引构建。
     基于 RaBitQ 4-bit/8-bit 量化、磁盘友好型倒排索引（`vchordrq`）、
     高吞吐图索引（`vchordg`）、MaxSim 多向量检索，原生兼容 `pgvector` 生态。
-  note: 'Fork 自上游仓库 [tensorchord/VectorChord](https://github.com/tensorchord/VectorChord) · 由 [PGSTY](https://pigsty.cc/) 社区维护 · [AGPL-3.0](/zh/docs/about/license/) 开源许可证'
+  note: 'Fork 自 [VectorChord](https://github.com/tensorchord/VectorChord) · 原由 [TensorChord](https://github.com/tensorchord) 开发 · 现由 [PGSTY](https://pigsty.cc/) 社区维护 · [AGPL-3.0](/zh/docs/about/license/) 许可证'
   image:
     light: img/vchord-architecture-light.svg
     dark: img/vchord-architecture-dark.svg

@@ -1,0 +1,43 @@
+{{- $page := .page -}}{{- $data := .data -}}{{- $id := .id -}}
+{{- $scope := printf "landing-%s" $id -}}{{- $items := $data.items | default (slice) -}}
+{{- $interactive := eq (lower ($page.Store.Get "tdOutputFormat" | default "html")) "html" -}}
+{{- /* A section whose data does not parse warns and renders nothing; a bad
+       item is skipped and its siblings still render. The landing page keeps
+       every other section either way. */ -}}
+{{- $ok := true -}}
+{{- if or (not (reflect.IsSlice $items)) (not $items) -}}
+  {{- warnf "%s: steps.items must be a non-empty array; skipping the section" $page.Path -}}
+  {{- $ok = false -}}
+{{- end -}}
+{{- if $ok -}}
+<section id="{{ $id }}" class="td-landing-section td-landing-steps-section{{ with $data.class }} {{ . }}{{ end }}"{{ with $data.title }} aria-labelledby="{{ $id }}-title"{{ end }}>
+  <div class="td-site-container">
+    {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
+    <ol class="td-landing-landing-steps"{{ if $interactive }} data-td-reveal{{ end }}>
+      {{- range $index, $item := $items }}{{- $scope := printf "%s-item-%v" $scope $index -}}
+        {{- if not (reflect.IsMap $item) }}{{ warnf "%s: steps item %d must be a map; skipping it" $page.Path (add $index 1) }}{{ continue }}{{ end -}}
+        {{- if not ($item.title | default "") }}{{ warnf "%s: steps item %d requires title; skipping it" $page.Path (add $index 1) }}{{ continue }}{{ end -}}
+      <li>{{ with $item.icon }}<i class="{{ . }}" aria-hidden="true"></i>{{ end }}<h3>{{ partial "landing/markdown.html" (dict "page" $page "scope" (printf "%s-steps-field-1" $scope) "value" $item.title) }}</h3>{{ with ($item.desc | default $item.text) }}<div>{{ partial "landing/markdown-block.html" (dict "page" $page "scope" (printf "%s-steps-field-2" $scope) "value" .) }}</div>{{ end }}
+        {{- with $item.cmd }}
+          {{- if not (reflect.IsMap .) }}{{ warnf "%s: steps item %d cmd must be a map; dropping the command" $page.Path (add $index 1) }}{{ else -}}
+          {{- $code := strings.TrimSpace (printf "%v" (.code | default "")) -}}{{- if not $code }}{{ warnf "%s: steps item %d cmd.code is required; dropping the command" $page.Path (add $index 1) }}{{ else -}}
+          {{- if $interactive }}{{ $page.Store.Set "hasLanding" true }}{{ end -}}
+          {{- $lang := strings.TrimSpace (printf "%v" (.lang | default "bash")) -}}
+          {{- $hl := transform.Highlight $code $lang (dict "noClasses" false) -}}
+          {{- $inner := $hl | replaceRE `^<div class="highlight"><pre[^>]*><code[^>]*>` "" | replaceRE `</code></pre></div>\s*$` "" -}}
+          {{- $inner = $inner | replaceRE `^(<span class="line"><span class="cl">)(docker|psql|pig)(\s+run\b)?` `$1<span class="gp" aria-hidden="true">$ </span><span class="nb">$2</span><span class="nf">$3</span>` -}}
+          {{- $inner = $inner | replaceRE `(\s)(-[a-zA-Z0-9-]+)\b` `$1<span class="na">$2</span>` -}}
+          {{- $inner = $inner | replaceRE `(\s)(5432:5432|127\.0\.0\.1)\b` `$1<span class="m">$2</span>` -}}
+          {{- $inner = $inner | replaceRE `(tensorchord/vchord-postgres)(:)(pg18-v[0-9.]+)` `<span class="s">$1</span><span class="o">$2</span><span class="nf">$3</span>` -}}
+          {{- $inner = $inner | replaceRE `\b(CREATE|EXTENSION|IF|NOT|EXISTS|CASCADE|INDEX|ON|USING)\b` `<span class="k">$1</span>` -}}
+          {{- $inner = $inner | replaceRE `\b(vchordrq|vchordg|vector_l2_ops)\b` `<span class="nf">$1</span>` -}}
+        <div class="td-landing-step-command" data-bs-theme="dark"><code class="chroma">{{ $inner | safeHTML }}</code>{{ if $interactive }}<button type="button" data-td-copy-text="{{ $code }}" data-td-label-copied="{{ T "ui_code_copied" }}" aria-label="{{ T "ui_code_copy_label" }}"><i class="fa-regular fa-copy" aria-hidden="true"></i><span data-td-copy-status aria-live="polite"></span></button>{{ end }}</div>
+          {{- end -}}
+          {{- end -}}
+        {{- end }}
+      </li>
+      {{- end }}
+    </ol>
+  </div>
+</section>
+{{- end -}}

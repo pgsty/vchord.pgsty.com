@@ -1,0 +1,21 @@
+{{- $lines := .lines -}}
+{{- $position := .position | default "landing code lines" -}}
+{{- if not (reflect.IsSlice $lines) }}{{ warnf "%s must be an array; rendering no lines" $position }}{{ $lines = slice }}{{ end -}}
+{{- $rawLines := slice -}}
+{{- range $index, $line := $lines -}}
+  {{- if not (reflect.IsMap $line) }}{{ warnf "%s line %d must be a map; skipping it" $position (add $index 1) }}{{ continue }}{{ end -}}
+  {{- $class := strings.TrimSpace (printf "%v" ($line.class | default "")) -}}
+  {{- if and $class (not (in (slice "k" "s" "v" "c" "ok" "p") $class)) }}{{ warnf "%s line %d has unsupported class %q; dropping the class" $position (add $index 1) $class }}{{ end -}}
+  {{- if not (isset $line "text") }}{{ warnf "%s line %d requires text; skipping it" $position (add $index 1) }}{{ continue }}{{ end -}}
+  {{- $rawLines = $rawLines | append (printf "%s%s" ($line.prefix | default "") ($line.text | default "")) -}}
+{{- end -}}
+{{- $raw := delimit $rawLines "\n" -}}
+{{- $hl := transform.Highlight $raw "sql" (dict "noClasses" false) -}}
+{{- $inner := $hl | replaceRE `^<div class="highlight"><pre[^>]*><code[^>]*>` "" | replaceRE `</code></pre></div>\s*$` "" -}}
+{{- $inner = $inner | replaceRE `<span class="err">\$\$</span>` `<span class="dl">$$$$</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="err">@#</span>` `<span class="o">@#</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(EXTENSION)</span>` `<span class="k">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(bigserial|vector|halfvec|rabitq4|rabitq8|bm25vector)</span>` `<span class="kt">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(vchordrq|vchordg|vector_l2_ops|vector_ip_ops|vector_cosine_ops|vector_maxsim_ops)</span>` `<span class="nf">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(residual_quantization|lists|m|ef_construction|alpha|bits)</span>` `<span class="na">$1</span>` -}}
+{{- `<span class="chroma">` | safeHTML -}}{{- $inner | safeHTML -}}{{- `</span>` | safeHTML -}}

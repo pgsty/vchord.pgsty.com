@@ -31,15 +31,15 @@ hero:
     hide_below: lg
   actions:
     - label: Get Started
-      url: /docs/getting-started/overview/
+      url: /docs/vchord/getting-started/overview/
       icon: fa-solid fa-rocket
       style: primary
     - label: Installation
-      url: /docs/getting-started/installation/
+      url: /docs/vchord/getting-started/installation/
       icon: fa-solid fa-download
       style: ghost
     - label: Benchmarks
-      url: /docs/benchmark/performance/
+      url: /docs/vchord/benchmark/performance/
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
@@ -50,24 +50,24 @@ metrics:
   eyebrow: Proven at 100M+ Scale
   title: Enterprise vector scale at a fraction of the RAM
   desc: Benchmarks on GIST-1M, Cohere-10M, and LAION-100M against HNSW and commercial vector databases.
-  columns: 4
+  columns: 2
   link_label: View benchmark
   items:
     - value: "400k / $1"
       label: Vectors per dollar
       desc: 26x more vectors stored per $1 on AWS vs pgvector HNSW
       icon: fa-solid fa-coins
-      url: /docs/benchmark/price/
+      url: /docs/vchord/benchmark/price/
     - value: "20 min"
       label: 100M index build
       desc: External index precomputation or 6x faster in-DB build
       icon: fa-solid fa-bolt
-      url: /docs/usage/external-build/
+      url: /docs/vchord/usage/external-build/
     - value: "16×"
       label: Faster insert throughput
       desc: Minimal write amplification compared to in-memory HNSW
       icon: fa-solid fa-gauge-high
-      url: /docs/benchmark/performance/
+      url: /docs/vchord/benchmark/performance/
     - value: "95%+"
       label: Recall@10 accuracy
       desc: Guaranteed theoretical error bounds with RaBitQ4 and RaBitQ8
@@ -81,7 +81,7 @@ capabilities:
   items:
     - ref: 01 / VCHORDRQ · DISK-FRIENDLY IVF
       title: Scale to 100M+ vectors on SSD
-      url: /docs/usage/indexing/
+      url: /docs/vchord/usage/indexing/
       motto: Hierarchical K-Means + RaBitQ 4/8-bit Quantization
       bullets:
         - 'Compresses 32-bit vectors by **8×–32×** with bounded error'
@@ -105,7 +105,7 @@ capabilities:
           - { class: v, prefix: '  ', text: '$$);' }
     - ref: 02 / VCHORDG · HIGH-QPS GRAPH
       title: Fast graph search without bloat
-      url: /docs/usage/indexing/
+      url: /docs/vchord/usage/indexing/
       motto: Single-layer RaBitQ graph index for low-latency search
       bullets:
         - 'Delivers **2×–5× higher QPS** and lower p99 latency than HNSW'
@@ -128,7 +128,7 @@ capabilities:
           - { class: v, prefix: '  ', text: '$$);' }
     - ref: 03 / MAXSIM · MULTI-VECTOR RETRIEVAL
       title: Native ColBERT & ColPali in SQL
-      url: /docs/usage/multi-vector-retrieval/
+      url: /docs/vchord/usage/multi-vector-retrieval/
       motto: Native vector[] indexing with WARP dynamic pruning
       bullets:
         - 'Indexes `vector[]` token-level embeddings with `@#` (`MaxSim`)'
@@ -162,24 +162,24 @@ capabilities:
         aria_label: Vchord retrieval ecosystem components
         columns: 2
         items:
-          - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/getting-started/overview/ }
+          - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/vchord/ }
           - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 index, url: /docs/bm25/ }
           - { icon: fa-solid fa-language, title: pg_tokenizer, detail: Multilingual & LLM tokenizers, url: /docs/tokenizer/ }
-          - { icon: fa-solid fa-database, title: pgvector Types, detail: vector & halfvec compatible, url: /docs/getting-started/overview/ }
+          - { icon: fa-solid fa-circle-nodes, title: pgvector, detail: vector · halfvec · sparsevec, url: /docs/vector/ }
           - { icon: fa-solid fa-code-merge, title: RRF Hybrid Search, detail: Fuse vector & BM25 in SQL, url: /docs/bm25/usage/hybrid-search/ }
-          - { icon: fa-solid fa-box-open, title: Pigsty Packages, detail: Native EL / Debian / Ubuntu, url: /docs/getting-started/installation/ }
+          - { icon: fa-solid fa-ranking-star, title: pg_bestmatch, detail: BM25 sparse vector generator, url: /docs/bestmatch/ }
 
 suite:
   eyebrow: Documentation Sections
   title: Explore the complete Vchord documentation
-  desc: Everything from quickstart SQL and production tuning to BM25 full-text ranking, multilingual tokenizers, engineering articles, and pgvecto.rs references.
+  desc: Complete documentation for all six PostgreSQL vector search, BM25 ranking, and tokenization extensions in the Vchord ecosystem.
   columns: 3
   items:
     - title: vchord Documentation
       meta: Core Vector Engine · v1.1.1
-      icon: fa-solid fa-book
+      icon: fa-solid fa-layer-group
       desc: Installation, vchordrq & vchordg indexing, MaxSim multi-vector search, range queries, performance tuning, external index builds, and SQL reference.
-      url: /docs/
+      url: /docs/vchord/
     - title: vchord_bm25 Documentation
       meta: Native BM25 Ranking Index
       icon: fa-solid fa-magnifying-glass
@@ -190,21 +190,21 @@ suite:
       icon: fa-solid fa-language
       desc: Text analyzer pipelines, multilingual pre-tokenizers (Jieba, Lindera), Snowball stemmers, stopwords, synonyms, and custom models.
       url: /docs/tokenizer/
-    - title: Benchmarks & Cost Analysis
-      meta: Performance & TCO
-      icon: fa-solid fa-chart-line
-      desc: Reproducible benchmarks across GIST-1M, Cohere-10M, and LAION-100M comparing vchord with pgvector, pgvectorscale, Elasticsearch, and Qdrant.
-      url: /docs/benchmark/
-    - title: Engineering Blog & Releases
-      meta: 37 Articles & Release Notes
-      icon: fa-solid fa-blog
-      desc: Deep dives on RaBitQ quantization, 100M–1B vector benchmarks, DiskANN vs HNSW, BM25 Block-WAND, ColBERT WARP, and all release notes.
-      url: /blog/
-    - title: pgvecto.rs Archive & Migration
+    - title: pgvector Documentation
+      meta: Foundational Vector Extension
+      icon: fa-solid fa-circle-nodes
+      desc: Core vector, halfvec, bit, and sparsevec types, exact and approximate KNN search, HNSW and IVFFlat indexing, and iterative index scans.
+      url: /docs/vector/
+    - title: pgvecto.rs Documentation
       meta: Predecessor Reference
       icon: fa-solid fa-cube
       desc: Complete historical documentation for pgvecto.rs (v0.1–v0.4) plus step-by-step migration guides to move existing deployments to vchord.
       url: /docs/vectors/
+    - title: pg_bestmatch Documentation
+      meta: BM25 Sparse Vector Generator
+      icon: fa-solid fa-ranking-star
+      desc: In-database Okapi BM25 sparse vector generation, WordPiece tokenization, and lexical similarity search over pgvector and pgvecto.rs.
+      url: /docs/bestmatch/
 
 steps:
   eyebrow: Quick Start
@@ -213,7 +213,7 @@ steps:
   items:
     - icon: fa-brands fa-docker
       title: Start PG with vchord
-      desc: Run the prebuilt Docker container or install native packages via [Pigsty](/docs/getting-started/installation/).
+      desc: Run the prebuilt Docker container or install native packages via [Pigsty](/docs/vchord/getting-started/installation/).
       cmd:
         code: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres tensorchord/vchord-postgres:pg18-v1.1.1
     - icon: fa-solid fa-plug
@@ -256,13 +256,13 @@ faq:
         **`vchord`** is the next-generation successor to [`pgvecto.rs`](/docs/vectors/), redesigned around SIGMOD'24 **RaBitQ**
         quantization and PostgreSQL's native page storage and WAL replication. Unlike `pgvecto.rs`, `vchord` uses `pgvector`'s
         standard `vector` and `halfvec` types and `<->`, `<#>`, `<=>` operators directly—so existing `pgvector` applications
-        can switch indexes (`USING vchordrq` or `USING vchordg`) without rewriting queries. See the [Migration Guide](/docs/admin/migration/).
+        can switch indexes (`USING vchordrq` or `USING vchordg`) without rewriting queries. See the [Migration Guide](/docs/vchord/admin/migration/).
     - question: When should I choose vchordrq versus vchordg?
       answer: >-
         Choose **`vchordrq`** (RaBitQ Inverted File) for large datasets (1M to 100M+ vectors), cost-sensitive deployments,
         high insert/update throughput, or when your vectors exceed available RAM. Choose **`vchordg`** (RaBitQ Graph) when
         your dataset fits comfortably in memory and you need maximum QPS and ultra-low single-query latency without HNSW's
-        multi-layer memory overhead. Compare both in the [Indexing Guide](/docs/usage/indexing/).
+        multi-layer memory overhead. Compare both in the [Indexing Guide](/docs/vchord/usage/indexing/).
     - question: How do vchord, vchord_bm25, and pg_tokenizer work together?
       answer: >-
         [`pg_tokenizer`](/docs/tokenizer/) segments multilingual or English text into sparse `bm25vector` token-frequency representations,
@@ -274,11 +274,11 @@ cta:
   desc: Follow the Getting Started guide, explore the SQL reference, or read the engineering blog.
   actions:
     - label: Getting Started
-      url: /docs/getting-started/overview/
+      url: /docs/vchord/getting-started/overview/
       icon: fa-solid fa-rocket
       style: primary
     - label: Indexing Guide
-      url: /docs/usage/indexing/
+      url: /docs/vchord/usage/indexing/
       icon: fa-solid fa-terminal
       style: ghost
     - label: Read the Blog

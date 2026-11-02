@@ -31,15 +31,15 @@ hero:
     hide_below: lg
   actions:
     - label: 快速开始
-      url: /docs/getting-started/overview/
+      url: /docs/vchord/getting-started/overview/
       icon: fa-solid fa-rocket
       style: primary
     - label: 安装部署
-      url: /docs/getting-started/installation/
+      url: /docs/vchord/getting-started/installation/
       icon: fa-solid fa-download
       style: ghost
     - label: 基准测试
-      url: /docs/benchmark/performance/
+      url: /docs/vchord/benchmark/performance/
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
@@ -50,24 +50,24 @@ metrics:
   eyebrow: 亿级规模生产验证
   title: 以极低内存开销实现企业级向量检索规模
   desc: 基于 GIST-1M、Cohere-10M 与 LAION-100M 数据集，与 HNSW 及主流专用向量数据库进行全方位基准对比。
-  columns: 4
+  columns: 2
   link_label: 查看基准测试
   items:
     - value: "400k / $1"
       label: 每美元存储向量数
       desc: 在 AWS 上每美元可存储向量数为 pgvector HNSW 的 26 倍
       icon: fa-solid fa-coins
-      url: /docs/benchmark/price/
+      url: /docs/vchord/benchmark/price/
     - value: "20 分钟"
       label: 1 亿向量索引构建
       desc: 支持外部预计算构建索引，数据库内构建速度提升 6 倍以上
       icon: fa-solid fa-bolt
-      url: /docs/usage/external-build/
+      url: /docs/vchord/usage/external-build/
     - value: "16×"
       label: 写入吞吐提升
       desc: 相比全内存 HNSW 显著降低写放大与写入开销
       icon: fa-solid fa-gauge-high
-      url: /docs/benchmark/performance/
+      url: /docs/vchord/benchmark/performance/
     - value: "95%+"
       label: Recall@10 召回率
       desc: RaBitQ4 与 RaBitQ8 提供具备严格理论误差下界的距离估计
@@ -81,7 +81,7 @@ capabilities:
   items:
     - ref: 01 / VCHORDRQ · 磁盘友好型 IVF
       title: 突破内存瓶颈的亿级向量检索
-      url: /docs/usage/indexing/
+      url: /docs/vchord/usage/indexing/
       motto: 层次化 K-Means 聚类 + RaBitQ 4/8-bit 残差量化
       bullets:
         - '32 位浮点向量压缩 **8× 至 32×**，具备严格理论误差下界'
@@ -105,7 +105,7 @@ capabilities:
           - { class: v, prefix: '  ', text: '$$);' }
     - ref: 02 / VCHORDG · 高吞吐图索引
       title: 告别内存膨胀的高吞吐图检索
-      url: /docs/usage/indexing/
+      url: /docs/vchord/usage/indexing/
       motto: 面向延迟敏感负载的单层 RaBitQ 图索引
       bullets:
         - '消除多层 HNSW 内存开销，实现 **2×–5× QPS** 与更低 P99 延迟'
@@ -128,7 +128,7 @@ capabilities:
           - { class: v, prefix: '  ', text: '$$);' }
     - ref: 03 / MAXSIM · 多向量晚期交互
       title: SQL 原生多向量重排与视觉检索
-      url: /docs/usage/multi-vector-retrieval/
+      url: /docs/vchord/usage/multi-vector-retrieval/
       motto: 基于 WARP 动态剪枝的原生 vector[] 多向量索引
       bullets:
         - '原生支持 `vector[]` 词元级文档嵌入与 `@#` 操作符索引'
@@ -162,24 +162,24 @@ capabilities:
         aria_label: Vchord 检索生态组件
         columns: 2
         items:
-          - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/getting-started/overview/ }
+          - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/vchord/ }
           - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 索引, url: /docs/bm25/ }
           - { icon: fa-solid fa-language, title: pg_tokenizer, detail: 多语言与 LLM 分词器, url: /docs/tokenizer/ }
-          - { icon: fa-solid fa-database, title: pgvector 兼容, detail: 原生支持 vector 与 halfvec, url: /docs/getting-started/overview/ }
+          - { icon: fa-solid fa-circle-nodes, title: pgvector, detail: vector · halfvec · sparsevec, url: /docs/vector/ }
           - { icon: fa-solid fa-code-merge, title: RRF 混合检索, detail: 单条 SQL 融合向量与全文, url: /docs/bm25/usage/hybrid-search/ }
-          - { icon: fa-solid fa-box-open, title: Pigsty 软件包, detail: EL / Debian / Ubuntu 原生安装, url: /docs/getting-started/installation/ }
+          - { icon: fa-solid fa-ranking-star, title: pg_bestmatch, detail: BM25 稀疏向量生成器, url: /docs/bestmatch/ }
 
 suite:
   eyebrow: 文档导航
   title: 探索完整的 Vchord 技术文档
-  desc: 涵盖从快速上手 SQL 与生产环境调优，到 BM25 全文排序、多语言分词器、工程深度解析博客以及 pgvecto.rs 历史归档的全部内容。
+  desc: 涵盖 Vchord 检索生态中全部六个 PostgreSQL 向量相似性检索、BM25 全文排序与多语言分词扩展的完整技术文档。
   columns: 3
   items:
-    - title: vchord 核心文档
+    - title: vchord 文档
       meta: 核心向量引擎 · v1.1.1
-      icon: fa-solid fa-book
+      icon: fa-solid fa-layer-group
       desc: 涵盖安装部署、vchordrq 与 vchordg 索引构建、MaxSim 多向量检索、范围过滤、性能调优、外部索引构建与完整 SQL 参考手册。
-      url: /docs/
+      url: /docs/vchord/
     - title: vchord_bm25 文档
       meta: 原生 BM25 排序索引
       icon: fa-solid fa-magnifying-glass
@@ -190,21 +190,21 @@ suite:
       icon: fa-solid fa-language
       desc: 涵盖文本分析流水线、多语言预分词器（结巴中文、Lindera 日文）、词干提取、停用词、同义词过滤与自定义语料词表模型训练。
       url: /docs/tokenizer/
-    - title: 基准测试与成本分析
-      meta: 性能与 TCO 对比
-      icon: fa-solid fa-chart-line
-      desc: 基于 GIST-1M、Cohere-10M 与 LAION-100M 的可复现基准测试，全方位对比 vchord 与 pgvector、Elasticsearch 及 Qdrant。
-      url: /docs/benchmark/
-    - title: 工程博客与版本发布
-      meta: 37 篇深度技术文章与发布说明
-      icon: fa-solid fa-blog
-      desc: 深入剖析 RaBitQ 量化、亿级至十亿级向量基准测试、DiskANN 与 HNSW 对比、BM25 Block-WAND、ColBERT WARP 及历次版本发布说明。
-      url: /blog/
-    - title: pgvecto.rs 归档与迁移
+    - title: pgvector 文档
+      meta: 基础向量检索扩展
+      icon: fa-solid fa-circle-nodes
+      desc: 涵盖 vector、halfvec、bit 与 sparsevec 数据类型、距离度量操作符、HNSW 与 IVFFlat 索引构建及迭代式过滤索引扫描。
+      url: /docs/vector/
+    - title: pgvecto.rs 文档
       meta: 前代产品参考手册
       icon: fa-solid fa-cube
       desc: 提供 pgvecto.rs（v0.1–v0.4）完整历史技术文档与配置参考，以及将现有生产部署平滑迁移至 vchord 的分步实操指南。
       url: /docs/vectors/
+    - title: pg_bestmatch 文档
+      meta: BM25 稀疏向量生成器
+      icon: fa-solid fa-ranking-star
+      desc: 在 PostgreSQL 数据库内直接计算语料库 TF/IDF 统计并生成兼容 pgvector 与 pgvecto.rs 的 BM25 加权稀疏向量。
+      url: /docs/bestmatch/
 
 steps:
   eyebrow: 快速上手
@@ -213,7 +213,7 @@ steps:
   items:
     - icon: fa-brands fa-docker
       title: 启动内置 vchord 的 PG
-      desc: 直接运行预构建的 Docker 容器镜像，或通过 [Pigsty 仓库](/zh/docs/getting-started/installation/)安装原生软件包。
+      desc: 直接运行预构建的 Docker 容器镜像，或通过 [Pigsty 仓库](/zh/docs/vchord/getting-started/installation/)安装原生软件包。
       cmd:
         code: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres tensorchord/vchord-postgres:pg18-v1.1.1
     - icon: fa-solid fa-plug
@@ -252,12 +252,12 @@ faq:
         **`vchord`** 是 [`pgvecto.rs`](/zh/docs/vectors/) 的下一代架构继任者，围绕 SIGMOD'24 **RaBitQ** 量化算法以及
         PostgreSQL 原生页面存储与 WAL 复制机制重新设计。不同于 `pgvecto.rs`，`vchord` 直接复用 `pgvector` 标准的
         `vector` 和 `halfvec` 数据类型以及 `<->`、`<#>`、`<=>` 操作符，因此现有的 `pgvector` 应用只需切换索引访问方法
-        （`USING vchordrq` 或 `USING vchordg`），无需改写业务查询语句。详见[迁移指南](/zh/docs/admin/migration/)。
+        （`USING vchordrq` 或 `USING vchordg`），无需改写业务查询语句。详见[迁移指南](/zh/docs/vchord/admin/migration/)。
     - question: 什么时候应该选择 vchordrq，什么时候选择 vchordg？
       answer: >-
         对于大规模数据集（100 万至 1 亿+ 向量）、成本敏感型部署、高写入/更新吞吐场景，或当向量规模超出可用内存时，
         请选择 **`vchordrq`**（RaBitQ 倒排文件索引）。当工作集可以轻松放入内存，且你需要极致的 QPS 与极低的单次查询延迟、
-        同时希望避免 HNSW 多层图结构的内存膨胀时，请选择 **`vchordg`**（RaBitQ 图索引）。两者详细对比请参阅[索引指南](/zh/docs/usage/indexing/)。
+        同时希望避免 HNSW 多层图结构的内存膨胀时，请选择 **`vchordg`**（RaBitQ 图索引）。两者详细对比请参阅[索引指南](/zh/docs/vchord/usage/indexing/)。
     - question: vchord、vchord_bm25 与 pg_tokenizer 如何协同实现混合检索？
       answer: >-
         [`pg_tokenizer`](/zh/docs/tokenizer/) 负责将中英日等多语言文本切分为稀疏词频向量（`bm25vector`），[`vchord_bm25`](/zh/docs/bm25/)
@@ -269,11 +269,11 @@ cta:
   desc: 阅读快速开始指南，查阅 SQL 参考手册，或深入探索工程技术博客。
   actions:
     - label: 快速开始
-      url: /docs/getting-started/overview/
+      url: /docs/vchord/getting-started/overview/
       icon: fa-solid fa-rocket
       style: primary
     - label: 索引指南
-      url: /docs/usage/indexing/
+      url: /docs/vchord/usage/indexing/
       icon: fa-solid fa-terminal
       style: ghost
     - label: 阅读技术博客

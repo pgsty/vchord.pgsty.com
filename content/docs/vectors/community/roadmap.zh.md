@@ -9,7 +9,7 @@ aliases:
 ---
 
 > [!WARNING]
-> 我们强烈建议你了解并选用我们全新的 [VectorChord](https://github.com/pgsty/vchord) 实现，它提供了更高的稳定性和性能。建议现有用户迁移至 VectorChord，具体步骤请参阅[迁移指南](/zh/docs/admin/migration/)。
+> 我们强烈建议你了解并选用我们全新的 [VectorChord](https://github.com/pgsty/vchord) 实现，它提供了更高的稳定性和性能。建议现有用户迁移至 VectorChord，具体步骤请参阅[迁移指南](/zh/docs/vchord/admin/migration/)。
 
 ## 中期规划 {#midterm-plan}
 

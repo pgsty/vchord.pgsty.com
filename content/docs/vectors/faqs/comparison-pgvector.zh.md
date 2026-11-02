@@ -16,12 +16,12 @@ aliases:
 <a id="Search"></a>
 ## 检索能力 {#search}
 
-检索是数据库的核心能力，对于实现高效的数据获取、帮助用户快速查找所需信息至关重要。下面我们将展示 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 与 pgvector 的性能表现，并重点对比二者提供的各项功能特性。
+检索是数据库的核心能力，对于实现高效的数据获取、帮助用户快速查找所需信息至关重要。下面我们将展示 [pgvecto.rs](/zh/docs/vectors/) 与 pgvector 的性能表现，并重点对比二者提供的各项功能特性。
 
 <a id="Filtering"></a>
 ### 过滤检索 {#filtering}
 
-虽然 pgvector 和 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 都支持在 PostgreSQL 中进行向量相似度检索，但 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 更进一步，引入了来自 [OSDI 2023 的 VBASE 方法](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi)。
+虽然 pgvector 和 [pgvecto.rs](/zh/docs/vectors/) 都支持在 PostgreSQL 中进行向量相似度检索，但 [pgvecto.rs](/zh/docs/vectors/) 更进一步，引入了来自 [OSDI 2023 的 VBASE 方法](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi)。
 
 真实业务负载通常涉及**向量检索与关系型查询的结合**。向量检索擅长相似度匹配与相似向量召回，而关系型查询则支持对结构化数据执行复杂的连接（JOIN）、过滤（Filter）和聚合（Aggregation）。
 
@@ -39,7 +39,7 @@ aliases:
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1707279248378/4ebbb813-0593-4949-9898-9abdee58e4fc.png)
 
-当结合 VBASE 使用时，[**pgvecto.rs**](https://github.com/tensorchord/pgvecto.rs/) 能够始终保持更高的召回率，尤其是在低选择率（高过滤比）场景下优势极为显著。
+当结合 VBASE 使用时，[**pgvecto.rs**](/zh/docs/vectors/) 能够始终保持更高的召回率，尤其是在低选择率（高过滤比）场景下优势极为显著。
 
 ### 稀疏向量检索 {#sparse-vector-search}
 
@@ -59,7 +59,7 @@ D[1\times 256]=\left[ \begin{matrix} 0.342 & 1.774 & 0.087 & 0.870 & 0.001 & \cd
 $$
 
 
-[pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 同时支持稠密向量检索和[稀疏向量检索](/zh/docs/vectors/use-case/sparse-vector/)。它提供了 [`svector`](/zh/docs/vectors/use-case/sparse-vector/) 数据类型，用于构建稀疏向量索引并执行高效检索：
+[pgvecto.rs](/zh/docs/vectors/) 同时支持稠密向量检索和[稀疏向量检索](/zh/docs/vectors/use-case/sparse-vector/)。它提供了 [`svector`](/zh/docs/vectors/use-case/sparse-vector/) 数据类型，用于构建稀疏向量索引并执行高效检索：
 
 ```sql
 CREATE TABLE items (
@@ -76,7 +76,7 @@ SELECT * FROM items ORDER BY embedding <-> '[0.3,0,0,0,0,0,0,0,0,0]' LIMIT 1;
 
 ### 向量维度上限 {#vector-dimensions}
 
-[pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 扩展支持最高 65,535 维的向量，而 pgvector 扩展的 `vector` 索引最多仅支持 2,000 维。这一维度上限的差异使得 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 能够直接处理 OpenAI 最新高维嵌入模型生成的向量。
+[pgvecto.rs](/zh/docs/vectors/) 扩展支持最高 65,535 维的向量，而 pgvector 扩展的 `vector` 索引最多仅支持 2,000 维。这一维度上限的差异使得 [pgvecto.rs](/zh/docs/vectors/) 能够直接处理 OpenAI 最新高维嵌入模型生成的向量。
 
 <a id="single-instruction-multiple-data-simd"></a>
 ### 单指令多数据流（SIMD） {#single-instructionmultiple-data-simd}
@@ -87,7 +87,7 @@ SELECT * FROM items ORDER BY embedding <-> '[0.3,0,0,0,0,0,0,0,0,0]' LIMIT 1;
 
 ### 二值向量 {#binary-vector}
 
-[`bvector`](/zh/docs/vectors/reference/vector-types/bvector/) 是 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 中的二值向量类型，表示每个分量仅取两个可能值（通常为 0 和 1）的向量。
+[`bvector`](/zh/docs/vectors/reference/vector-types/bvector/) 是 [pgvecto.rs](/zh/docs/vectors/) 中的二值向量类型，表示每个分量仅取两个可能值（通常为 0 和 1）的向量。
 
 ```sql
 CREATE TABLE items (
@@ -113,7 +113,7 @@ SELECT * FROM items ORDER BY embedding <-> '[1,0,1]' LIMIT 5;
 <a id="fp16-int8"></a>
 ### FP16/INT8 {#fp16int8}
 
-除二值向量外，[pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 还支持 [FP16（16 位浮点数）](/zh/docs/vectors/reference/vector-types/vecf16/)数据类型以及 INT8（8 位整数）量化存储。
+除二值向量外，[pgvecto.rs](/zh/docs/vectors/) 还支持 [FP16（16 位浮点数）](/zh/docs/vectors/reference/vector-types/vecf16/)数据类型以及 INT8（8 位整数）量化存储。
 
 <a id="Indexing"></a>
 ## 索引架构 {#indexing}
@@ -126,7 +126,7 @@ SELECT * FROM items ORDER BY embedding <-> '[1,0,1]' LIMIT 5;
 * **预写式日志（WAL）写放大**：插入一条 2 KB 的向量往往会产生超过 20 KB 的 WAL 日志。这一问题源于 HNSW 算法本身的特性——每插入一个节点都需要修改图中的多条边，而 PostgreSQL 会在 WAL 中逐条记录每一次页面修改，从而导致严重的 WAL 写放大。
 * **锁竞争（Lock Contention）**：在遍历和更新 HNSW 图时，读写操作都需要对边列表加锁。由于 HNSW 采用分层结构，越高的层级包含的节点越少，导致高层节点在索引并发读写时极易成为锁竞争瓶颈，进而引发延迟升高和并发吞吐量下降。
 
-为此，[pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 采用了类似 FreshDiskANN 与日志结构合并树（LSM-Tree）的架构设计。该架构由三个组件构成：写入段（Writing Segment）、增长段（Growing Segment）和封存段（Sealed Segment）。新写入的向量首先进入写入段，随后由后台进程异步转换为不可变的增长段，最后增长段会与封存段进行合并（类似于 LSM-Tree 中的 Compaction 过程）。这种设计带来了诸多优势：
+为此，[pgvecto.rs](/zh/docs/vectors/) 采用了类似 FreshDiskANN 与日志结构合并树（LSM-Tree）的架构设计。该架构由三个组件构成：写入段（Writing Segment）、增长段（Growing Segment）和封存段（Sealed Segment）。新写入的向量首先进入写入段，随后由后台进程异步转换为不可变的增长段，最后增长段会与封存段进行合并（类似于 LSM-Tree 中的 Compaction 过程）。这种设计带来了诸多优势：
 
 * **非阻塞插入**：索引的后台构建与优化不会阻塞前台的数据插入操作。
 * **批量更新图结构**：将对 HNSW 图的修改进行批量聚合处理，显著提升了写入吞吐量。

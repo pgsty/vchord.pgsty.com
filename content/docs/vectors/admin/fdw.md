@@ -12,7 +12,7 @@ aliases:
 
 With the FDW extension, you can define foreign tables in your local PostgreSQL database that mirror the structure of tables in remote databases. These foreign tables act as proxies or wrappers for the remote data, enabling you to perform SELECT, INSERT, UPDATE, and DELETE operations on them, just like regular tables in PostgreSQL.
 
-In this tutorial, we will use the [`postgres_fdw`](https://www.postgresql.org/docs/current/postgres-fdw.html) module, which includes the foreign-data wrapper. This wrapper can be used to access data stored in external PostgreSQL servers. This article will explain how to use `postgres_fdw` to access index data in a foreign PostgreSQL cluster that already has the [`pgvecto.rs`](https://github.com/tensorchord/pgvecto.rs) extension installed.
+In this tutorial, we will use the [`postgres_fdw`](https://www.postgresql.org/docs/current/postgres-fdw.html) module, which includes the foreign-data wrapper. This wrapper can be used to access data stored in external PostgreSQL servers. This article will explain how to use `postgres_fdw` to access index data in a foreign PostgreSQL cluster that already has the [`pgvecto.rs`](/docs/vectors/) extension installed.
 
 ## Deploy local and foreign PostgreSQL clusters
 

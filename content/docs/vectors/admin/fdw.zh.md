@@ -12,7 +12,7 @@ aliases:
 
 借助 FDW 扩展，你可以在本地 PostgreSQL 数据库中定义外部表（Foreign Table），用于映射远程数据库中的表结构。这些外部表充当远程数据的代理或包装器，使你能够像操作普通 PostgreSQL 表一样对它们执行 `SELECT`、`INSERT`、`UPDATE` 和 `DELETE` 操作。
 
-在本教程中，我们将使用内置外部数据包装器的 [`postgres_fdw`](https://www.postgresql.org/docs/current/postgres-fdw.html) 模块。该包装器可用于访问存储在外部 PostgreSQL 服务器中的数据。本文将介绍如何使用 `postgres_fdw` 访问已安装 [`pgvecto.rs`](https://github.com/tensorchord/pgvecto.rs) 扩展的远程 PostgreSQL 集群中的向量索引数据。
+在本教程中，我们将使用内置外部数据包装器的 [`postgres_fdw`](https://www.postgresql.org/docs/current/postgres-fdw.html) 模块。该包装器可用于访问存储在外部 PostgreSQL 服务器中的数据。本文将介绍如何使用 `postgres_fdw` 访问已安装 [`pgvecto.rs`](/zh/docs/vectors/) 扩展的远程 PostgreSQL 集群中的向量索引数据。
 
 ## 部署本地和远程 PostgreSQL 集群 {#deploy-local-and-foreign-postgresql-clusters}
 

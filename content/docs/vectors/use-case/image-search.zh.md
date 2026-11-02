@@ -20,12 +20,12 @@ aliases:
 
 第一步是从图像中提取有意义的特征，并生成每张图像的向量表示。这通常使用诸如 [CLIP](https://openai.com/research/clip) 之类的深度学习模型来完成。生成的向量表示被称为**嵌入（Embedding）**，它是一个代表该图像视觉特征的数值列表。
 
-随后，您可以使用像 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 这样的向量数据库来存储这些嵌入向量，并执行高效的向量相似度搜索。
+随后，您可以使用像 [pgvecto.rs](/zh/docs/vectors/) 这样的向量数据库来存储这些嵌入向量，并执行高效的向量相似度搜索。
 
 <a id="Example"></a>
 ## 示例 {#example}
 
-我们将利用连接文本与图像的神经网络模型 [CLIP](https://openai.com/research/clip) 为图像生成嵌入向量。这些嵌入向量捕捉了图像中呈现的视觉概念。接着，我们将使用基于 Postgres 构建的可扩展向量搜索工具 [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) 来存储这些嵌入并执行高效的向量搜索。通过结合 CLIP 和 `pgvecto.rs` 的强大能力，我们可以根据视觉内容检索相似图像。
+我们将利用连接文本与图像的神经网络模型 [CLIP](https://openai.com/research/clip) 为图像生成嵌入向量。这些嵌入向量捕捉了图像中呈现的视觉概念。接着，我们将使用基于 Postgres 构建的可扩展向量搜索工具 [pgvecto.rs](/zh/docs/vectors/) 来存储这些嵌入并执行高效的向量搜索。通过结合 CLIP 和 `pgvecto.rs` 的强大能力，我们可以根据视觉内容检索相似图像。
 
 ### 生成嵌入向量 {#generate-embeddings}
 

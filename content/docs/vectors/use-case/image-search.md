@@ -20,12 +20,12 @@ Image intelligent search leverages advanced computer vision techniques and machi
 
 The first step is to extract meaningful features from images and generate a vector representation of each image. This is typically done using deep learning models such as [CLIP](https://openai.com/research/clip). The vector representation is called an **embedding**. It is a list of numbers that represents the image.
 
-Then you could use vector stores like [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs) to store the embeddings and perform efficient vector search.
+Then you could use vector stores like [pgvecto.rs](/docs/vectors/) to store the embeddings and perform efficient vector search.
 
 <a id="Example"></a>
 ## Example
 
-We will leverage [CLIP](https://openai.com/research/clip), a neural network that connects text and images, to generate embeddings for our images. These embeddings capture the visual concepts present in the images. Subsequently, we will utilize [pgvecto.rs](https://github.com/tensorchord/pgvecto.rs), a scalable vector search tool built on Postgres, to store these embeddings and conduct efficient vector searches. By combining the power of CLIP and pgvecto.rs, we can retrieve similar images based on their visual content.
+We will leverage [CLIP](https://openai.com/research/clip), a neural network that connects text and images, to generate embeddings for our images. These embeddings capture the visual concepts present in the images. Subsequently, we will utilize [pgvecto.rs](/docs/vectors/), a scalable vector search tool built on Postgres, to store these embeddings and conduct efficient vector searches. By combining the power of CLIP and pgvecto.rs, we can retrieve similar images based on their visual content.
 
 ### Generate embeddings
 

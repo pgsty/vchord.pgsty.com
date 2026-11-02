@@ -17,7 +17,7 @@ This means you can **store 400k vectors for only $1**, allowing you to save sign
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194327962/8b0f2610-af64-4104-98db-7f94416f354e.png)
 
-In the monthly cost comparison for storing vectors, based on [MyScale benchmark data](https://myscale.github.io/benchmark/#/), the chart highlights how [VectorChord](https://github.com/tensorchord/VectorChord) emerges as an affordable option, priced at just $247 for storing 100 million vectors. In contrast, Pinecone, despite its optimized storage, costs $1,600 per month, while Qdrant is priced at $4,374. pgvector/[pgvecto.rs](/pgvecto-rs/) has a considerably higher cost of $6,580.
+In the monthly cost comparison for storing vectors, based on [MyScale benchmark data](https://myscale.github.io/benchmark/#/), the chart highlights how [VectorChord](https://github.com/tensorchord/VectorChord) emerges as an affordable option, priced at just $247 for storing 100 million vectors. In contrast, Pinecone, despite its optimized storage, costs $1,600 per month, while Qdrant is priced at $4,374. pgvector/[pgvecto.rs](/docs/vectors/) has a considerably higher cost of $6,580.
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194599461/eb1cf21d-4eb0-4427-8b39-bbb96d125182.png)
 

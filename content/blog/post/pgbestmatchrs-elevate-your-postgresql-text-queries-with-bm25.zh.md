@@ -31,7 +31,7 @@ BM25（Best Matching 25）是信息检索中广泛使用的一种概率排序函
 
 * **BM25 统计稀疏向量**：基于你自己的文本数据，为文本生成 BM25 稀疏向量表征。
     
-* **与向量搜索扩展无缝集成**：兼容 [`pgvecto.rs`](/zh/pgvecto-rs/) 和 `pgvector`，在 PostgreSQL 中实现高效的向量检索。
+* **与向量搜索扩展无缝集成**：兼容 [`pgvecto.rs`](/zh/docs/vectors/) 和 `pgvector`，在 PostgreSQL 中实现高效的向量检索。
     
 * **开箱即用的分词能力**：采用 Huggingface 的 `bert-base-uncased` 词表与字节对编码（BPE）分词器，通过子词（subword）切分显著提升检索效果。
     

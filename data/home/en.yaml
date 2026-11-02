@@ -150,7 +150,7 @@ capabilities:
           - { class: k, prefix: '  ', text: 'LIMIT 10;' }
     - ref: 04 / VCHORD SUITE · HYBRID SEARCH
       title: One-stop retrieval suite in PostgreSQL
-      url: /bm25/
+      url: /docs/bm25/
       motto: Combine vchord, vchord_bm25, and pg_tokenizer in SQL
       bullets:
         - '**`vchord`**: RaBitQ disk-friendly IVF and high-QPS graph indexes'
@@ -163,10 +163,10 @@ capabilities:
         columns: 2
         items:
           - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/getting-started/overview/ }
-          - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 index, url: /bm25/ }
-          - { icon: fa-solid fa-language, title: pg_tokenizer, detail: Multilingual & LLM tokenizers, url: /bm25/tokenizer/ }
+          - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 index, url: /docs/bm25/ }
+          - { icon: fa-solid fa-language, title: pg_tokenizer, detail: Multilingual & LLM tokenizers, url: /docs/tokenizer/ }
           - { icon: fa-solid fa-database, title: pgvector Types, detail: vector & halfvec compatible, url: /docs/getting-started/overview/ }
-          - { icon: fa-solid fa-code-merge, title: RRF Hybrid Search, detail: Fuse vector & BM25 in SQL, url: /bm25/usage/hybrid-search/ }
+          - { icon: fa-solid fa-code-merge, title: RRF Hybrid Search, detail: Fuse vector & BM25 in SQL, url: /docs/bm25/usage/hybrid-search/ }
           - { icon: fa-solid fa-box-open, title: Pigsty Packages, detail: Native EL / Debian / Ubuntu, url: /docs/getting-started/installation/ }
 
 suite:
@@ -181,31 +181,31 @@ suite:
       icon: fa-solid fa-book
       desc: Installation, vchordrq & vchordg indexing, MaxSim multi-vector search, range queries, performance tuning, external index builds, and SQL reference.
       url: /docs/
-    - title: vchord_bm25 & pg_tokenizer
-      meta: Native BM25 & Tokenizers
+    - title: vchord_bm25 Documentation
+      meta: Native BM25 Ranking Index
       icon: fa-solid fa-magnifying-glass
-      desc: Okapi BM25 ranking, Block-WeakAnd Top-K index scans, prefiltered search, hybrid RRF/ColBERT fusion, and pg_tokenizer multilingual analyzers.
-      url: /bm25/
-    - title: Engineering Blog & Releases
-      meta: 37 Articles & Release Notes
-      icon: fa-solid fa-blog
-      desc: Deep dives on RaBitQ quantization, 100M–1B vector benchmarks, DiskANN vs HNSW, BM25 Block-WAND, ColBERT WARP, and all release notes.
-      url: /blog/
+      desc: Okapi BM25 ranking, Block-WeakAnd Top-K index scans, prefiltered search, hybrid RRF/ColBERT fusion, and BEIR benchmarks.
+      url: /docs/bm25/
+    - title: pg_tokenizer Documentation
+      meta: Multilingual & LLM Vocabularies
+      icon: fa-solid fa-language
+      desc: Text analyzer pipelines, pre-tokenizers (Unicode, Regex, Jieba, Lindera), Snowball stemmers, stopwords, synonyms, and corpus-trained custom models.
+      url: /docs/tokenizer/
     - title: Benchmarks & Cost Analysis
       meta: Performance & TCO
       icon: fa-solid fa-chart-line
       desc: Reproducible benchmarks across GIST-1M, Cohere-10M, and LAION-100M comparing vchord with pgvector, pgvectorscale, Elasticsearch, and Qdrant.
       url: /docs/benchmark/
-    - title: pg_tokenizer Guide
-      meta: Multilingual & LLM Vocabularies
-      icon: fa-solid fa-language
-      desc: Text analyzer pipelines, pre-tokenizers (Unicode, Regex, Jieba, Lindera), Snowball stemmers, stopwords, synonyms, and corpus-trained custom models.
-      url: /bm25/tokenizer/
+    - title: Engineering Blog & Releases
+      meta: 37 Articles & Release Notes
+      icon: fa-solid fa-blog
+      desc: Deep dives on RaBitQ quantization, 100M–1B vector benchmarks, DiskANN vs HNSW, BM25 Block-WAND, ColBERT WARP, and all release notes.
+      url: /blog/
     - title: pgvecto.rs Archive & Migration
       meta: Predecessor Reference
       icon: fa-solid fa-cube
       desc: Complete historical documentation for pgvecto.rs (v0.1–v0.4) plus step-by-step migration guides to move existing deployments to vchord.
-      url: /pgvecto-rs/
+      url: /docs/vectors/
 
 steps:
   eyebrow: Quick Start
@@ -235,7 +235,7 @@ faq:
   items:
     - question: How does vchord relate to pgvector and pgvecto.rs?
       answer: >-
-        **`vchord`** is the next-generation successor to [`pgvecto.rs`](/pgvecto-rs/),
+        **`vchord`** is the next-generation successor to [`pgvecto.rs`](/docs/vectors/),
         redesigned around SIGMOD'24 **RaBitQ** quantization and PostgreSQL's native page storage
         and WAL replication. Unlike `pgvecto.rs`, `vchord` uses `pgvector`'s standard `vector`
         and `halfvec` data types and `<->`, `<#>`, `<=>` operators directly, so existing `pgvector`
@@ -262,7 +262,7 @@ faq:
         [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer), and `vchord.pgsty.com` are maintained by the
         [Pigsty](https://pigsty.io/) community to ensure long-term open-source continuity, reproducible
         RPM/DEB packaging across PostgreSQL 13–18 on Enterprise Linux, Debian, and Ubuntu, and a complete,
-        fast, local-first documentation and engineering archive. See [Attribution](/about/attribution/).
+        fast, local-first documentation and engineering archive. See [Attribution](/docs/about/attribution/).
 
 cta:
   title: Ready to scale vector & BM25 search in PostgreSQL?

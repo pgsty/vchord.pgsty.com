@@ -31,7 +31,7 @@ BM25 has been shown to outperform dense vector-based retrieval methods in numero
 
 * **BM25 Statistic Sparse Vectors**: Generate BM25 sparse vectors for text based on your own text data.
     
-* **Integration with Vector Search Extensions**: Compatible with [`pgvecto.rs`](/pgvecto-rs/) and `pgvector` for efficient vector searches in PostgreSQL.
+* **Integration with Vector Search Extensions**: Compatible with [`pgvecto.rs`](/docs/vectors/) and `pgvector` for efficient vector searches in PostgreSQL.
     
 * **Seamless Tokenization**: Utilizes Huggingface's `bert-base-uncased` vocabulary with Byte-Pair Encoding (BPE) tokenizer, boosting performance with subword tokenization
     

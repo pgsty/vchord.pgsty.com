@@ -13,7 +13,7 @@ aliases:
 
 LlamaIndex 是一个简单、灵活的数据框架，用于将自定义数据源连接到大语言模型（LLM）。
 
-[`pgvecto.rs`](/zh/pgvecto-rs/) 提供了 LlamaIndex 集成，允许你快速检索最相似的向量。在本篇博客中，我们将向你展示如何使用 pgvecto.rs 和 LlamaIndex 构建一套 RAG 流水线。
+[`pgvecto.rs`](/zh/docs/vectors/) 提供了 LlamaIndex 集成，允许你快速检索最相似的向量。在本篇博客中，我们将向你展示如何使用 pgvecto.rs 和 LlamaIndex 构建一套 RAG 流水线。
 
 ## **安装依赖** {#install-dependencies}
 
@@ -48,7 +48,7 @@ CREATE EXTENSION vectors;
 
 ## **创建数据库并加载文档** {#create-the-database-and-load-documents}
 
-首先，配置数据库连接并初始化客户端。我们将使用 Markdown 文件 [**pgvecto-rs/getting-started/overview.md**](/zh/pgvecto-rs/getting-started/overview/) 作为示例文档。
+首先，配置数据库连接并初始化客户端。我们将使用 Markdown 文件 [**pgvecto-rs/getting-started/overview.md**](/zh/docs/vectors/getting-started/overview/) 作为示例文档。
 
 ```python
 import logging

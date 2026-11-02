@@ -18,17 +18,17 @@ aliases:
 * **Reason**: rely on a language model to reason (about how to answer based on provided context, what actions to take, etc.)
     
 
-[pgvecto.rs](/pgvecto-rs/) is a vector search extension in Postgres. In this blog post, we'll show you how to build LLM applications with LangChain and pgvecto.rs.
+[pgvecto.rs](/docs/vectors/) is a vector search extension in Postgres. In this blog post, we'll show you how to build LLM applications with LangChain and pgvecto.rs.
 
 ## **Install dependencies**
 
-Some dependencies are [](/pgvecto-rs/integration/langchain/#install-dependencies)required to use the LangChain integration:
+Some dependencies are [](/docs/vectors/integration/langchain/#install-dependencies)required to use the LangChain integration:
 
 ```bash
 pip install langchain langchain-openai pgvecto-rs
 ```
 
-You could start the p[o](/pgvecto-rs/integration/langchain/#install-dependencies)stgres instance with [`pgvecto.rs`](/pgvecto-rs/) extension in a docker container:
+You could start the p[o](/docs/vectors/integration/langchain/#install-dependencies)stgres instance with [`pgvecto.rs`](/docs/vectors/) extension in a docker container:
 
 ```bash
 docker run \
@@ -38,13 +38,13 @@ docker run \
   -d tensorchord/pgvecto-rs:pg16-v0.2.0
 ```
 
-Then you can connect [t](/pgvecto-rs/integration/langchain/#install-dependencies)o the database using the `psql` command line tool. The default username is `postgres`, and the default password is `mysecretpassword`.
+Then you can connect [t](/docs/vectors/integration/langchain/#install-dependencies)o the database using the `psql` command line tool. The default username is `postgres`, and the default password is `mysecretpassword`.
 
 ```bash
 psql postgresql://postgres:mysecretpassword@localhost:5432/postgres
 ```
 
-Run the following SQL [](/pgvecto-rs/integration/langchain/#install-dependencies)to ensure the extension is enabled.
+Run the following SQL [](/docs/vectors/integration/langchain/#install-dependencies)to ensure the extension is enabled.
 
 ```bash
 DROP EXTENSION IF EXISTS vectors;
@@ -55,7 +55,7 @@ CREATE EXTENSION vectors;
 
 We will show how to use `pgvecto.rs` in LangChain to retrieve the most similar vectors.
 
-First, you need to create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto-rs/getting-started/overview.md**](/pgvecto-rs/getting-started/overview/) as an example.
+First, you need to create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto-rs/getting-started/overview.md**](/docs/vectors/getting-started/overview/) as an example.
 
 ```python
 ## Loading Environment Variables

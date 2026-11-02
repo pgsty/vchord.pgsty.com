@@ -8,12 +8,13 @@ Built with [Hugo Extended `0.168.0`](https://gohugo.io/) and the [OINK `v1.4.0`]
 
 | Path | Description |
 | :--- | :--- |
-| `content/docs/` | **`vchord`** documentation (`getting-started`, `usage`, `use-case`, `benchmark`, `admin`, `customer-stories`) |
-| `content/bm25/` | **`vchord_bm25` & `pg_tokenizer`** documentation (`getting-started`, `usage`, `tokenizer`, `reference`) |
+| `content/docs/` | **`vchord`** documentation (`about`, `getting-started`, `usage`, `use-case`, `benchmark`, `admin`, `customer-stories`) |
+| `content/docs/bm25/` | **`vchord_bm25`** documentation (`getting-started`, `usage`, `reference`) |
+| `content/docs/tokenizer/` | **`pg_tokenizer`** documentation (`installation`, `overview`, `text-analyzer`, `models`, `multilingual`, `reference`) |
+| `content/docs/vectors/` | **`pgvecto.rs`** legacy documentation and migration reference |
+| `content/docs/about/` | Licensing, upstream attribution, and trademark policy |
 | `content/cloud/` | **Cloud Archive** — reference guides for managed cluster architecture |
-| `content/pgvecto-rs/` | **`pgvecto.rs`** legacy documentation and migration reference |
 | `content/blog/` | **Vchord Blog** — release notes (`content/blog/release/`) and deep-dive engineering articles (`content/blog/post/`) |
-| `content/about/` | Licensing, upstream attribution, and trademark policy |
 | `data/home/en.yaml`, `data/home/zh.yaml` | OINK 1.4.0 declarative homepage composition |
 
 ## Local Development
@@ -28,4 +29,4 @@ make check
 
 ## License
 
-Site documentation is licensed under [CC-BY-4.0](LICENSE). Upstream attribution details are documented in [NOTICE.md](NOTICE.md) and `/about/attribution/`.
+Site documentation is licensed under [CC-BY-4.0](LICENSE). Upstream attribution details are documented in [NOTICE.md](NOTICE.md) and `/docs/about/attribution/`.

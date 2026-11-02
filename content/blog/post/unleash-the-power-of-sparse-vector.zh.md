@@ -14,7 +14,7 @@ aliases:
 
 在过去，混合搜索（hybrid search）通常结合两种搜索方式：传统的基于关键词的搜索与基于向量的相似度搜索。然而，稀疏向量（sparse vector）可以作为关键词搜索的替代方案，通过纯向量搜索释放数据流水线的全部潜能。
 
-本文将探讨如何结合 [BGE-M3](https://github.com/FlagOpen/FlagEmbedding/tree/master/FlagEmbedding/BGE_M3) 与 [pgvecto.rs](/zh/pgvecto-rs/)，同时利用稀疏向量和稠密向量（dense vector）来充分发挥混合搜索的潜力。
+本文将探讨如何结合 [BGE-M3](https://github.com/FlagOpen/FlagEmbedding/tree/master/FlagEmbedding/BGE_M3) 与 [pgvecto.rs](/zh/docs/vectors/)，同时利用稀疏向量和稠密向量（dense vector）来充分发挥混合搜索的潜力。
 
 让我们开始吧。
 
@@ -120,9 +120,9 @@ for i in range(len(sparse_weight_id)):
 现在我们已经同时获得了稀疏嵌入和稠密嵌入，接下来将它们插入向量数据库。
 
 <a id="storing-vectors-in-pgvecto-rs-http-pgvecto-rs"></a>
-## 在 [pgvecto.rs](/zh/pgvecto-rs/) 中存储向量 {#storing-vectors-in-pgvectors}
+## 在 [pgvecto.rs](/zh/docs/vectors/) 中存储向量 {#storing-vectors-in-pgvectors}
 
-首先，需要部署一个 [`pgvecto.rs`](/zh/pgvecto-rs/) 实例用于向量的存储与检索。可以通过官方的 `pgvecto-rs` Docker 镜像快速启动：
+首先，需要部署一个 [`pgvecto.rs`](/zh/docs/vectors/) 实例用于向量的存储与检索。可以通过官方的 `pgvecto-rs` Docker 镜像快速启动：
 
 ```bash
 docker run \
@@ -134,7 +134,7 @@ docker run \
 
 安装好这一唯一必需的依赖项后，让我们创建一张表来存储向量。
 
-[`pgvecto.rs`](/zh/pgvecto-rs/) 通过不同的数据类型支持稠密向量和稀疏向量：
+[`pgvecto.rs`](/zh/docs/vectors/) 通过不同的数据类型支持稠密向量和稀疏向量：
 
 * `vector`：用于稠密向量
     
@@ -212,11 +212,11 @@ D_{dot} = - \Sigma x_iy_i
 $$
 
 
-有关 [`pgvecto.rs`](/zh/pgvecto-rs/) 中索引类型的更多信息，请[查阅我们的文档](/zh/pgvecto-rs/getting-started/overview/)。
+有关 [`pgvecto.rs`](/zh/docs/vectors/) 中索引类型的更多信息，请[查阅我们的文档](/zh/docs/vectors/getting-started/overview/)。
 
 ## 检索与混合结果 {#retrieving-and-mixing-results}
 
-将向量存入数据库后，我们便可以使用 [`pgvecto.rs`](/zh/pgvecto-rs/) 扩展高效地查询它们。为了找出与给定输入文本最接近的向量，我们需要使用相同的模型对该文本进行编码。
+将向量存入数据库后，我们便可以使用 [`pgvecto.rs`](/zh/docs/vectors/) 扩展高效地查询它们。为了找出与给定输入文本最接近的向量，我们需要使用相同的模型对该文本进行编码。
 
 这一过程与上一节介绍的步骤完全相同：
 
@@ -236,7 +236,7 @@ def embedding(sentence: str) -> tuple[np.ndarray, list[list[int]], list[list[flo
     return dense_embedding, sparse_indices, sparse_values
 ```
 
-[`pgvecto.rs`](/zh/pgvecto-rs/) 扩展提供了简洁的 `SELECT` 语句来分别检索稀疏向量和稠密向量，如下所示：
+[`pgvecto.rs`](/zh/docs/vectors/) 扩展提供了简洁的 `SELECT` 语句来分别检索稀疏向量和稠密向量，如下所示：
 
 ```python
 dense_embedding, sparse_indices, sparse_values = embedding("The text you want to search...")
@@ -278,8 +278,8 @@ reranked_text = [t for _, t in sorted(zip(scores, mix_text))]
 
 ## **总结** {#summary}
 
-在本文中，我们使用 BGE-M3 模型生成了稀疏向量和稠密向量，并在 Postgres 数据库中完成了存储与查询。这一切都得益于 [pgvecto.rs](/zh/pgvecto-rs/) v0.3.0 引入的全新特性：稀疏向量类型。
+在本文中，我们使用 BGE-M3 模型生成了稀疏向量和稠密向量，并在 Postgres 数据库中完成了存储与查询。这一切都得益于 [pgvecto.rs](/zh/docs/vectors/) v0.3.0 引入的全新特性：稀疏向量类型。
 
-敬请期待，我们将继续分享更多关于 [pgvecto.rs](/zh/pgvecto-rs/) 的精彩能力！
+敬请期待，我们将继续分享更多关于 [pgvecto.rs](/zh/docs/vectors/) 的精彩能力！
 
-欢迎加入我们的 [**Discord 社区**](https://discord.gg/KqswhpVgdU)，与开发者及其他用户交流互动，共同推动 [**pgvecto.rs**](/zh/pgvecto-rs/) 的持续进化！
+欢迎加入我们的 [**Discord 社区**](https://discord.gg/KqswhpVgdU)，与开发者及其他用户交流互动，共同推动 [**pgvecto.rs**](/zh/docs/vectors/) 的持续进化！

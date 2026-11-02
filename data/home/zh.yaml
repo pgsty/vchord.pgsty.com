@@ -150,7 +150,7 @@ capabilities:
           - { class: k, prefix: '  ', text: 'LIMIT 10;' }
     - ref: 04 / VCHORD 家族 · 混合检索套件
       title: PostgreSQL 一站式检索全家桶
-      url: /bm25/
+      url: /docs/bm25/
       motto: 协同组合 vchord、vchord_bm25 与 pg_tokenizer
       bullets:
         - '**`vchord`**：基于 RaBitQ 量化的磁盘倒排与高吞吐单层图向量索引'
@@ -163,10 +163,10 @@ capabilities:
         columns: 2
         items:
           - { icon: fa-solid fa-layer-group, title: vchord, detail: vchordrq · vchordg · MaxSim, url: /docs/getting-started/overview/ }
-          - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 索引, url: /bm25/ }
-          - { icon: fa-solid fa-language, title: pg_tokenizer, detail: 多语言与 LLM 分词器, url: /bm25/tokenizer/ }
+          - { icon: fa-solid fa-magnifying-glass, title: vchord_bm25, detail: Block-WeakAnd BM25 索引, url: /docs/bm25/ }
+          - { icon: fa-solid fa-language, title: pg_tokenizer, detail: 多语言与 LLM 分词器, url: /docs/tokenizer/ }
           - { icon: fa-solid fa-database, title: pgvector 兼容, detail: 原生支持 vector 与 halfvec, url: /docs/getting-started/overview/ }
-          - { icon: fa-solid fa-code-merge, title: RRF 混合检索, detail: 单条 SQL 融合向量与全文, url: /bm25/usage/hybrid-search/ }
+          - { icon: fa-solid fa-code-merge, title: RRF 混合检索, detail: 单条 SQL 融合向量与全文, url: /docs/bm25/usage/hybrid-search/ }
           - { icon: fa-solid fa-box-open, title: Pigsty 软件包, detail: EL / Debian / Ubuntu 原生安装, url: /docs/getting-started/installation/ }
 
 suite:
@@ -181,31 +181,31 @@ suite:
       icon: fa-solid fa-book
       desc: 安装部署、vchordrq 与 vchordg 索引构建、MaxSim 多向量检索、范围过滤、性能调优、外部索引构建与 SQL 参考手册。
       url: /docs/
-    - title: vchord_bm25 与 pg_tokenizer
-      meta: 原生 BM25 与分词器
+    - title: vchord_bm25 文档
+      meta: 原生 BM25 排序索引
       icon: fa-solid fa-magnifying-glass
-      desc: Okapi BM25 相关性排序、Block-WeakAnd Top-K 索引扫描、预过滤检索、RRF/ColBERT 混合检索融合以及 pg_tokenizer 多语言分词器。
-      url: /bm25/
-    - title: 工程博客与版本发布
-      meta: 37 篇深度技术文章与发布说明
-      icon: fa-solid fa-blog
-      desc: 深入剖析 RaBitQ 量化、亿级至十亿级向量基准测试、DiskANN 与 HNSW 对比、BM25 Block-WAND、ColBERT WARP 及历次版本发布说明。
-      url: /blog/
+      desc: Okapi BM25 相关性排序、Block-WeakAnd Top-K 索引扫描、预过滤检索、RRF/ColBERT 混合检索融合与 BEIR 基准测试。
+      url: /docs/bm25/
+    - title: pg_tokenizer 文档
+      meta: 多语言与预训练词表
+      icon: fa-solid fa-language
+      desc: 文本分析流水线、预分词器（Unicode、正则、结巴中文、Lindera 日文）、词干提取、停用词、同义词与自定义语料模型训练。
+      url: /docs/tokenizer/
     - title: 基准测试与成本分析
       meta: 性能与 TCO 对比
       icon: fa-solid fa-chart-line
       desc: 基于 GIST-1M、Cohere-10M 与 LAION-100M 的可复现基准测试，全方位对比 vchord 与 pgvector、pgvectorscale、Elasticsearch 及 Qdrant。
       url: /docs/benchmark/
-    - title: pg_tokenizer 分词指南
-      meta: 多语言与预训练词表
-      icon: fa-solid fa-language
-      desc: 文本分析流水线、预分词器（Unicode、正则、结巴中文、Lindera 日文）、词干提取、停用词、同义词与自定义语料模型训练。
-      url: /bm25/tokenizer/
+    - title: 工程博客与版本发布
+      meta: 37 篇深度技术文章与发布说明
+      icon: fa-solid fa-blog
+      desc: 深入剖析 RaBitQ 量化、亿级至十亿级向量基准测试、DiskANN 与 HNSW 对比、BM25 Block-WAND、ColBERT WARP 及历次版本发布说明。
+      url: /blog/
     - title: pgvecto.rs 归档与迁移
       meta: 前代产品参考手册
       icon: fa-solid fa-cube
       desc: pgvecto.rs（v0.1–v0.4）完整历史技术文档，以及将现有 pgvecto.rs 生产部署平滑迁移至 vchord 的分步指南。
-      url: /pgvecto-rs/
+      url: /docs/vectors/
 
 steps:
   eyebrow: 快速上手
@@ -235,7 +235,7 @@ faq:
   items:
     - question: vchord 与 pgvector、pgvecto.rs 是什么关系？
       answer: >-
-        **`vchord`** 是 [`pgvecto.rs`](/zh/pgvecto-rs/) 的下一代架构继任者，围绕 SIGMOD'24 **RaBitQ** 量化算法以及
+        **`vchord`** 是 [`pgvecto.rs`](/zh/docs/vectors/) 的下一代架构继任者，围绕 SIGMOD'24 **RaBitQ** 量化算法以及
         PostgreSQL 原生页面存储与 WAL 复制机制重新设计。不同于 `pgvecto.rs`，`vchord` 直接复用 `pgvector` 标准的
         `vector` 和 `halfvec` 数据类型以及 `<->`、`<#>`、`<=>` 操作符，因此现有的 `pgvector` 应用只需切换索引访问方法
         （`USING vchordrq` 或 `USING vchordg`），无需改写业务查询语句。详见[迁移指南](/zh/docs/admin/migration/)。
@@ -256,7 +256,7 @@ faq:
         [`pgsty/vchord`](https://github.com/pgsty/vchord)、[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)、
         [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 与 `vchord.pgsty.com` 由 [Pigsty](https://pigsty.cc/) 社区维护，
         旨在保障该项目的长期开源连续性，为 Enterprise Linux、Debian 与 Ubuntu 上的 PostgreSQL 13–18 提供可复现的 RPM/DEB 软件包，
-        并提供完整、快速、本地优先的中英双语技术文档与工程文章归档。详见[署名与来源说明](/zh/about/attribution/)。
+        并提供完整、快速、本地优先的中英双语技术文档与工程文章归档。详见[署名与来源说明](/zh/docs/about/attribution/)。
 
 cta:
   title: 准备好在 PostgreSQL 中扩展向量与全文检索了吗？

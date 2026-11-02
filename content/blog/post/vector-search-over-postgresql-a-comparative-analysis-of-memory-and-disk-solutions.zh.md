@@ -13,7 +13,7 @@ aliases:
 
 ## 引言：真实场景中的挑战 {#introduction-real-world-challenges}
 
-并非所有场景都需要专用的向量数据库。借助 [pgvector](https://github.com/pgvector/pgvector)、[pgvectorscale](https://github.com/timescale/pgvectorscale)、[VectorChord](https://github.com/tensorchord/VectorChord)（演进自 [pgvecto.rs](/zh/pgvecto-rs/)）等 PostgreSQL 扩展，您可以在无需额外基础设施的情况下同时获得向量搜索与关系型数据库的能力。但实际落地并非总是顺风顺水，以下是真实用户的反馈：
+并非所有场景都需要专用的向量数据库。借助 [pgvector](https://github.com/pgvector/pgvector)、[pgvectorscale](https://github.com/timescale/pgvectorscale)、[VectorChord](https://github.com/tensorchord/VectorChord)（演进自 [pgvecto.rs](/zh/docs/vectors/)）等 PostgreSQL 扩展，您可以在无需额外基础设施的情况下同时获得向量搜索与关系型数据库的能力。但实际落地并非总是顺风顺水，以下是真实用户的反馈：
 
 > * 首次查询**耗时 30 秒**，而重复查询只需 100 毫秒。问题出在极其缓慢的 I/O 上。
 >     

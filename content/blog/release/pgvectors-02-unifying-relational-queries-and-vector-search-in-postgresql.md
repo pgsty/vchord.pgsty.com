@@ -12,9 +12,9 @@ aliases:
   - "/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"
 ---
 
-We are excited to announce the release of [pgvecto.rs](/pgvecto-rs/) 0.2, a significant milestone in the journey of bridging the gap between relational queries and vector search in PostgreSQL. This update brings together the power of both worlds, offering enhanced efficiency and enabling complex queries within PostgreSQL.
+We are excited to announce the release of [pgvecto.rs](/docs/vectors/) 0.2, a significant milestone in the journey of bridging the gap between relational queries and vector search in PostgreSQL. This update brings together the power of both worlds, offering enhanced efficiency and enabling complex queries within PostgreSQL.
 
-In the past, developers and data scientists encountered the significant challenge of managing separate systems for relational queries and vector search. This resulted in increased complexity and resource overhead. However, with the release of [pgvecto.rs](/pgvecto-rs/) 0.2, we have addressed this issue by integrating the cutting-edge [VBASE method from OSDI 2023](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi). This integration has substantially refined the efficiency of vector search within PostgreSQL.
+In the past, developers and data scientists encountered the significant challenge of managing separate systems for relational queries and vector search. This resulted in increased complexity and resource overhead. However, with the release of [pgvecto.rs](/docs/vectors/) 0.2, we have addressed this issue by integrating the cutting-edge [VBASE method from OSDI 2023](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi). This integration has substantially refined the efficiency of vector search within PostgreSQL.
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1707832190249/b370b8e0-47a0-4aaf-a7b8-67bbd9f51314.png)
 
@@ -101,24 +101,24 @@ The dataset includes a `probability` column that stores random floating-point va
 
 We present the recall, latency (in milliseconds), and RPS (requests per second) for various `probability` ranges while keeping the `ef_search` constant. The `ef_search` parameter represents the size of the list utilized during k-NN (k-Nearest Neighbors) searches, determining the trade-off between search accuracy and query processing time.
 
-[pgvecto.rs](/pgvecto-rs/), when used with VBASE, consistently yields improved recall, particularly when working with low probability values.
+[pgvecto.rs](/docs/vectors/), when used with VBASE, consistently yields improved recall, particularly when working with low probability values.
 
 ## Other features
 
-[pgvecto.rs](/pgvecto-rs/) 0.2 introduces the following key features and improvements other than VBASE integration:
+[pgvecto.rs](/docs/vectors/) 0.2 introduces the following key features and improvements other than VBASE integration:
 
 * FP16: Users can now store embeddings in PostgreSQL using half the float32 size, significantly improving latency. This optimization has a negligible impact on final recall, less than 1%.
     
 * Asynchronous indexing: Insertion operations are **non-blocking**, ensuring a smoother and more efficient data insertion and indexing process.
     
-* Doubled query performance: [pgvecto.rs](/pgvecto-rs/) 0.2 offers query performance that is twice as fast as the previous version (0.1), marking a significant leap forward in system efficiency.
+* Doubled query performance: [pgvecto.rs](/docs/vectors/) 0.2 offers query performance that is twice as fast as the previous version (0.1), marking a significant leap forward in system efficiency.
     
-* Observability: The new `pg_vector_index_stat` view provides a transparent view into the indexing internals of [pgvecto.rs](/pgvecto-rs/). Users can monitor index construction, configuration adjustments, and detailed statistical analysis in real time, fostering a more intuitive and controlled environment.
+* Observability: The new `pg_vector_index_stat` view provides a transparent view into the indexing internals of [pgvecto.rs](/docs/vectors/). Users can monitor index construction, configuration adjustments, and detailed statistical analysis in real time, fostering a more intuitive and controlled environment.
     
 
 ## **Quick start**
 
-To get started with [pgvecto.rs](/pgvecto-rs/) 0.2, you could run it in a docker container:
+To get started with [pgvecto.rs](/docs/vectors/) 0.2, you could run it in a docker container:
 
 ```bash
 docker run \
@@ -128,4 +128,4 @@ docker run \
   -d tensorchord/pgvecto-rs:pg16-v0.2.0
 ```
 
-Please [check out our documentation](/pgvecto-rs/getting-started/overview/) for more details. We encourage you to try out [**pgvecto.rs**](/pgvecto-rs/), benchmark it against your workloads, and contribute your indexing innovations. Join our [**Discord community**](https://discord.gg/KqswhpVgdU) to connect with the developers and other users working to improve pgvecto.rs!
+Please [check out our documentation](/docs/vectors/getting-started/overview/) for more details. We encourage you to try out [**pgvecto.rs**](/docs/vectors/), benchmark it against your workloads, and contribute your indexing innovations. Join our [**Discord community**](https://discord.gg/KqswhpVgdU) to connect with the developers and other users working to improve pgvecto.rs!

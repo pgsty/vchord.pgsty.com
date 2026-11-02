@@ -5,6 +5,7 @@ description: "深入探讨 RaBitQ 量化、PostgreSQL 十亿级向量搜索基�
 weight: 20
 icon: fa-solid fa-blog
 type: blog
+sidebar_root_menu: false
 upstream_source: blog
 upstream_link: https://blog.vectorchord.ai/
 cascade:

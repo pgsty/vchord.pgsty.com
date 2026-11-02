@@ -29,7 +29,7 @@ aliases:
 
 本文将带你一步步借助上下文信息来提升检索准确率。我们使用了与 Anthropic 教程中相同的[**提示词（prompt）**、数据集和评估指标](https://github.com/anthropics/anthropic-cookbook)。需要注意的是，我们在本次实验中使用了不同的嵌入模型和 LLM，因此具体数值会有所不同；但这并不反映模型本身的优劣，因为该数据集主要由代码而非自然语言构成。
 
-我们主要使用 Gemini 模型来生成分块上下文和文本嵌入，其他模型也同样适用。嵌入质量对向量检索指标影响很大，建议参考 [MTEB 排行榜](https://huggingface.co/spaces/mteb/leaderboard)挑选最契合你业务场景的模型。在关键词分词方面，我们使用默认的 BERT 分词器，你也可以尝试[其他分词方案](/zh/bm25/tokenizer/)。
+我们主要使用 Gemini 模型来生成分块上下文和文本嵌入，其他模型也同样适用。嵌入质量对向量检索指标影响很大，建议参考 [MTEB 排行榜](https://huggingface.co/spaces/mteb/leaderboard)挑选最契合你业务场景的模型。在关键词分词方面，我们使用默认的 BERT 分词器，你也可以尝试[其他分词方案](/zh/docs/tokenizer/)。
 
 重排序（rerank）并非本文的重点；如果你想深入了解重排序方法，欢迎阅读我们关于 [Cross-Encoder 重排序](/zh/blog/post/hybrid-search-with-postgres-native-bm25-and-vectorchord/)以及[词元级延迟交互重排序](/zh/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/)的专题文章。顺便提一句，由于我们已经支持[多向量 MaxSim 索引](/zh/blog/release/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql/)，词元级延迟交互重排序现在可以更加高效地执行。
 

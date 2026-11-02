@@ -17,7 +17,7 @@ aliases:
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194327962/8b0f2610-af64-4104-98db-7f94416f354e.png)
 
-基于 [MyScale 基准测试数据](https://myscale.github.io/benchmark/#/)的向量存储月度成本对比图清晰地显示，[VectorChord](https://github.com/tensorchord/VectorChord) 是极具性价比的选择，存储 1 亿条向量每月仅需 $247。相比之下，即便采用了优化存储，Pinecone 每月仍需 $1,600，Qdrant 定价为 $4,374，而 pgvector/[pgvecto.rs](/zh/pgvecto-rs/) 的成本更是高达 $6,580。
+基于 [MyScale 基准测试数据](https://myscale.github.io/benchmark/#/)的向量存储月度成本对比图清晰地显示，[VectorChord](https://github.com/tensorchord/VectorChord) 是极具性价比的选择，存储 1 亿条向量每月仅需 $247。相比之下，即便采用了优化存储，Pinecone 每月仍需 $1,600，Qdrant 定价为 $4,374，而 pgvector/[pgvecto.rs](/zh/docs/vectors/) 的成本更是高达 $6,580。
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733194599461/eb1cf21d-4eb0-4427-8b39-bbb96d125182.png)
 

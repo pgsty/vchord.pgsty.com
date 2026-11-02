@@ -156,11 +156,11 @@ Rewriting pgvector in Rust can enable the code to be organized in a more modern 
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1739843199895/f6d1d545-b827-4369-9c79-fbe9cce4f4b3.png)
 
-As a result, [pgvecto.rs](/pgvecto-rs/) was created. [pgvecto.rs](/pgvecto-rs/) currently supports exact vector query operations and three distance calculation operators. Work is underway to design and implement index support. In addition to IVFFlat, we also hope to support more indexing algorithms such as DiskANN, SPTAG, and ScaNN. We welcome contributions and feedback from the community!
+As a result, [pgvecto.rs](/docs/vectors/) was created. [pgvecto.rs](/docs/vectors/) currently supports exact vector query operations and three distance calculation operators. Work is underway to design and implement index support. In addition to IVFFlat, we also hope to support more indexing algorithms such as DiskANN, SPTAG, and ScaNN. We welcome contributions and feedback from the community!
 
-[pgvecto.rs](/pgvecto-rs/) offers a modern and extensible codebase with improved performance and concurrency. Its design and implementation allow seamless integration with other machine learning libraries and tools, making it an ideal choice for similarity search scenarios.
+[pgvecto.rs](/docs/vectors/) offers a modern and extensible codebase with improved performance and concurrency. Its design and implementation allow seamless integration with other machine learning libraries and tools, making it an ideal choice for similarity search scenarios.
 
-With ongoing development, [pgvecto.rs](/pgvecto-rs/) aims to be a valuable tool for data scientists and machine learning practitioners. Its support for various indexing algorithms and its ease of use make it a promising candidate for large-scale similarity search applications. We look forward to continuing development and contributions from the community.
+With ongoing development, [pgvecto.rs](/docs/vectors/) aims to be a valuable tool for data scientists and machine learning practitioners. Its support for various indexing algorithms and its ease of use make it a promising candidate for large-scale similarity search applications. We look forward to continuing development and contributions from the community.
 
 ```sql
 -- call the distance function through operators
@@ -187,4 +187,4 @@ SELECT * FROM items WHERE emb <-> ARRAY[3,2,1] < 5;
 
 As LLMs gradually move into production environments, infrastructure requirements are becoming increasingly demanding. The emergence of vector databases is an important addition to the infrastructure. We do not believe that vector databases will replace traditional databases, but rather that they will each play to their strengths in different scenarios. The emergence of vector databases will also promote traditional databases to support vector data types.
 
-We hope that [pgvecto.rs](/pgvecto-rs/) can become an important component of the Postgres ecosystem, providing better vector support for Postgres. Its implementation in Rust and support for various indexing algorithms make it a promising candidate for large-scale similarity search applications. We believe that its development and contributions from the community will help it become a valuable tool for data scientists and machine learning practitioners.
+We hope that [pgvecto.rs](/docs/vectors/) can become an important component of the Postgres ecosystem, providing better vector support for Postgres. Its implementation in Rust and support for various indexing algorithms make it a promising candidate for large-scale similarity search applications. We believe that its development and contributions from the community will help it become a valuable tool for data scientists and machine learning practitioners.

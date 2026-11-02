@@ -12,9 +12,9 @@ aliases:
   - "/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"
 ---
 
-我们很高兴地宣布发布 [pgvecto.rs](/zh/pgvecto-rs/) 0.2，这是弥合 PostgreSQL 中关系型查询与向量搜索之间鸿沟的重要里程碑。此次更新将两者的强大能力融为一体，不仅提升了执行效率，还支持在 PostgreSQL 内部直接运行复杂的混合查询。
+我们很高兴地宣布发布 [pgvecto.rs](/zh/docs/vectors/) 0.2，这是弥合 PostgreSQL 中关系型查询与向量搜索之间鸿沟的重要里程碑。此次更新将两者的强大能力融为一体，不仅提升了执行效率，还支持在 PostgreSQL 内部直接运行复杂的混合查询。
 
-过去，开发者和数据科学家不得不面对分别管理关系型查询系统和向量搜索系统的严峻挑战，这带来了额外的系统复杂度与资源开销。而在 [pgvecto.rs](/zh/pgvecto-rs/) 0.2 中，我们通过集成来自 [OSDI 2023 的前沿 VBASE 方法](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi)解决了这一难题，大幅提升了 PostgreSQL 内部向量搜索的效率。
+过去，开发者和数据科学家不得不面对分别管理关系型查询系统和向量搜索系统的严峻挑战，这带来了额外的系统复杂度与资源开销。而在 [pgvecto.rs](/zh/docs/vectors/) 0.2 中，我们通过集成来自 [OSDI 2023 的前沿 VBASE 方法](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi)解决了这一难题，大幅提升了 PostgreSQL 内部向量搜索的效率。
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1707832190249/b370b8e0-47a0-4aaf-a7b8-67bbd9f51314.png)
 
@@ -101,24 +101,24 @@ LIMIT :numResults;
 
 我们在保持 `ef_search` 不变的情况下，展示了不同 `probability` 范围下的召回率（Recall）、延迟（以毫秒为单位）和 RPS（每秒请求数）。`ef_search` 参数表示 k-NN（k 最近邻）搜索期间使用的候选列表大小，决定了搜索精度与查询处理时间之间的权衡。
 
-结合 VBASE 使用时，[pgvecto.rs](/zh/pgvecto-rs/) 始终能够获得更高的召回率，尤其是在处理低过滤率（低 probability 值）查询时表现尤为突出。
+结合 VBASE 使用时，[pgvecto.rs](/zh/docs/vectors/) 始终能够获得更高的召回率，尤其是在处理低过滤率（低 probability 值）查询时表现尤为突出。
 
 ## 其他特性 {#other-features}
 
-除了集成 VBASE 之外，[pgvecto.rs](/zh/pgvecto-rs/) 0.2 还引入了以下核心特性与改进：
+除了集成 VBASE 之外，[pgvecto.rs](/zh/docs/vectors/) 0.2 还引入了以下核心特性与改进：
 
 * **FP16 支持**：用户现在可以使用 float32 一半的存储空间在 PostgreSQL 中保存向量嵌入，从而显著降低延迟。该优化对最终召回率的影响微乎其微，损失不到 1%。
     
 * **异步索引构建**：插入操作现在是**非阻塞的**，确保数据插入和索引构建过程更加平滑高效。
     
-* **查询性能翻倍**：[pgvecto.rs](/zh/pgvecto-rs/) 0.2 的查询性能是上一版本（0.1）的两倍，标志着系统效率的重大飞跃。
+* **查询性能翻倍**：[pgvecto.rs](/zh/docs/vectors/) 0.2 的查询性能是上一版本（0.1）的两倍，标志着系统效率的重大飞跃。
     
-* **可观测性**：全新的 `pg_vector_index_stat` 视图为 [pgvecto.rs](/zh/pgvecto-rs/) 的索引内部状态提供了透明的可视化窗口。用户可以实时监控索引构建进度、配置调整以及详细的统计分析，从而获得更加直观、可控的运维体验。
+* **可观测性**：全新的 `pg_vector_index_stat` 视图为 [pgvecto.rs](/zh/docs/vectors/) 的索引内部状态提供了透明的可视化窗口。用户可以实时监控索引构建进度、配置调整以及详细的统计分析，从而获得更加直观、可控的运维体验。
     
 
 ## **快速开始** {#quick-start}
 
-要开始体验 [pgvecto.rs](/zh/pgvecto-rs/) 0.2，你可以在 Docker 容器中直接运行它：
+要开始体验 [pgvecto.rs](/zh/docs/vectors/) 0.2，你可以在 Docker 容器中直接运行它：
 
 ```bash
 docker run \
@@ -128,4 +128,4 @@ docker run \
   -d tensorchord/pgvecto-rs:pg16-v0.2.0
 ```
 
-更多详情请[查阅我们的文档](/zh/pgvecto-rs/getting-started/overview/)。我们欢迎你试用 [**pgvecto.rs**](/zh/pgvecto-rs/)，在你的实际业务负载下进行基准测试，并贡献你的索引创新。欢迎加入我们的 [**Discord 社区**](https://discord.gg/KqswhpVgdU)，与致力于改进 pgvecto.rs 的开发者及广大用户交流互动！
+更多详情请[查阅我们的文档](/zh/docs/vectors/getting-started/overview/)。我们欢迎你试用 [**pgvecto.rs**](/zh/docs/vectors/)，在你的实际业务负载下进行基准测试，并贡献你的索引创新。欢迎加入我们的 [**Discord 社区**](https://discord.gg/KqswhpVgdU)，与致力于改进 pgvecto.rs 的开发者及广大用户交流互动！

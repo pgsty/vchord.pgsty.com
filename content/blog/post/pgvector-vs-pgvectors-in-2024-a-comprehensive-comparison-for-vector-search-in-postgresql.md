@@ -10,19 +10,19 @@ aliases:
   - "/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/"
 ---
 
-pgvector and [pgvecto.rs](/pgvecto-rs/) are both vector search extensions designed to enhance the capabilities of PostgreSQL. These extensions revolutionize the way vector search is performed within the database, providing scalable, low-latency, and hybrid-enabled solutions. In this blog post, we will illustrate the differences between pgvector and [pgvecto.rs](/pgvecto-rs/).
+pgvector and [pgvecto.rs](/docs/vectors/) are both vector search extensions designed to enhance the capabilities of PostgreSQL. These extensions revolutionize the way vector search is performed within the database, providing scalable, low-latency, and hybrid-enabled solutions. In this blog post, we will illustrate the differences between pgvector and [pgvecto.rs](/docs/vectors/).
 
 TL; DR: Please navigate directly to the final section that contains a table showcasing the main distinctions between the two.
 
 <a id="Search"></a>
 ## Search
 
-Search is essential for a database. It plays a pivotal role in facilitating efficient data retrieval, enabling users to quickly find and access the information they need. We will demonstrate their performance and highlight the various features [pgvecto.rs](/pgvecto-rs/) and pgvector offer.
+Search is essential for a database. It plays a pivotal role in facilitating efficient data retrieval, enabling users to quickly find and access the information they need. We will demonstrate their performance and highlight the various features [pgvecto.rs](/docs/vectors/) and pgvector offer.
 
 <a id="Filtering"></a>
 ### Filtering
 
-While both pgvector and [pgvecto.rs](/pgvecto-rs/) provide support for vector similarity search in PostgreSQL, [pgvecto.rs](/pgvecto-rs/) goes a step further by introducing [VBASE method from OSDI 2023](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi).
+While both pgvector and [pgvecto.rs](/docs/vectors/) provide support for vector similarity search in PostgreSQL, [pgvecto.rs](/docs/vectors/) goes a step further by introducing [VBASE method from OSDI 2023](https://www.usenix.org/conference/osdi23/presentation/zhang-qianxi).
 
 Real-world workloads often involve **a combination of vector search and relational queries**. While vector search is powerful for similarity matching and retrieval of similar vectors, relational queries allow you to perform complex joins, filters, and aggregations on structured data.
 
@@ -40,7 +40,7 @@ We present the recall, latency (in milliseconds), and RPS (requests per second) 
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1707279248378/4ebbb813-0593-4949-9898-9abdee58e4fc.png?auto=compress,format&format=webp)
 
-[**pgvecto.rs**](/pgvecto-rs/), when used with VBASE, consistently yields improved recall, particularly when working with low probability values.
+[**pgvecto.rs**](/docs/vectors/), when used with VBASE, consistently yields improved recall, particularly when working with low probability values.
 
 ### Sparse Vector Search
 
@@ -62,7 +62,7 @@ $$
 
 pgvector supports dense vector search well, but it [does not have plan to support sparse vector](https://github.com/pgvector/pgvector/issues/81).
 
-[pgvecto.rs](/pgvecto-rs/), on the other hand, supports both dense vector search and [sparse vector search](/pgvecto-rs/use-case/sparse-vector/). It provides the ability to use the [`svector`](/pgvecto-rs/use-case/sparse-vector/) data type to build sparse vector indexes and perform searches on them.
+[pgvecto.rs](/docs/vectors/), on the other hand, supports both dense vector search and [sparse vector search](/docs/vectors/use-case/sparse-vector/). It provides the ability to use the [`svector`](/docs/vectors/use-case/sparse-vector/) data type to build sparse vector indexes and perform searches on them.
 
 ```sql
 CREATE TABLE items (
@@ -79,7 +79,7 @@ SELECT * FROM items ORDER BY embedding <-> '[0.3,0,0,0,0,0,0,0,0,0]' LIMIT 1;
 
 ### Vector dimensions
 
-The [pgvecto.rs](/pgvecto-rs/) extension provides support for up to 65535 dimensions, whereas the pgvector extension supports a maximum of 2000 dimensions. This difference in dimensionality support allows [pgvecto.rs](/pgvecto-rs/) to handle vectors from OpenAI's latest embedding model directly.
+The [pgvecto.rs](/docs/vectors/) extension provides support for up to 65535 dimensions, whereas the pgvector extension supports a maximum of 2000 dimensions. This difference in dimensionality support allows [pgvecto.rs](/docs/vectors/) to handle vectors from OpenAI's latest embedding model directly.
 
 <a id="single-instruction-multiple-data-simd"></a>
 ### Single Instruction/Multiple Data (SIMD)
@@ -90,7 +90,7 @@ pgvecto.rs utilizes the SIMD (Single Instruction, Multiple Data) instructions av
 
 ### Binary Vector
 
-The [`bvector`](/pgvecto-rs/reference/vector-types/bvector/) type is a binary vector type in [pgvecto.rs](/pgvecto-rs/). It represents a binary vector, which is a vector where each component can take on two possible values, typically 0 and 1.
+The [`bvector`](/docs/vectors/reference/vector-types/bvector/) type is a binary vector type in [pgvecto.rs](/docs/vectors/). It represents a binary vector, which is a vector where each component can take on two possible values, typically 0 and 1.
 
 ```sql
 CREATE TABLE items (
@@ -109,14 +109,14 @@ Binary vectors offer significant advantages in specific embedding models like th
 
 Here are some performance benchmarks for the `bvector` type. We use the [dbpedia-entities-openai3-text-embedding-3-large-3072-1M](https://huggingface.co/datasets/Qdrant/dbpedia-entities-openai3-text-embedding-3-large-3072-1M) dataset for the benchmark. The VM is n2-standard-8 (8 vCPUs, 32 GB memory) on Google Cloud.
 
-We upsert 1M binary vectors into the table and then run a KNN query for each embedding. It only takes about 600MB memory to index 1M binary vectors, while the `vector` type takes about 18GB memory to index the same number of vectors. The `bvector`'s accuracy exceeds 95% if we adopt [**adaptive retrieval**](/pgvecto-rs/use-case/adaptive-retrieval/).
+We upsert 1M binary vectors into the table and then run a KNN query for each embedding. It only takes about 600MB memory to index 1M binary vectors, while the `vector` type takes about 18GB memory to index the same number of vectors. The `bvector`'s accuracy exceeds 95% if we adopt [**adaptive retrieval**](/docs/vectors/use-case/adaptive-retrieval/).
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1713855137702/ad568c36-125b-46f8-833c-7bed4b67fa13.png)
 
 <a id="fp16-int8"></a>
 ### FP16/INT8
 
-Besides binary vectors, [pgvecto.rs](/pgvecto-rs/) also provides support for [FP16 (16-bit floating point)](/pgvecto-rs/reference/vector-types/vecf16/) and INT8 (8-bit integer) data types.
+Besides binary vectors, [pgvecto.rs](/docs/vectors/) also provides support for [FP16 (16-bit floating point)](/docs/vectors/reference/vector-types/vecf16/) and INT8 (8-bit integer) data types.
 
 <a id="Indexing"></a>
 ## Indexing
@@ -132,7 +132,7 @@ It's a design tradeoff. During the initial stages of our development, we conduct
 * Lock Contention: Lock contention arises due to the need to lock every edge list during reads and writes when traversing the HNSW graph. The hierarchical structure of HNSW, where higher levels contain fewer points, often results in lock contention becoming a common bottleneck during index usage. This contention occurs when multiple operations attempt to access or modify the same edge list simultaneously, leading to delays and reduced concurrency.
     
 
-[pgvecto.rs](/pgvecto-rs/) adopted a design akin to FreshDiskANN, resembling the Log-Structured Merge (LSM) tree concept. This architecture comprises three components: the writing segment, the growing segment, and the sealed segment. New vectors are initially written to the writing segment. A background process then asynchronously transforms them into the immutable growing segment. Subsequently, the growing segment undergoes a merge with the sealed segment, akin to the compaction process in an LSM tree. This design offers several benefits:
+[pgvecto.rs](/docs/vectors/) adopted a design akin to FreshDiskANN, resembling the Log-Structured Merge (LSM) tree concept. This architecture comprises three components: the writing segment, the growing segment, and the sealed segment. New vectors are initially written to the writing segment. A background process then asynchronously transforms them into the immutable growing segment. Subsequently, the growing segment undergoes a merge with the sealed segment, akin to the compaction process in an LSM tree. This design offers several benefits:
 
 * Non-blocking Insertions: Index modification operations do not impede insertion processes.
     

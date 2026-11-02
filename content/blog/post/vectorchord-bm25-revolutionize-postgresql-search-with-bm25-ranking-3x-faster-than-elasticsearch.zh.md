@@ -195,7 +195,7 @@ SELECT id, text, embedding <&> to_bm25query('documents_embedding_bm25', 'Postgre
     LIMIT 10;
 ```
 
-如果您想了解更多相关信息，请查阅[分词器文档](/zh/bm25/tokenizer/)。
+如果您想了解更多相关信息，请查阅[分词器文档](/zh/docs/tokenizer/)。
 
 ## 比 ElasticSearch 更快（真的吗？） {#faster-than-elasticsearch-really}
 

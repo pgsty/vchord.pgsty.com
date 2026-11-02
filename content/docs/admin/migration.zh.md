@@ -17,7 +17,7 @@ outline: [2,3]
 ## 从 PGVecto.rs 迁移 {#from-pgvectors}
 
 VectorChord 的绝大多数向量类型均由 `pgvector` 提供支持。
-因此，从 PGVecto.rs 迁移到 VectorChord 的过程，基本上就是[从 pgvector 迁移到 PGVecto.rs](/zh/pgvecto-rs/admin/migration/) 的逆向操作。
+因此，从 PGVecto.rs 迁移到 VectorChord 的过程，基本上就是[从 pgvector 迁移到 PGVecto.rs](/zh/docs/vectors/admin/migration/) 的逆向操作。
 
 > [!TIP]
 > 我们提供了专用的迁移镜像 [modelzai/pgvectors-vchord](https://hub.docker.com/r/modelzai/pgvectors-vchord/tags)，用于支持在 pgvecto.rs 与 VectorChord 之间进行双向迁移。

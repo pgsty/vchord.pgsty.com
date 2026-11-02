@@ -13,7 +13,7 @@ aliases:
 
 ## Introduction: real-world challenges
 
-Specialized vector databases aren’t always needed. With PostgreSQL extensions like [pgvector](https://github.com/pgvector/pgvector), [pgvectorscale](https://github.com/timescale/pgvectorscale), [VectorChord](https://github.com/tensorchord/VectorChord) (which evolved from [pgvecto.rs](/pgvecto-rs/))****, you get vector search *plus* relational power—no extra infrastructure. But adoption isn’t seamless. Here’s what real users say:
+Specialized vector databases aren’t always needed. With PostgreSQL extensions like [pgvector](https://github.com/pgvector/pgvector), [pgvectorscale](https://github.com/timescale/pgvectorscale), [VectorChord](https://github.com/tensorchord/VectorChord) (which evolved from [pgvecto.rs](/docs/vectors/))****, you get vector search *plus* relational power—no extra infrastructure. But adoption isn’t seamless. Here’s what real users say:
 
 > * The query **takes 30 seconds** for the first time and 100ms if it's a repeat query. The problem is very slow IO.
 >     

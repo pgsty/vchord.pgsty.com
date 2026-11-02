@@ -14,7 +14,7 @@ aliases:
 
 In the past, hybrid search combined two search methods: traditional keyword-based search and vector-based similarity search. However, sparse vector can act as a substitute for keyword search, unlocking the full potential of the data pipeline with pure vector search.
 
-This post explores how to use how [BGE-M3](https://github.com/FlagOpen/FlagEmbedding/tree/master/FlagEmbedding/BGE_M3) and [pgvecto.rs](/pgvecto-rs/) to exploit the potential of hybrid search using both sparse and dense vectors.
+This post explores how to use how [BGE-M3](https://github.com/FlagOpen/FlagEmbedding/tree/master/FlagEmbedding/BGE_M3) and [pgvecto.rs](/docs/vectors/) to exploit the potential of hybrid search using both sparse and dense vectors.
 
 Let's dive in.
 
@@ -120,9 +120,9 @@ for i in range(len(sparse_weight_id)):
 Now we have both the sparse and dense embeddings. It's time to insert them into the vector database.
 
 <a id="storing-vectors-in-pgvecto-rs-http-pgvecto-rs"></a>
-## Storing vectors in [pgvecto.rs](/pgvecto-rs/)
+## Storing vectors in [pgvecto.rs](/docs/vectors/)
 
-First, a deployed [`pgvecto.rs`](/pgvecto-rs/) instance is required for vector storage and retrieval. This can be achieved by the official `pgvecto-rs` Docker image:
+First, a deployed [`pgvecto.rs`](/docs/vectors/) instance is required for vector storage and retrieval. This can be achieved by the official `pgvecto-rs` Docker image:
 
 ```bash
 docker run \
@@ -134,7 +134,7 @@ docker run \
 
 Now the only necessary dependency is installed. Let's create a table to store the vectors.
 
-[`pgvecto.rs`](/pgvecto-rs/) supports dense or sparse vectors with different data types:
+[`pgvecto.rs`](/docs/vectors/) supports dense or sparse vectors with different data types:
 
 * `vector` for dense vector
     
@@ -212,11 +212,11 @@ D_{dot} = - \Sigma x_iy_i
 $$
 
 
-For more information about index types in [`pgvecto.rs`](/pgvecto-rs/), please [check out our documentation](/pgvecto-rs/getting-started/overview/).
+For more information about index types in [`pgvecto.rs`](/docs/vectors/), please [check out our documentation](/docs/vectors/getting-started/overview/).
 
 ## Retrieving and Mixing Results
 
-With the vectors stored in the database, we can efficiently query them using the [`pgvecto.rs`](/pgvecto-rs/) extension. To find the nearest vectors to a given input text, we need to encode the text with the same model.
+With the vectors stored in the database, we can efficiently query them using the [`pgvecto.rs`](/docs/vectors/) extension. To find the nearest vectors to a given input text, we need to encode the text with the same model.
 
 This process is identical to the one described in the previous chapter:
 
@@ -236,7 +236,7 @@ def embedding(sentence: str) -> tuple[np.ndarray, list[list[int]], list[list[flo
     return dense_embedding, sparse_indices, sparse_values
 ```
 
-The [`pgvecto.rs`](/pgvecto-rs/) extension provides a simple `SELECT` statement to get sparse and dense vectors like this:
+The [`pgvecto.rs`](/docs/vectors/) extension provides a simple `SELECT` statement to get sparse and dense vectors like this:
 
 ```python
 dense_embedding, sparse_indices, sparse_values = embedding("The text you want to search...")
@@ -278,8 +278,8 @@ Congratulations! We have now completed our first step into the world of sparse v
 
 ## **Summary**
 
-In this post, we generate sparse and dense vectors using the BGE-M3 model, and then store & query them in a Postgres database. This is all thanks to a new feature introduced by [pgvecto.rs](/pgvecto-rs/) v0.3.0: the sparse vector type.
+In this post, we generate sparse and dense vectors using the BGE-M3 model, and then store & query them in a Postgres database. This is all thanks to a new feature introduced by [pgvecto.rs](/docs/vectors/) v0.3.0: the sparse vector type.
 
-Stay tuned, we will share more of the magic that [pgvecto.rs](/pgvecto-rs/) can bring!
+Stay tuned, we will share more of the magic that [pgvecto.rs](/docs/vectors/) can bring!
 
-Join our [**Discord community**](https://discord.gg/KqswhpVgdU) to connect with the developers and other users working to improve [**pgvecto.rs**](/pgvecto-rs/)!
+Join our [**Discord community**](https://discord.gg/KqswhpVgdU) to connect with the developers and other users working to improve [**pgvecto.rs**](/docs/vectors/)!

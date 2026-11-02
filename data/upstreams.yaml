@@ -1,7 +1,7 @@
 docs:
   name: tensorchord/pgvecto.rs-docs
   license: Apache-2.0
-  notice: /about/attribution/
+  notice: /docs/about/attribution/
   copyright: "© 2023–Present TensorChord Inc."
   lang:
     en:
@@ -12,7 +12,7 @@ docs:
 blog:
   name: blog.vectorchord.ai
   license: CC-BY-4.0
-  notice: /about/attribution/
+  notice: /docs/about/attribution/
   copyright: "© 2023–Present TensorChord Inc."
   lang:
     en:
@@ -23,7 +23,7 @@ blog:
 bm25:
   name: pgsty/vchord_bm25
   license: AGPL-3.0-only
-  notice: /about/attribution/
+  notice: /docs/about/attribution/
   copyright: "© 2024–Present TensorChord Inc. & PGSTY"
   lang:
     en:
@@ -34,7 +34,7 @@ bm25:
 tokenizer:
   name: pgsty/pg_tokenizer
   license: Apache-2.0
-  notice: /about/attribution/
+  notice: /docs/about/attribution/
   copyright: "© 2024–Present TensorChord Inc. & PGSTY"
   lang:
     en:

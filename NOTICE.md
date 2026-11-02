@@ -4,7 +4,7 @@ This repository (`pgsty/vchord.pgsty.com`) powers `https://vchord.pgsty.com/`, t
 
 ## Upstream Documentation and Blog Material
 
-Substantial portions of the documentation under `content/docs/`, `content/bm25/`, `content/cloud/`, and `content/pgvecto-rs/` are adapted from the upstream `VectorChord`, `VectorChord-bm25`, `pg_tokenizer.rs`, and `pgvecto.rs` repositories:
+Substantial portions of the documentation under `content/docs/`, `content/docs/bm25/`, `content/docs/tokenizer/`, `content/docs/vectors/`, and `content/cloud/` are adapted from the upstream `VectorChord`, `VectorChord-bm25`, `pg_tokenizer.rs`, and `pgvecto.rs` repositories:
 
 - **Upstream Documentation Repository**: [`tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) (`https://docs.vectorchord.ai/`)
 - **Upstream Blog**: [`blog.vectorchord.ai`](https://blog.vectorchord.ai/)
@@ -25,4 +25,4 @@ Pages derived from upstream include `upstream_link` in their front matter so OIN
 
 ## Independence and Trademarks
 
-`pgsty/vchord`, `pgsty/vchord_bm25`, `pgsty/pg_tokenizer`, and `vchord.pgsty.com` are maintained by [PGSTY](https://pigsty.io/) and are not affiliated with, endorsed by, or sponsored by TensorChord Inc. Product and company names mentioned on this site are used solely for identification and compatibility reference; see [`content/about/trademark.md`](content/about/trademark.md).
+`pgsty/vchord`, `pgsty/vchord_bm25`, `pgsty/pg_tokenizer`, and `vchord.pgsty.com` are maintained by [PGSTY](https://pigsty.io/) and are not affiliated with, endorsed by, or sponsored by TensorChord Inc. Product and company names mentioned on this site are used solely for identification and compatibility reference; see [`content/docs/about/trademark.md`](content/docs/about/trademark.md).

@@ -5,6 +5,7 @@ description: "Engineering deep-dives on RaBitQ quantization, billion-scale Postg
 weight: 20
 icon: fa-solid fa-blog
 type: blog
+sidebar_root_menu: false
 upstream_source: blog
 upstream_link: https://blog.vectorchord.ai/
 cascade:

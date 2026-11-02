@@ -13,7 +13,7 @@ aliases:
 
 LlamaIndex is a simple, flexible data framework for connecting custom data sources to large language models (LLMs).
 
-[`pgvecto.rs`](/pgvecto-rs/) provides a LlamaIndex integration that allows you to retrieve the most similar vectors. In this blog post, we will show you how to build a RAG pipeline with pgvecto.rs and LlamaIndex.
+[`pgvecto.rs`](/docs/vectors/) provides a LlamaIndex integration that allows you to retrieve the most similar vectors. In this blog post, we will show you how to build a RAG pipeline with pgvecto.rs and LlamaIndex.
 
 ## **Install dependencies**
 
@@ -48,7 +48,7 @@ CREATE EXTENSION vectors;
 
 ## **Create the database and load documents**
 
-First, create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto-rs/getting-started/overview.md**](/pgvecto-rs/getting-started/overview/) as an example.
+First, create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto-rs/getting-started/overview.md**](/docs/vectors/getting-started/overview/) as an example.
 
 ```python
 import logging

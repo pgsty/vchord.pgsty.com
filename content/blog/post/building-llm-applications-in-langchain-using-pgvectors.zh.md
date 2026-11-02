@@ -18,17 +18,17 @@ aliases:
 * **进行推理**：依靠语言模型进行推理（例如如何根据提供的上下文作答、应当采取什么行动等）。
     
 
-[pgvecto.rs](/zh/pgvecto-rs/) 是 Postgres 中的一款向量搜索扩展。在本篇博客中，我们将向你展示如何使用 LangChain 和 pgvecto.rs 构建 LLM 应用程序。
+[pgvecto.rs](/zh/docs/vectors/) 是 Postgres 中的一款向量搜索扩展。在本篇博客中，我们将向你展示如何使用 LangChain 和 pgvecto.rs 构建 LLM 应用程序。
 
 ## **安装依赖** {#install-dependencies}
 
-使用 LangChain 集成需要安装以下[依赖项](/zh/pgvecto-rs/integration/langchain/#install-dependencies)：
+使用 LangChain 集成需要安装以下[依赖项](/zh/docs/vectors/integration/langchain/#install-dependencies)：
 
 ```bash
 pip install langchain langchain-openai pgvecto-rs
 ```
 
-你可以在 Docker 容器中启动安装了 [`pgvecto.rs`](/zh/pgvecto-rs/) 扩展的 [Postgres](/zh/pgvecto-rs/integration/langchain/#install-dependencies) 实例：
+你可以在 Docker 容器中启动安装了 [`pgvecto.rs`](/zh/docs/vectors/) 扩展的 [Postgres](/zh/docs/vectors/integration/langchain/#install-dependencies) 实例：
 
 ```bash
 docker run \
@@ -38,13 +38,13 @@ docker run \
   -d tensorchord/pgvecto-rs:pg16-v0.2.0
 ```
 
-然后，你可以使用 `psql` 命令行工具[连接](/zh/pgvecto-rs/integration/langchain/#install-dependencies)到数据库。默认用户名为 `postgres`，默认密码为 `mysecretpassword`。
+然后，你可以使用 `psql` 命令行工具[连接](/zh/docs/vectors/integration/langchain/#install-dependencies)到数据库。默认用户名为 `postgres`，默认密码为 `mysecretpassword`。
 
 ```bash
 psql postgresql://postgres:mysecretpassword@localhost:5432/postgres
 ```
 
-运行以下 [SQL](/zh/pgvecto-rs/integration/langchain/#install-dependencies) 以确保扩展已启用：
+运行以下 [SQL](/zh/docs/vectors/integration/langchain/#install-dependencies) 以确保扩展已启用：
 
 ```bash
 DROP EXTENSION IF EXISTS vectors;
@@ -55,7 +55,7 @@ CREATE EXTENSION vectors;
 
 下面我们将展示如何在 LangChain 中使用 `pgvecto.rs` 检索最相似的向量。
 
-首先，你需要创建文本加载器（TextLoader）和文本切分器（CharacterTextSplitter），将文本切分为多个片段（Chunks）。这里我们以 Markdown 文件 [**pgvecto-rs/getting-started/overview.md**](/zh/pgvecto-rs/getting-started/overview/) 为例：
+首先，你需要创建文本加载器（TextLoader）和文本切分器（CharacterTextSplitter），将文本切分为多个片段（Chunks）。这里我们以 Markdown 文件 [**pgvecto-rs/getting-started/overview.md**](/zh/docs/vectors/getting-started/overview/) 为例：
 
 ```python
 ## Loading Environment Variables

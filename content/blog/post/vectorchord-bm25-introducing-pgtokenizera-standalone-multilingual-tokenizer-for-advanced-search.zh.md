@@ -205,7 +205,7 @@ SELECT embedding FROM chinese_docs WHERE id = 1;
 
 * **GitHub 仓库**：[https://github.com/tensorchord/VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)
     
-* **分词器文档**：[https://vchord.pgsty.com/bm25/tokenizer/](/zh/bm25/tokenizer/)
+* **分词器文档**：[https://vchord.pgsty.com/bm25/tokenizer/](/zh/docs/tokenizer/)
     
 
 我们诚邀您试用 0.2 版本并探索全新的分词能力。您的反馈至关重要——欢迎在我们的 GitHub 仓库中报告任何问题或提出功能建议。

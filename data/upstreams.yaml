@@ -41,3 +41,25 @@ tokenizer:
       copyright: "© 2024–2026 TensorChord Inc."
     zh:
       copyright: "© 2024–2026 TensorChord Inc."
+
+pgvector:
+  name: pgvector/pgvector
+  license: PostgreSQL
+  notice: /docs/about/attribution/
+  copyright: "© 2021–2026 Andrew Kane"
+  lang:
+    en:
+      copyright: "© 2021–2026 Andrew Kane"
+    zh:
+      copyright: "© 2021–2026 Andrew Kane"
+
+bestmatch:
+  name: tensorchord/pg_bestmatch.rs
+  license: Apache-2.0
+  notice: /docs/about/attribution/
+  copyright: "© 2024–2026 TensorChord Inc."
+  lang:
+    en:
+      copyright: "© 2024–2026 TensorChord Inc."
+    zh:
+      copyright: "© 2024–2026 TensorChord Inc."

@@ -4,7 +4,7 @@ This repository (`pgsty/vchord.pgsty.com`) powers `https://vchord.pgsty.com/`, t
 
 ## Upstream Documentation and Blog Material
 
-Substantial portions of the documentation under `content/docs/`, `content/docs/bm25/`, `content/docs/tokenizer/`, `content/docs/vectors/`, and `content/cloud/` are adapted from the upstream `VectorChord`, `VectorChord-bm25`, `pg_tokenizer.rs`, and `pgvecto.rs` repositories:
+Substantial portions of the documentation under `content/docs/vchord/`, `content/docs/bm25/`, `content/docs/vector/`, `content/docs/vectors/`, `content/docs/tokenizer/`, `content/docs/bestmatch/`, and `content/cloud/` are adapted from the upstream `VectorChord`, `VectorChord-bm25`, `pgvector`, `pgvecto.rs`, `pg_tokenizer.rs`, and `pg_bestmatch.rs` repositories:
 
 - **Upstream Documentation Repository**: [`tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) (`https://docs.vectorchord.ai/`)
 - **Upstream Blog**: [`blog.vectorchord.ai`](https://blog.vectorchord.ai/)
@@ -12,8 +12,11 @@ Substantial portions of the documentation under `content/docs/`, `content/docs/b
   - [`pgsty/vchord`](https://github.com/pgsty/vchord) (`AGPL-3.0-only`, forked from [`tensorchord/VectorChord`](https://github.com/tensorchord/VectorChord))
   - [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) (`AGPL-3.0-only`, forked from [`tensorchord/VectorChord-bm25`](https://github.com/tensorchord/VectorChord-bm25))
   - [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) (`Apache-2.0`, forked from [`tensorchord/pg_tokenizer.rs`](https://github.com/tensorchord/pg_tokenizer.rs))
+  - [`pgvector/pgvector`](https://github.com/pgvector/pgvector) (`PostgreSQL License`, © 2021–2026 Andrew Kane)
+  - [`tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) (`Apache-2.0`, © 2024–2026 TensorChord Inc.)
 - **Copyright**:
   - Copyright (c) 2023–2026 TensorChord Inc.
+  - Copyright (c) 2021–2026 Andrew Kane (`pgvector` documentation)
   - Copyright (c) 2026 PGSTY PTE. LTD. (Maintained by Ruohang Feng @ PGSTY, `rh@vonng.com`)
 
 Pages derived from upstream include `upstream_link` in their front matter so OINK renders direct provenance and source attribution on every page.

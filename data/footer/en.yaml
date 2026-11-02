@@ -1,22 +1,24 @@
 brand:
   name: VCHORD
   tagline: '**V**ector & **BM25** Search for PostgreSQL'
-  slogan: Scalable, fast, and disk-friendly retrieval extensions maintained by the [Pigsty](https://pigsty.io/) community.
+  slogan: 'Scalable, fast, and disk-friendly retrieval extensions for PostgreSQL.<br>Originally developed by TensorChord, maintained by [PGSTY](https://pgsty.com/).'
 columns:
   - title: "Documentation"
     links:
-      - { label: "Overview & Quick Start", url: "docs/getting-started/overview/" }
-      - { label: "Installation", url: "docs/getting-started/installation/" }
-      - { label: "Indexing Guide", url: "docs/usage/indexing/" }
-      - { label: "Multi-Vector & Hybrid", url: "docs/use-case/" }
-      - { label: "Benchmarks", url: "docs/benchmark/performance/" }
+      - { label: "Overview & Quick Start", url: "docs/vchord/getting-started/overview/" }
+      - { label: "Installation", url: "docs/vchord/getting-started/installation/" }
+      - { label: "Indexing Guide", url: "docs/vchord/usage/indexing/" }
+      - { label: "Multi-Vector & Hybrid", url: "docs/vchord/use-case/" }
+      - { label: "Benchmarks", url: "docs/vchord/benchmark/performance/" }
+      - { label: "Migration Guide", url: "docs/vchord/admin/migration/" }
   - title: "Extension Suite"
     links:
-      - { label: "vchord", url: "docs/" }
+      - { label: "vchord", url: "docs/vchord/" }
       - { label: "vchord_bm25", url: "docs/bm25/" }
       - { label: "pg_tokenizer", url: "docs/tokenizer/" }
+      - { label: "pgvector", url: "docs/vector/" }
       - { label: "pgvecto.rs", url: "docs/vectors/" }
-      - { label: "Migration Guide", url: "docs/admin/migration/" }
+      - { label: "pg_bestmatch", url: "docs/bestmatch/" }
   - title: "Project & Blog"
     links:
       - { label: "Engineering Blog", url: "blog/post/" }
@@ -24,10 +26,12 @@ columns:
       - { label: "About & License", url: "docs/about/" }
       - { label: "Attribution", url: "docs/about/attribution/" }
       - { label: "GitHub", url: "https://github.com/pgsty/vchord", external: true }
+      - { label: "Create Issue", url: "https://github.com/pgsty/vchord/issues", external: true }
   - title: "Ecosystem"
     links:
       - { label: "Pigsty", url: "https://pigsty.io/", external: true }
       - { label: "PIG CLI", url: "https://pig.pgsty.com/", external: true }
       - { label: "PGEXT.CLOUD", url: "https://pgext.cloud/", external: true }
+      - { label: "PGSQL.CC", url: "https://pgsql.cc/", external: true }
+      - { label: "PG Docs", url: "https://pgsql.cc/docs/", external: true }
       - { label: "PG Center", url: "https://pg.center/docs/reference/", external: true }
-      - { label: "PGSQL.CC", url: "https://pgsql.cc/docs/", external: true }

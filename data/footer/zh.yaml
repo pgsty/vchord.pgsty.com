@@ -1,22 +1,24 @@
 brand:
   name: VCHORD
   tagline: 'PostgreSQL **向量**与 **BM25 全文检索**套件'
-  slogan: 由 [Pigsty](https://pigsty.cc/) 社区维护的高性能、可扩展、磁盘友好型 PostgreSQL 检索扩展家族。
+  slogan: '高性能、可扩展、磁盘友好的 PostgreSQL 检索扩展。<br>由 TensorChord 开发，并由 [PGSTY](https://pgsty.com/zh) 接手维护。'
 columns:
   - title: "核心文档"
     links:
-      - { label: "概览与快速开始", url: "docs/getting-started/overview/" }
-      - { label: "安装部署", url: "docs/getting-started/installation/" }
-      - { label: "索引构建指南", url: "docs/usage/indexing/" }
-      - { label: "多向量与混合检索", url: "docs/use-case/" }
-      - { label: "性能基准测试", url: "docs/benchmark/performance/" }
+      - { label: "概览与快速开始", url: "docs/vchord/getting-started/overview/" }
+      - { label: "安装部署", url: "docs/vchord/getting-started/installation/" }
+      - { label: "索引构建指南", url: "docs/vchord/usage/indexing/" }
+      - { label: "多向量与混合检索", url: "docs/vchord/use-case/" }
+      - { label: "性能基准测试", url: "docs/vchord/benchmark/performance/" }
+      - { label: "版本迁移指南", url: "docs/vchord/admin/migration/" }
   - title: "扩展套件"
     links:
-      - { label: "vchord", url: "docs/" }
+      - { label: "vchord", url: "docs/vchord/" }
       - { label: "vchord_bm25", url: "docs/bm25/" }
       - { label: "pg_tokenizer", url: "docs/tokenizer/" }
+      - { label: "pgvector", url: "docs/vector/" }
       - { label: "pgvecto.rs", url: "docs/vectors/" }
-      - { label: "版本迁移指南", url: "docs/admin/migration/" }
+      - { label: "pg_bestmatch", url: "docs/bestmatch/" }
   - title: "项目与博客"
     links:
       - { label: "工程技术博客", url: "blog/post/" }
@@ -24,10 +26,12 @@ columns:
       - { label: "关于与开源许可", url: "docs/about/" }
       - { label: "署名与上游来源", url: "docs/about/attribution/" }
       - { label: "GitHub", url: "https://github.com/pgsty/vchord", external: true }
+      - { label: "报告问题", url: "https://github.com/pgsty/vchord/issues", external: true }
   - title: "开源生态"
     links:
       - { label: "Pigsty", url: "https://pigsty.cc/", external: true }
       - { label: "PIG CLI", url: "https://pig.pgsty.com/zh/", external: true }
       - { label: "PGEXT.CLOUD", url: "https://pgext.cloud/", external: true }
+      - { label: "PG 中文社区", url: "https://pgsql.cc/", external: true }
       - { label: "PG 中文文档", url: "https://pgsql.cc/docs/", external: true }
       - { label: "PG 知识图谱", url: "https://pg.center/docs/reference/", external: true }

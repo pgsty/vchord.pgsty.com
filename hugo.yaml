@@ -50,19 +50,19 @@ languages:
             - id: quick_start
               title: Quick Start
               description: Launch vchord with Docker or PostgreSQL packages in minutes
-              url: /docs/getting-started/overview/
+              url: /docs/vchord/getting-started/overview/
               icon: fa-solid fa-bolt
               keywords: [start, quickstart, docker, install, vchord, vchordrq]
             - id: indexing_guide
               title: Indexing Guide
               description: Choose between vchordrq (disk-friendly RaBitQ IVF) and vchordg (high-QPS graph)
-              url: /docs/usage/indexing/
+              url: /docs/vchord/usage/indexing/
               icon: fa-solid fa-layer-group
               keywords: [index, vchordrq, vchordg, rabitq, kmeans]
             - id: reference_api
               title: Quantization & SQL Types
               description: RaBitQ4/RaBitQ8 types, operators, index options, and GUC parameters
-              url: /docs/usage/quantization-types/
+              url: /docs/vchord/usage/quantization-types/
               icon: fa-solid fa-terminal
               keywords: [reference, sql, guc, operators, parameters, rabitq]
             - id: bm25_docs
@@ -77,16 +77,28 @@ languages:
               url: /docs/tokenizer/
               icon: fa-solid fa-language
               keywords: [pg_tokenizer, tokenizer, jieba, lindera, stemmer]
+            - id: pgvector_docs
+              title: pgvector Documentation
+              description: Core vector, halfvec, bit, and sparsevec types, HNSW, and IVFFlat indexes
+              url: /docs/vector/
+              icon: fa-solid fa-circle-nodes
+              keywords: [pgvector, vector, halfvec, sparsevec, hnsw, ivfflat]
             - id: vectors_docs
               title: pgvecto.rs Documentation
               description: Complete documentation archive for pgvecto.rs (vectors extension)
               url: /docs/vectors/
               icon: fa-solid fa-cube
               keywords: [pgvecto.rs, vectors, legacy, archive]
+            - id: bestmatch_docs
+              title: pg_bestmatch Documentation
+              description: Generate BM25 sparse vectors inside PostgreSQL for pgvector and pgvecto.rs
+              url: /docs/bestmatch/
+              icon: fa-solid fa-ranking-star
+              keywords: [pg_bestmatch, bestmatch, bm25, sparsevec, svector]
             - id: benchmark_results
               title: Benchmarks
               description: Cost, recall, QPS, and index build time across 1M to 100M vectors
-              url: /docs/benchmark/performance/
+              url: /docs/vchord/benchmark/performance/
               icon: fa-solid fa-chart-line
               keywords: [benchmark, performance, qps, recall, cost]
     menu:
@@ -100,7 +112,7 @@ languages:
         - identifier: docs-vchord
           parent: docs
           name: vchord
-          pageRef: /docs
+          pageRef: /docs/vchord
           weight: 10
           params:
             icon: fa-solid fa-layer-group
@@ -121,14 +133,30 @@ languages:
           params:
             icon: fa-solid fa-language
             description: Multilingual text analyzers, stemmers, and custom models
+        - identifier: docs-vector
+          parent: docs
+          name: pgvector
+          pageRef: /docs/vector
+          weight: 40
+          params:
+            icon: fa-solid fa-circle-nodes
+            description: Core vector types, distance operators, HNSW, and IVFFlat
         - identifier: docs-vectors
           parent: docs
           name: pgvecto.rs
           pageRef: /docs/vectors
-          weight: 40
+          weight: 50
           params:
             icon: fa-solid fa-cube
             description: Complete documentation archive for pgvecto.rs (vectors)
+        - identifier: docs-bestmatch
+          parent: docs
+          name: pg_bestmatch
+          pageRef: /docs/bestmatch
+          weight: 60
+          params:
+            icon: fa-solid fa-ranking-star
+            description: BM25 sparse vector generator for pgvector and pgvecto.rs
         - identifier: blog
           name: Blog
           pageRef: /blog
@@ -182,19 +210,19 @@ languages:
             - id: quick_start
               title: 快速开始
               description: 使用 Docker 或 PostgreSQL 软件包在几分钟内启动 vchord
-              url: /zh/docs/getting-started/overview/
+              url: /zh/docs/vchord/getting-started/overview/
               icon: fa-solid fa-bolt
               keywords: [start, quickstart, docker, install, vchord, vchordrq, 快速开始, 安装]
             - id: indexing_guide
               title: 索引指南
               description: 在 vchordrq（磁盘友好型 RaBitQ IVF）与 vchordg（高 QPS 图索引）之间选型
-              url: /zh/docs/usage/indexing/
+              url: /zh/docs/vchord/usage/indexing/
               icon: fa-solid fa-layer-group
               keywords: [index, vchordrq, vchordg, rabitq, kmeans, 索引]
             - id: reference_api
               title: 量化与 SQL 类型
               description: RaBitQ4/RaBitQ8 类型、操作符、索引选项与 GUC 参数参考
-              url: /zh/docs/usage/quantization-types/
+              url: /zh/docs/vchord/usage/quantization-types/
               icon: fa-solid fa-terminal
               keywords: [reference, sql, guc, operators, parameters, rabitq, 量化, 参数]
             - id: bm25_docs
@@ -209,16 +237,28 @@ languages:
               url: /zh/docs/tokenizer/
               icon: fa-solid fa-language
               keywords: [pg_tokenizer, tokenizer, jieba, lindera, 分词]
+            - id: pgvector_docs
+              title: pgvector 文档
+              description: 核心 vector、halfvec、bit 与 sparsevec 类型及 HNSW / IVFFlat 索引
+              url: /zh/docs/vector/
+              icon: fa-solid fa-circle-nodes
+              keywords: [pgvector, vector, halfvec, sparsevec, hnsw, ivfflat, 向量]
             - id: vectors_docs
               title: pgvecto.rs 文档
               description: pgvecto.rs（vectors 扩展）完整历史技术文档归档
               url: /zh/docs/vectors/
               icon: fa-solid fa-cube
               keywords: [pgvecto.rs, vectors, 历史文档, 归档]
+            - id: bestmatch_docs
+              title: pg_bestmatch 文档
+              description: 在 PostgreSQL 内生成兼容 pgvector 与 pgvecto.rs 的 BM25 稀疏向量
+              url: /zh/docs/bestmatch/
+              icon: fa-solid fa-ranking-star
+              keywords: [pg_bestmatch, bestmatch, bm25, sparsevec, svector, 稀疏向量]
             - id: benchmark_results
               title: 基准测试
               description: 100 万至 1 亿向量规模下的成本、召回率、QPS 与索引构建耗时对比
-              url: /zh/docs/benchmark/performance/
+              url: /zh/docs/vchord/benchmark/performance/
               icon: fa-solid fa-chart-line
               keywords: [benchmark, performance, qps, recall, cost, 基准测试, 性能]
     menu:
@@ -232,7 +272,7 @@ languages:
         - identifier: docs-vchord
           parent: docs
           name: vchord
-          pageRef: /docs
+          pageRef: /docs/vchord
           weight: 10
           params:
             icon: fa-solid fa-layer-group
@@ -253,14 +293,30 @@ languages:
           params:
             icon: fa-solid fa-language
             description: 多语言文本分析器、词干提取与自定义词表模型
+        - identifier: docs-vector
+          parent: docs
+          name: pgvector
+          pageRef: /docs/vector
+          weight: 40
+          params:
+            icon: fa-solid fa-circle-nodes
+            description: 核心向量类型、距离操作符、HNSW 与 IVFFlat 索引
         - identifier: docs-vectors
           parent: docs
           name: pgvecto.rs
           pageRef: /docs/vectors
-          weight: 40
+          weight: 50
           params:
             icon: fa-solid fa-cube
             description: pgvecto.rs（vectors 扩展）完整历史文档归档
+        - identifier: docs-bestmatch
+          parent: docs
+          name: pg_bestmatch
+          pageRef: /docs/bestmatch
+          weight: 60
+          params:
+            icon: fa-solid fa-ranking-star
+            description: 面向 pgvector 与 pgvecto.rs 的 BM25 稀疏向量生成器
         - identifier: blog
           name: 博客
           pageRef: /blog

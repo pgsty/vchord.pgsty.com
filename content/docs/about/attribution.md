@@ -20,11 +20,11 @@ aliases:
 
 ## Upstream Sources {#upstream-sources}
 
-1. **Documentation (`content/docs/`, `content/docs/vectors/`, `content/cloud/`)**
-   - **Source Repository**: [`https://github.com/tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) (`https://docs.vectorchord.ai/`)
-   - **BM25 & Tokenizer Docs**: [`https://github.com/tensorchord/VectorChord-bm25`](https://github.com/tensorchord/VectorChord-bm25) and [`https://github.com/tensorchord/pg_tokenizer.rs`](https://github.com/tensorchord/pg_tokenizer.rs)
-   - **Copyright**: © 2023–2026 TensorChord Inc. and Contributors.
-   - **Adaptations**: Converted from VitePress to Hugo + [OINK `v1.4.0`](https://github.com/pgsty/oink), including GitHub-style callout normalization, KaTeX math delimiter standardization, internal link resolution, and bilingual Chinese/English documentation.
+1. **Documentation (`content/docs/`, `content/cloud/`)**
+   - **VectorChord & pgvecto.rs Docs**: [`https://github.com/tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) (`https://docs.vectorchord.ai/`) — © 2023–2026 TensorChord Inc. (Apache-2.0)
+   - **BM25 & Tokenizer Docs**: [`https://github.com/tensorchord/VectorChord-bm25`](https://github.com/tensorchord/VectorChord-bm25), [`https://github.com/tensorchord/pg_tokenizer.rs`](https://github.com/tensorchord/pg_tokenizer.rs), and [`https://github.com/tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) — © 2024–2026 TensorChord Inc.
+   - **pgvector Docs (`content/docs/vector/`)**: Adapted from [`https://github.com/pgvector/pgvector`](https://github.com/pgvector/pgvector) — © 2021–2026 Andrew Kane (PostgreSQL License).
+   - **Adaptations**: Converted to Hugo + [OINK `v1.4.0`](https://github.com/pgsty/oink), including GitHub-style callout normalization, KaTeX math delimiter standardization, internal link resolution, and bilingual Chinese/English documentation.
 
 2. **Engineering Blog & Release Notes (`content/blog/`)**
    - **Original Publication**: [`https://blog.vectorchord.ai/`](https://blog.vectorchord.ai/)

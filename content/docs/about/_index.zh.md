@@ -28,9 +28,11 @@ cascade:
 
 | 板块 | 涵盖内容 |
 | :--- | :--- |
-| **[`vchord` 文档](/zh/docs/)** | 安装指南、从 `pgvecto.rs` 迁移、`vchordrq` 与 `vchordg` 索引构建、MaxSim 多向量检索、范围过滤查询、PostgreSQL 参数调优、外部索引预计算、基准测试与 SQL 参考手册。 |
+| **[`vchord` 文档](/zh/docs/vchord/)** | 安装指南、从 `pgvecto.rs` 迁移、`vchordrq` 与 `vchordg` 索引构建、MaxSim 多向量检索、范围过滤查询、PostgreSQL 参数调优、外部索引预计算、基准测试与 SQL 参考手册。 |
 | **[`vchord_bm25` 文档](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 的完整文档：Okapi BM25 相关性评分、Block-WeakAnd Top-K 索引扫描、预过滤检索、与 `vchord` 协同的混合检索，以及 SQL/GUC 与 BEIR 基准测试参考手册。 |
-| **[`pg_tokenizer` 文档](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 的完整文档：文本分析流水线、字符与词元过滤器、Snowball 词干提取、自定义语料模型、HuggingFace 模型、中文结巴（`jieba`）与日文 `lindera` 分词。 |
+| **[`pgvector` 文档](/zh/docs/vector/)** | `pgvector` 完整文档：`vector`、`halfvec`、`bit` 与 `sparsevec` 向量类型、距离操作符、HNSW 与 IVFFlat 索引、迭代式索引扫描与量化方案。 |
 | **[`pgvecto.rs` 历史归档](/zh/docs/vectors/)** | `pgvecto.rs`（`vectors` 扩展）的完整历史文档，包括安装部署、索引构建、过滤查询、开发框架集成与日常运维。 |
+| **[`pg_tokenizer` 文档](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 的完整文档：文本分析流水线、字符与词元过滤器、Snowball 词干提取、自定义语料模型、HuggingFace 模型、中文结巴（`jieba`）与日文 `lindera` 分词。 |
+| **[`pg_bestmatch` 文档](/zh/docs/bestmatch/)** | `pg_bestmatch.rs` 扩展文档：在 PostgreSQL 内部生成兼容 [`pgvector`](/zh/docs/vector/) `sparsevec` 与 [`pgvecto.rs`](/zh/docs/vectors/) `svector` 的 BM25 稀疏向量。 |
 | **[工程技术博客](/zh/blog/)** | 全部 37 篇工程深度解析、基准测试对比、混合检索教程以及历次版本发布公告（涵盖 `pgvecto.rs 0.2` 至 `VectorChord 1.1`）。 |
 | **[VectorChord Cloud](/zh/cloud/)** | VectorChord Cloud 托管集群、连接端点、弹性扩缩容、监控指标与账单管理参考文档。 |

@@ -28,9 +28,11 @@ This repository (`pgsty/vchord.pgsty.com`) and website (`https://vchord.pgsty.co
 
 | Section | Coverage |
 | :--- | :--- |
-| **[`vchord` Docs](/docs/)** | Installation, migration from `pgvecto.rs`, `vchordrq` and `vchordg` indexing, MaxSim multi-vector retrieval, range queries, PostgreSQL tuning, external index precomputation, benchmarks, and SQL reference. |
+| **[`vchord` Docs](/docs/vchord/)** | Installation, migration from `pgvecto.rs`, `vchordrq` and `vchordg` indexing, MaxSim multi-vector retrieval, range queries, PostgreSQL tuning, external index precomputation, benchmarks, and SQL reference. |
 | **[`vchord_bm25` Docs](/docs/bm25/)** | Complete documentation for [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25): Okapi BM25 scoring, Block-WeakAnd Top-K index scans, prefiltering, hybrid search with `vchord`, and SQL/GUC/BEIR benchmark reference. |
-| **[`pg_tokenizer` Docs](/docs/tokenizer/)** | Complete documentation for [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer): text analyzer pipelines, character/token filters, Snowball stemmers, custom corpus models, HuggingFace models, Chinese `jieba`, and Japanese `lindera`. |
+| **[`pgvector` Docs](/docs/vector/)** | Complete documentation for `pgvector`: `vector`, `halfvec`, `bit`, and `sparsevec` types, distance operators, HNSW and IVFFlat indexing, iterative index scans, and quantization. |
 | **[`pgvecto.rs` Archive](/docs/vectors/)** | Complete legacy documentation for `pgvecto.rs` (`vectors` extension), including installation, indexing, filtering, framework integrations, and administration. |
+| **[`pg_tokenizer` Docs](/docs/tokenizer/)** | Complete documentation for [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer): text analyzer pipelines, character/token filters, Snowball stemmers, custom corpus models, HuggingFace models, Chinese `jieba`, and Japanese `lindera`. |
+| **[`pg_bestmatch` Docs](/docs/bestmatch/)** | Documentation for `pg_bestmatch.rs`: generating Okapi BM25 sparse vectors inside PostgreSQL for [`pgvector`](/docs/vector/) `sparsevec` and [`pgvecto.rs`](/docs/vectors/) `svector`. |
 | **[Engineering Blog](/blog/)** | All 37 engineering deep-dives, benchmark analyses, hybrid search tutorials, and release announcements (`pgvecto.rs 0.2` through `VectorChord 1.1`). |
 | **[VectorChord Cloud](/cloud/)** | Reference documentation for VectorChord Cloud clusters, connection endpoints, scaling, VPC peering, monitoring, and billing. |

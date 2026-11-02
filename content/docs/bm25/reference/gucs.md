@@ -5,6 +5,10 @@ description: "Complete reference of session GUC parameters and index storage opt
 weight: 20
 ---
 
+> [!IMPORTANT]
+> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+
+
 ## Stable Releases (`v0.1.0` – `v0.3.0`): `bm25_catalog.*` GUCs
 
 In versions `v0.1.0` through `v0.3.0`, all session GUC parameters use the `bm25_catalog.` prefix and can be changed per session or transaction by any user (`GucContext::Userset`):
@@ -43,13 +47,15 @@ In the `main` branch rewrite, session GUCs use the `bm25.` prefix and work toget
 | Parameter Name | Type | Default | Valid Range | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `bm25.enable_scan` | `boolean` | `true` | `true` / `false` | Enables or disables `bm25` index scans in the planner. |
-| `bm25.limit` | `integer` | `100` | `0` .. `65535` | Maximum number of results returned by a `bm25` index scan. If set to `0`, falls back to the index's `limit` storage parameter. |
-| `bm25.prefilter` | `boolean` | `false` | `true` / `false` | Enables pre-filtering during `bm25` index scans (overrides the index's `prefilter` storage parameter when `true`). |
+| `bm25.limit` | `integer` | `0` | `0` .. `65535` | Maximum candidates. Any explicitly set value overrides the index; explicit zero makes index scans error. `RESET` restores the index fallback. |
+| `bm25.prefilter` | `boolean` | `false` | `true` / `false` | Enables pre-filtering during `bm25` index scans (overrides the index's `prefilter` storage parameter even when explicitly set to `false`). |
+
+Settings from `postgresql.conf`, `ALTER DATABASE`, `ALTER ROLE`, or client startup options also override index reloptions. `RESET` restores that configured default; it falls back to the index only when the GUC source returns to the built-in default.
 
 ### Index Storage Parameters (`WITH (...)` in `main`)
 
 | Storage Parameter | Type | Default | Valid Range | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `options` | `string` (TOML) | `k1 = 1.2, b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | TOML string configuring the Okapi BM25 parameters \(k_1\) and \(b\) for the index. |
-| `limit` | `integer` | `0` | `0` .. `65535` | Per-index fallback search limit used when `bm25.limit = 0`. |
+| `limit` | `integer` | `0` | `0` .. `65535` | Per-index fallback search limit used when `bm25.limit` has its default source (`RESET`), not when explicitly set to zero. |
 | `prefilter` | `boolean` | `false` | `true` / `false` | Per-index default prefilter setting. |

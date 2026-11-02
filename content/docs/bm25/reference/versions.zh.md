@@ -5,13 +5,17 @@ description: "VectorChord-BM25 (vchord_bm25) 从 v0.1.0 到 v0.3.0 再到 main �
 weight: 40
 ---
 
+> [!IMPORTANT]
+> 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+
+
 本页记录 `vchord_bm25`（[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) / [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)）的版本发布历史与 SQL 模式演进。
 
 ## 版本演进总览矩阵 {#version-summary-matrix}
 
 | 版本 | 所属模式 | 索引列类型 | 分词方案 | 核心新增特性 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`main`（新一代架构）** | 扩展所在模式 | `tsvector` | 原生 `to_tsvector`（或自定义） | 基于原生 `tsvector` 完全重写存储与索引引擎；支持外部排序并行构建（`ambuild`）；引入索引级存储参数（`options`、`limit`、`prefilter`）；引入 `bm25.*` GUC 参数；支持 PostgreSQL 18。 |
+| **`0.4.0` / `main`（尚未发布）** | 扩展所在模式 | `tsvector` | 原生 `to_tsvector`（或自定义） | 基于原生 `tsvector` 完全重写存储与索引引擎；支持外部排序并行构建（`ambuild`）；引入索引级存储参数（`options`、`limit`、`prefilter`）；引入 `bm25.*` GUC 参数；支持 PostgreSQL 18。 |
 | **`v0.3.0`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | 新增 `bm25_page_inspect(regclass, int)` 函数、`to_bm25query(regclass, int[])` 重载，以及 PostgreSQL 18 兼容性支持。 |
 | **`v0.2.2`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | 新增 `bm25_catalog.enable_prefilter` GUC 参数，支持带 `WHERE` 子句的精确过滤 Top-K BM25 检索。 |
 | **`v0.2.1`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | 修复增长段（Growing）向封闭段（Sealed）转换以及 VACUUM 清理过程中的若干缺陷。 |

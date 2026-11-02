@@ -5,13 +5,17 @@ description: "Complete SQL data types, operators, casts, index access methods, a
 weight: 10
 ---
 
+> [!IMPORTANT]
+> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+
+
 ## `vchord_bm25` Data Types
 
 | Data Type | Schema | Versions | Text Representation / Structure | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `bm25vector` | `bm25_catalog` | `v0.1.0` – `v0.3.0` | `{token_id:freq, ...}` (e.g., `{1:1, 2:2, 15:1}`) | Sparse vector mapping 32-bit unsigned token IDs to 32-bit term frequencies. Stored with `STORAGE = EXTERNAL`. |
 | `bm25query` | `bm25_catalog` | `v0.1.0` – `v0.3.0` | `(index_oid regclass, query_vector bm25vector)` | Composite type pairing a target `bm25` index OID with a query `bm25vector`. |
-| `bm25query` | `public` / ext schema | `main` | `(vector tsvector, index regclass)` | Composite type pairing a query `tsvector` with a target `bm25` index OID. |
+| `bm25query` | `public` / ext schema | `0.4.0` / `main` | `(vector tsvector, index regclass)` | Composite type pairing a query `tsvector` with a target `bm25` index OID. |
 
 ### `bm25vector` Literal Syntax (`v0.1` – `v0.3`)
 
@@ -34,7 +38,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | Operator | Left Arg | Right Arg | Return Type | Versions | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `<&>` | `bm25vector` | `bm25query` | `real` (`f32`) | `v0.1.0` – `v0.3.0` | Computes the **negative** BM25 relevance score ($-\text{BM25}(D, Q)$). Supports index-accelerated `ORDER BY ... ASC` scans using `bm25_ops`. |
-| `<&>` | `tsvector` | `bm25query` | `float8` (`f64`) | `main` | Computes the **negative** BM25 relevance score on native `tsvector`. Supports index-accelerated `ORDER BY ... ASC` scans using `bm25_ops`. |
+| `<&>` | `tsvector` | `bm25query` | `float8` (`f64`) | `0.4.0` / `main` | Computes the **negative** BM25 relevance score on native `tsvector`. Supports index-accelerated `ORDER BY ... ASC` scans using `bm25_ops`. |
 | `=` | `bm25vector` | `bm25vector` | `bool` | `v0.2.0` – `v0.3.0` | Exact equality comparison between two `bm25vector` values. |
 | `<>` | `bm25vector` | `bm25vector` | `bool` | `v0.2.0` – `v0.3.0` | Inequality comparison between two `bm25vector` values. |
 
@@ -45,10 +49,10 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | Function Signature | Return Type | Versions | Description |
 | :--- | :--- | :--- | :--- |
 | `to_bm25query(index_oid regclass, query_vector bm25vector)` | `bm25query` | `v0.1.1` – `v0.3.0` | Constructs a `bm25query` from a `bm25` index name/OID and a query `bm25vector` (or `INT[]` via implicit cast). |
-| `to_bm25query(index_oid regclass, query_vector int[])` | `bm25query` | `v0.3.0+` | Explicit overload accepting an `INT[]` token ID array directly. |
-| `to_bm25query(vector tsvector, index regclass)` | `bm25query` | `main` | Constructs a `bm25query` from a native `tsvector` and target `bm25` index name/OID. |
+| `to_bm25query(index_oid regclass, query_vector int[])` | `bm25query` | `v0.3.0` | Explicit overload accepting an `INT[]` token ID array directly. |
+| `to_bm25query(vector tsvector, index regclass)` | `bm25query` | `0.4.0` / `main` | Constructs a `bm25query` from a native `tsvector` and target `bm25` index name/OID. |
 | `search_bm25query(target_vector bm25vector, query bm25query)` | `real` | `v0.1.0` – `v0.3.0` | Underlying implementation function for `bm25vector <&> bm25query`. |
-| `_bm25_evaluate(left tsvector, right bm25query)` | `float8` | `main` | Underlying implementation function for `tsvector <&> bm25query`. |
+| `_bm25_evaluate(left tsvector, right bm25query)` | `float8` | `0.4.0` / `main` | Underlying implementation function for `tsvector <&> bm25query`. |
 | `bm25_page_inspect(index regclass, blkno int)` | `text` | `v0.3.0` | Returns human-readable diagnostic metadata for block `blkno` of a `bm25` index. |
 
 ---
@@ -57,9 +61,9 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 
 | Object | Name | Target Type | Ordering Operator |
 | :--- | :--- | :--- | :--- |
-| Access Method | `bm25` | Index | Handler `_bm25_amhandler` |
-| Operator Family | `bm25_ops` | `USING bm25` | `OPERATOR 1 pg_catalog.<&> FOR ORDER BY float_ops` |
-| Operator Class | `bm25_ops` | `bm25vector` (`v0.1`–`v0.3`) / `tsvector` (`main`) | Default operator class for `USING bm25` |
+| Access Method | `bm25` | Index | Handler `bm25_amhandler` in 0.4.0; `_bm25_amhandler` in 0.3.x |
+| Operator Family | `bm25_ops` | `USING bm25` | `<&>` in the extension schema (0.4.0), or `pg_catalog` (0.3.x), ordered by `float_ops` |
+| Operator Class | `bm25_ops` | `bm25vector` (`v0.1`–`v0.3`) / `tsvector` (`main`) | Explicit operator class for `USING bm25` |
 
 ---
 

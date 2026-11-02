@@ -82,12 +82,16 @@ LIMIT 500;
 
 在 `main` 分支中，实际生效的检索上限按以下优先级顺序决定：
 
-1. 会话 GUC 参数 `bm25.limit`（若 `> 0`）
-2. 索引存储参数 `WITH (limit = ...)`（若 `> 0`）
+1. 显式设置的会话 GUC 参数 `bm25.limit`，包括零值。
+2. 否则使用索引存储参数 `WITH (limit = ...)`。
+
+两层默认值均为零，因此检索前必须设置正值。显式零值会报错，不触发回退。执行 `RESET "bm25.limit"` 可恢复索引默认值。
 
 ```sql
-SET bm25.limit = 100;
+SET "bm25.limit" = 100;
 ```
+
+`postgresql.conf`、`ALTER DATABASE`、`ALTER ROLE` 或客户端启动选项中的设置也会覆盖索引参数。`RESET` 会恢复这些配置默认值；只有 GUC 来源恢复为内置默认值时，才会回退到索引参数。
 
 > [!WARNING]
 > 请始终确保 `bm25_catalog.bm25_limit`（或 `bm25.limit`）**大于或等于** SQL 查询中的 `LIMIT` 值。如果 SQL 查询指定了 `LIMIT 200`，而 `bm25_limit` 仍为 `100`，则索引扫描在产出 100 行后就会停止。

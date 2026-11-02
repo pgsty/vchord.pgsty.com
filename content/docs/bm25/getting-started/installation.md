@@ -4,6 +4,10 @@ description: "Install VectorChord-BM25 (vchord_bm25) and pg_tokenizer via Pigsty
 weight: 20
 ---
 
+> [!IMPORTANT]
+> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+
+
 `vchord_bm25` supports **PostgreSQL 14, 15, 16, 17, and 18** on Linux (`x86_64` and `aarch64`) and macOS.
 
 ## Method 1: Pigsty / Native OS Packages (Recommended)
@@ -83,9 +87,9 @@ sudo cp ./usr/lib/postgresql/16/lib/pg_tokenizer.so $(pg_config --pkglibdir)
 sudo cp ./usr/share/postgresql/16/extension/* $(pg_config --sharedir)/extension
 ```
 
-## Method 4: Build from Source (`cargo-pgrx`)
+## Method 4: Build from Source {#method-4-build-from-source-cargo-pgrx}
 
-To compile [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) from source:
+To compile [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) from source:
 
 ```bash
 # 1. Install Rust toolchain and system dependencies (clang, libclang, pkg-config, PostgreSQL dev headers)
@@ -94,14 +98,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # 2. Build and install vchord_bm25
 git clone https://github.com/pgsty/vchord_bm25.git
 cd vchord_bm25
-cargo install cargo-pgrx --version $(grep -o 'pgrx = "=[^"]*' Cargo.toml | cut -d = -f 3)
-cargo pgrx init --pg17=$(which pg_config)
-cargo pgrx install --release --pg-config $(which pg_config)
-
-# 3. Build and install pg_tokenizer
-git clone https://github.com/pgsty/pg_tokenizer.git
-cd pg_tokenizer
-cargo pgrx install --release --pg-config $(which pg_config)
+PG_CONFIG=/path/to/pg_config make build
+PG_CONFIG=/path/to/pg_config make install
 ```
 
 > [!TIP]
@@ -111,40 +109,40 @@ cargo pgrx install --release --pg-config $(which pg_config)
 >   --features "lindera-ipadic lindera-ipadic-neologd lindera-unidic lindera-ko-dic lindera-cc-cedict"
 > ```
 
-### Development & Debugging (`cargo-pgrx`)
+### Development & Debugging {#development--debugging-cargo-pgrx}
 
-When developing or debugging `vchord_bm25` or `pg_tokenizer` locally:
+Use the `dev` profile for an optimized BM25 build with debug symbols:
 
 ```bash
-# Initialize pgrx managed PostgreSQL instances (PG 14–18)
-cargo pgrx init
+PG_CONFIG=/path/to/pg_config PROFILE=dev make build
+PG_CONFIG=/path/to/pg_config PROFILE=dev make install
+```
 
-# Use the `dev-opt` profile to enable optimizations alongside debug symbols
-RUST_BACKTRACE=1 cargo pgrx run --profile dev-opt
+Restart a disposable PostgreSQL instance configured to preload `vchord_bm25`, then connect with `psql`. To attach a debugger, obtain that session's backend PID:
 
-# Inside the interactive psql session, inspect the backend PID to attach gdb if needed:
+```sql
 SELECT pg_backend_pid();
 ```
 
 ## Configure PostgreSQL & Enable Extensions
 
-### 1. Shared Preload Libraries (Optional / Recommended for `pg_tokenizer`)
+### 1. Shared Preload Libraries (Required for 0.4.0) {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
 
-If you use `pg_tokenizer` and want preloaded vocabulary models initialized at server startup, add `pg_tokenizer` (and `vchord` if used) to `shared_preload_libraries` in `postgresql.conf`:
+Current source requires `vchord_bm25` in `shared_preload_libraries`. Preserve other required libraries. `pg_tokenizer` is optional for the native `to_tsvector` workflow:
 
 ```ini
-shared_preload_libraries = 'vchord.so, pg_tokenizer.so'
+shared_preload_libraries = 'vchord_bm25'
 ```
 
-Restart PostgreSQL after modifying `shared_preload_libraries`. (`vchord_bm25` itself does not require `shared_preload_libraries` and can be loaded dynamically per session via `CREATE EXTENSION`.)
+Restart PostgreSQL after modifying `shared_preload_libraries`.
 
 ### 2. Create Extensions and Set `search_path`
 
 Connect to your target database and enable the extensions:
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+-- pg_tokenizer is a separate extension for the historical bm25vector workflow.
 ```
 
 In `v0.1.0`–`v0.3.0`, `vchord_bm25` installs its objects into the `bm25_catalog` schema and `pg_tokenizer` installs into `tokenizer_catalog`. Add both schemas to your `search_path`:

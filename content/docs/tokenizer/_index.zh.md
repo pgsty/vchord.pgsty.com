@@ -2,13 +2,14 @@
 title: "pg_tokenizer 文档"
 linkTitle: "pg_tokenizer"
 description: "pg_tokenizer 完整指南：安装部署、文本分析器、字符/词元过滤器、预训练与自定义词表模型、多语言分词以及 SQL 参考手册。"
-weight: 80
+weight: 300
 icon: fa-solid fa-language
 type: docs
 sidebar_root_for: self
 aliases:
   - "/bm25/tokenizer/"
   - "/tokenizer/"
+no_list: true
 cascade:
   type: docs
   upstream_source: "tokenizer"

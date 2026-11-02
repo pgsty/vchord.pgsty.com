@@ -141,6 +141,8 @@ LIMIT 10;
 
 ## Recipe 4: Japanese Full-Text Search (`lindera` IPADIC)
 
+When upgrading from Lindera 0.42 to 6.2, regenerate stored token arrays and rebuild their indexes because the IPADIC token IDs change. The dictionary configuration below remains supported; see the [Lindera migration notes](/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model).
+
 For Japanese text, create a Lindera IPADIC morphological model with iteration mark normalization, NFKC normalization, Japanese stop-tag filtering, and Katakana stemming (demonstrated below using passages from Natsume Sōseki's *I Am a Cat* / 《吾輩は猫である》):
 
 ```sql

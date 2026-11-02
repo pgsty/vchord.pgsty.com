@@ -4,6 +4,10 @@ description: "使用 vchord_bm25 在 PostgreSQL 中运行你的第一条 BM25 �
 weight: 30
 ---
 
+> [!IMPORTANT]
+> 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+
+
 本指南将带你一步步创建数据表、对文档进行分词、构建 `bm25` 索引，并执行 Top-K BM25 检索查询。
 
 ## 工作流 A：`bm25vector` + `pg_tokenizer`（`v0.1` – `v0.3`） {#workflow-a-bm25vector--pg_tokenizer-v01--v03}
@@ -119,7 +123,7 @@ USING bm25 (vector bm25_ops)
 WITH (options = $$
 k1 = 1.2
 b = 0.75
-$$);
+$$, limit = 100);
 ```
 
 ### 3. 使用 `to_bm25query(tsvector, regclass)` 查询 {#3-query-with-to_bm25querytsvector-regclass}

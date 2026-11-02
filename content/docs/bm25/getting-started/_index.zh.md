@@ -3,6 +3,7 @@ title: "快速上手"
 description: "vchord_bm25 与 pg_tokenizer 的架构概览、安装方式与快速入门指南。"
 weight: 10
 icon: fa-solid fa-rocket
+no_list: true
 ---
 
 在 PostgreSQL 中快速上手 **`vchord_bm25`**：

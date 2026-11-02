@@ -4,6 +4,10 @@ description: "Run your first BM25 ranked full-text search query in PostgreSQL wi
 weight: 30
 ---
 
+> [!IMPORTANT]
+> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+
+
 This guide walks through creating a table, tokenizing documents, building a `bm25` index, and executing Top-K BM25 queries.
 
 ## Workflow A: `bm25vector` + `pg_tokenizer` (`v0.1` – `v0.3`)
@@ -119,7 +123,7 @@ USING bm25 (vector bm25_ops)
 WITH (options = $$
 k1 = 1.2
 b = 0.75
-$$);
+$$, limit = 100);
 ```
 
 ### 3. Query with `to_bm25query(tsvector, regclass)`

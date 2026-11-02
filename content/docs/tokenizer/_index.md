@@ -2,13 +2,14 @@
 title: "pg_tokenizer Documentation"
 linkTitle: "pg_tokenizer"
 description: "Complete guide to pg_tokenizer: installation, text analyzers, character/token filters, pretrained and custom models, multilingual tokenization, and SQL reference."
-weight: 80
+weight: 300
 icon: fa-solid fa-language
 type: docs
 sidebar_root_for: self
 aliases:
   - "/bm25/tokenizer/"
   - "/tokenizer/"
+no_list: true
 cascade:
   type: docs
   upstream_source: "tokenizer"

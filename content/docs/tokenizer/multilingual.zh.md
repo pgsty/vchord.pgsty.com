@@ -141,6 +141,8 @@ LIMIT 10;
 
 ## 配方四：日文全文检索（`lindera` IPADIC） {#recipe-3-japanese-full-text-search-lindera-ipadic}
 
+从 Lindera 0.42 升级到 6.2 时，IPADIC 词元 ID 会变化，需要重新生成已存储的词元数组并重建相关索引。下方的词典配置仍然兼容，详见 [Lindera 升级说明](/zh/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model)。
+
 处理日文文本时，可创建基于 Lindera IPADIC 的形态学分词模型，并配置叠字符规范化、NFKC 规范化、日文停用词性（Stop-tags）过滤以及片假名词干提取（以下示例采用夏目漱石《吾輩は猫である》选段作为测试语料）：
 
 ```sql

@@ -5,7 +5,7 @@ description: "Create, configure, maintain, and inspect bm25 indexes in PostgreSQ
 weight: 10
 ---
 
-`vchord_bm25` provides the `bm25` index access method (`CREATE ACCESS METHOD bm25 TYPE INDEX HANDLER _bm25_amhandler`) and the `bm25_ops` operator class.
+`vchord_bm25` provides the `bm25` index access method and the explicit `bm25_ops` operator class. The SQL handler is `bm25_amhandler` in 0.4.0 and `_bm25_amhandler` in 0.3.x.
 
 ## Creating a `bm25` Index
 
@@ -39,7 +39,7 @@ WITH (
 | :--- | :--- | :--- | :--- | :--- |
 | `options` (`k1`) | `float` (in TOML) | `1.2` | `1.2` – `2.0` | Term frequency saturation parameter \(k_1\). Higher values increase the weight of repeated occurrences of a term within a document. |
 | `options` (`b`) | `float` (in TOML) | `0.75` | `0.0` – `1.0` | Document length normalization parameter \(b\). `0.0` disables length normalization; `1.0` fully normalizes by document length relative to \(\text{avgdl}\). |
-| `limit` | `int` | `0` | `0` – `65535` | Default Top-K search limit stored on the index (used when session GUC `bm25.limit = 0`). |
+| `limit` | `int` | `0` | `0` – `65535` | Default Top-K search limit stored on the index (used when session GUC `bm25.limit` has its default source, after `RESET`). |
 | `prefilter` | `bool` | `false` | `true` / `false` | Default prefilter behavior stored on the index (can be overridden per session via `bm25.prefilter`). |
 
 You can dynamically update `limit` or `prefilter` on an existing index with `ALTER INDEX`:

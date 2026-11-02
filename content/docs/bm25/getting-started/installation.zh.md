@@ -4,6 +4,10 @@ description: "通过 Pigsty、Docker、Debian 软件包或源码编译安装 Vec
 weight: 20
 ---
 
+> [!IMPORTANT]
+> 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+
+
 `vchord_bm25` 支持 Linux（`x86_64` 与 `aarch64`）及 macOS 平台上的 **PostgreSQL 14、15、16、17 和 18**。
 
 ## 方式一：Pigsty / 原生操作系统软件包（推荐） {#method-1-pigsty--native-os-packages-recommended}
@@ -83,9 +87,9 @@ sudo cp ./usr/lib/postgresql/16/lib/pg_tokenizer.so $(pg_config --pkglibdir)
 sudo cp ./usr/share/postgresql/16/extension/* $(pg_config --sharedir)/extension
 ```
 
-## 方式四：从源码编译（`cargo-pgrx`） {#method-4-build-from-source-cargo-pgrx}
+## 方式四：从源码编译 {#method-4-build-from-source-cargo-pgrx}
 
-如需从源码编译 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)：
+如需从源码编译 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)：
 
 ```bash
 # 1. 安装 Rust 工具链及系统构建依赖（clang、libclang、pkg-config、PostgreSQL 开发头文件）
@@ -94,14 +98,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # 2. 编译并安装 vchord_bm25
 git clone https://github.com/pgsty/vchord_bm25.git
 cd vchord_bm25
-cargo install cargo-pgrx --version $(grep -o 'pgrx = "=[^"]*' Cargo.toml | cut -d = -f 3)
-cargo pgrx init --pg17=$(which pg_config)
-cargo pgrx install --release --pg-config $(which pg_config)
-
-# 3. 编译并安装 pg_tokenizer
-git clone https://github.com/pgsty/pg_tokenizer.git
-cd pg_tokenizer
-cargo pgrx install --release --pg-config $(which pg_config)
+PG_CONFIG=/path/to/pg_config make build
+PG_CONFIG=/path/to/pg_config make install
 ```
 
 > [!TIP]
@@ -111,40 +109,40 @@ cargo pgrx install --release --pg-config $(which pg_config)
 >   --features "lindera-ipadic lindera-ipadic-neologd lindera-unidic lindera-ko-dic lindera-cc-cedict"
 > ```
 
-### 本地开发与调试（`cargo-pgrx`） {#development--debugging-cargo-pgrx}
+### 本地开发与调试 {#development--debugging-cargo-pgrx}
 
-在本地开发或调试 `vchord_bm25` 与 `pg_tokenizer` 时：
+使用 `dev` 构建配置，在开启 BM25 编译优化的同时保留调试符号：
 
 ```bash
-# 初始化 pgrx 托管的 PostgreSQL 实例（PG 14–18）
-cargo pgrx init
+PG_CONFIG=/path/to/pg_config PROFILE=dev make build
+PG_CONFIG=/path/to/pg_config PROFILE=dev make install
+```
 
-# 使用 dev-opt 构建配置，在开启编译优化的同时保留调试符号
-RUST_BACKTRACE=1 cargo pgrx run --profile dev-opt
+在配置预加载 `vchord_bm25` 后重启一个可丢弃的 PostgreSQL 测试实例，再通过 `psql` 连接。需要附加调试器时，可查询当前会话的后端进程 PID：
 
-# 在交互式 psql 会话中查询后端进程 PID，以便挂载 gdb 调试：
+```sql
 SELECT pg_backend_pid();
 ```
 
 ## 配置 PostgreSQL 并启用扩展 {#configure-postgresql--enable-extensions}
 
-### 1. 配置 `shared_preload_libraries`（可选，推荐用于 `pg_tokenizer`） {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
+### 1. 配置 `shared_preload_libraries`（0.4.0 必需） {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
 
-如果你使用 `pg_tokenizer` 并希望在数据库服务启动时预加载词表模型，请将 `pg_tokenizer`（以及同时使用的 `vchord`）添加到 `postgresql.conf` 的 `shared_preload_libraries` 中：
+当前源码必须通过 `shared_preload_libraries` 预加载 `vchord_bm25`。请保留其他所需扩展；`pg_tokenizer` 对原生 `to_tsvector` 工作流是可选的：
 
 ```ini
-shared_preload_libraries = 'vchord.so, pg_tokenizer.so'
+shared_preload_libraries = 'vchord_bm25'
 ```
 
-修改 `shared_preload_libraries` 后请重启 PostgreSQL。（`vchord_bm25` 本身不要求配置 `shared_preload_libraries`，可通过 `CREATE EXTENSION` 在会话中动态加载。）
+修改 `shared_preload_libraries` 后请重启 PostgreSQL。
 
 ### 2. 创建扩展并设置 `search_path` {#2-create-extensions-and-set-search_path}
 
 连接到目标数据库并启用扩展：
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+-- pg_tokenizer 是旧版 bm25vector 工作流的独立可选扩展。
 ```
 
 在 `v0.1.0`–`v0.3.0` 版本中，`vchord_bm25` 会将其对象安装到 `bm25_catalog` 模式，而 `pg_tokenizer` 会安装到 `tokenizer_catalog` 模式。请将这两个模式加入你的 `search_path`：

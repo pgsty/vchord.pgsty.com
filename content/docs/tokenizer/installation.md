@@ -18,11 +18,11 @@ pig ext add pg_tokenizer
 
 ## Docker (`vchord-suite`)
 
-The [`tensorchord/vchord-suite`](/docs/getting-started/vectorchord-suite/) Docker image comes pre-configured with the Vchord extension suite:
+The [`tensorchord/vchord-suite`](/docs/vchord/getting-started/vectorchord-suite/) Docker image comes pre-configured with the Vchord extension suite:
 - [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) — Standalone multilingual tokenizer (`pgsty/pg_tokenizer`)
 - [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) — Native BM25 ranking index (`pgsty/vchord_bm25`)
 - [`vchord`](https://github.com/pgsty/vchord) — Scalable, disk-friendly vector search (`pgsty/vchord`)
-- [`pgvector`](https://github.com/pgvector/pgvector) — Standard PostgreSQL vector data types
+- [`pgvector`](/docs/vector/) — Standard PostgreSQL vector data types
 
 ```bash
 docker run \

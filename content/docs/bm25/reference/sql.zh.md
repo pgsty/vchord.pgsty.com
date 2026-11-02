@@ -5,13 +5,17 @@ description: "vchord_bm25 与 pg_tokenizer 的完整 SQL 数据类型、操作�
 weight: 10
 ---
 
+> [!IMPORTANT]
+> 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+
+
 ## `vchord_bm25` 数据类型 {#vchord_bm25-data-types}
 
 | 数据类型 | 所属模式 | 适用版本 | 文本表示形式 / 内部结构 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
 | `bm25vector` | `bm25_catalog` | `v0.1.0` – `v0.3.0` | `{token_id:freq, ...}`（例如 `{1:1, 2:2, 15:1}`） | 将 32 位无符号词元 ID 映射为 32 位词频的稀疏向量。存储策略为 `STORAGE = EXTERNAL`。 |
 | `bm25query` | `bm25_catalog` | `v0.1.0` – `v0.3.0` | `(index_oid regclass, query_vector bm25vector)` | 将目标 `bm25` 索引 OID 与查询 `bm25vector` 配对的复合类型。 |
-| `bm25query` | `public` / 扩展模式 | `main` | `(vector tsvector, index regclass)` | 将查询 `tsvector` 与目标 `bm25` 索引 OID 配对的复合类型。 |
+| `bm25query` | `public` / 扩展模式 | `0.4.0` / `main` | `(vector tsvector, index regclass)` | 将查询 `tsvector` 与目标 `bm25` 索引 OID 配对的复合类型。 |
 
 ### `bm25vector` 字面量语法（`v0.1` – `v0.3`） {#bm25vector-literal-syntax-v01--v03}
 
@@ -34,7 +38,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | 操作符 | 左操作数 | 右操作数 | 返回类型 | 适用版本 | 说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `<&>` | `bm25vector` | `bm25query` | `real` (`f32`) | `v0.1.0` – `v0.3.0` | 计算**负值** BM25 相关性得分（$-\text{BM25}(D, Q)$）。支持使用 `bm25_ops` 执行索引加速的 `ORDER BY ... ASC` 扫描。 |
-| `<&>` | `tsvector` | `bm25query` | `float8` (`f64`) | `main` | 在原生 `tsvector` 上计算**负值** BM25 相关性得分。支持使用 `bm25_ops` 执行索引加速的 `ORDER BY ... ASC` 扫描。 |
+| `<&>` | `tsvector` | `bm25query` | `float8` (`f64`) | `0.4.0` / `main` | 在原生 `tsvector` 上计算**负值** BM25 相关性得分。支持使用 `bm25_ops` 执行索引加速的 `ORDER BY ... ASC` 扫描。 |
 | `=` | `bm25vector` | `bm25vector` | `bool` | `v0.2.0` – `v0.3.0` | 比较两个 `bm25vector` 值是否完全相等。 |
 | `<>` | `bm25vector` | `bm25vector` | `bool` | `v0.2.0` – `v0.3.0` | 比较两个 `bm25vector` 值是否不相等。 |
 
@@ -45,10 +49,10 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | 函数签名 | 返回类型 | 适用版本 | 说明 |
 | :--- | :--- | :--- | :--- |
 | `to_bm25query(index_oid regclass, query_vector bm25vector)` | `bm25query` | `v0.1.1` – `v0.3.0` | 根据 `bm25` 索引名称/OID 与查询 `bm25vector`（或经由隐式转换的 `INT[]`）构造 `bm25query`。 |
-| `to_bm25query(index_oid regclass, query_vector int[])` | `bm25query` | `v0.3.0+` | 直接接受 `INT[]` 词元 ID 数组的显式重载函数。 |
-| `to_bm25query(vector tsvector, index regclass)` | `bm25query` | `main` | 根据原生 `tsvector` 与目标 `bm25` 索引名称/OID 构造 `bm25query`。 |
+| `to_bm25query(index_oid regclass, query_vector int[])` | `bm25query` | `v0.3.0` | 直接接受 `INT[]` 词元 ID 数组的显式重载函数。 |
+| `to_bm25query(vector tsvector, index regclass)` | `bm25query` | `0.4.0` / `main` | 根据原生 `tsvector` 与目标 `bm25` 索引名称/OID 构造 `bm25query`。 |
 | `search_bm25query(target_vector bm25vector, query bm25query)` | `real` | `v0.1.0` – `v0.3.0` | `bm25vector <&> bm25query` 操作符的底层实现函数。 |
-| `_bm25_evaluate(left tsvector, right bm25query)` | `float8` | `main` | `tsvector <&> bm25query` 操作符的底层实现函数。 |
+| `_bm25_evaluate(left tsvector, right bm25query)` | `float8` | `0.4.0` / `main` | `tsvector <&> bm25query` 操作符的底层实现函数。 |
 | `bm25_page_inspect(index regclass, blkno int)` | `text` | `v0.3.0` | 返回 `bm25` 索引第 `blkno` 号数据块的可读诊断元数据。 |
 
 ---
@@ -57,9 +61,9 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 
 | 对象类型 | 名称 | 目标类型 | 排序操作符 |
 | :--- | :--- | :--- | :--- |
-| 访问方法 (Access Method) | `bm25` | 索引 (Index) | 处理器 `_bm25_amhandler` |
-| 操作符族 (Operator Family) | `bm25_ops` | `USING bm25` | `OPERATOR 1 pg_catalog.<&> FOR ORDER BY float_ops` |
-| 操作符类 (Operator Class) | `bm25_ops` | `bm25vector`（`v0.1`–`v0.3`）/ `tsvector`（`main`） | `USING bm25` 的默认操作符类 |
+| 访问方法 (Access Method) | `bm25` | 索引 (Index) | 0.4.0 处理器为 `bm25_amhandler`；0.3.x 为 `_bm25_amhandler` |
+| 操作符族 (Operator Family) | `bm25_ops` | `USING bm25` | `<&>` 位于扩展模式（0.4.0）或 `pg_catalog`（0.3.x），按 `float_ops` 排序 |
+| 操作符类 (Operator Class) | `bm25_ops` | `bm25vector`（`v0.1`–`v0.3`）/ `tsvector`（`main`） | `USING bm25` 的显式操作符类 |
 
 ---
 

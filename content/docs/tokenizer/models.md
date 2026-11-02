@@ -118,6 +118,11 @@ $$);
 
 For East Asian languages such as Japanese, Korean, and Chinese that benefit from morphological dictionary analysis, `pg_tokenizer` integrates [`lindera`](https://github.com/lindera/lindera).
 
+For builds using Lindera 6.2, `[segmenter] dictionary = "embedded://ipadic"` is the native dictionary configuration. Existing `[segmenter.dictionary] kind = "ipadic"` configurations in the catalog and preload files remain supported, as do legacy dictionary and user-dictionary `path` tables. External compiled dictionaries must be rebuilt with Lindera 6.
+
+> [!IMPORTANT]
+> Lindera 6.2 embeds the 2025-09-20 IPADIC edition instead of the 2007-08-01 edition used by Lindera 0.42. Token IDs change: regenerate stored Lindera token arrays and rebuild indexes that use them before querying with the upgraded tokenizer. Unknown words continue to be omitted.
+
 > [!NOTE]
 > If you build `pg_tokenizer` from source, enable the desired Lindera dictionary features at compile time:
 > ```bash

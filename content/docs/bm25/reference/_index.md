@@ -3,6 +3,7 @@ title: "Reference & Benchmarks"
 description: "Complete SQL reference, GUC parameters, benchmarks, and version history for vchord_bm25 and pg_tokenizer."
 weight: 40
 icon: fa-solid fa-book
+no_list: true
 ---
 
 Complete technical reference for **`vchord_bm25`** and **`pg_tokenizer`**:

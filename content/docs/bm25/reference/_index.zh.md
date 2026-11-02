@@ -3,6 +3,7 @@ title: "参考手册与基准测试"
 description: "vchord_bm25 与 pg_tokenizer 的完整 SQL 参考手册、GUC 参数、性能基准测试与版本演进历史。"
 weight: 40
 icon: fa-solid fa-book
+no_list: true
 ---
 
 **`vchord_bm25`** 与 **`pg_tokenizer`** 的完整技术参考资料：

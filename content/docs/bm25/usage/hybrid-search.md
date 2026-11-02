@@ -115,4 +115,4 @@ LIMIT 10;
 ```
 
 > [!TIP]
-> See our engineering deep dives [**Supercharge Vector Search with ColBERT Rerank in PostgreSQL**](/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/) and [**Hybrid Search with Postgres Native BM25 and VectorChord**](/docs/use-case/hybrid-search/) for full BEIR benchmark comparisons of Dense + BM25 + ColBERT reranking inside PostgreSQL.
+> See our engineering deep dives [**Supercharge Vector Search with ColBERT Rerank in PostgreSQL**](/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/) and [**Hybrid Search with Postgres Native BM25 and VectorChord**](/docs/vchord/use-case/hybrid-search/) for full BEIR benchmark comparisons of Dense + BM25 + ColBERT reranking inside PostgreSQL.

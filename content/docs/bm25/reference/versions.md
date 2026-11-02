@@ -5,13 +5,17 @@ description: "Version changelog and SQL schema evolution of VectorChord-BM25 (vc
 weight: 40
 ---
 
+> [!IMPORTANT]
+> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+
+
 This page tracks the release history and SQL schema evolution of `vchord_bm25` ([`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) / [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)).
 
 ## Version Summary Matrix
 
 | Version | Schema | Indexed Type | Tokenizer | Key Additions |
 | :--- | :--- | :--- | :--- | :--- |
-| **`main` (Next-Gen)** | Extension schema | `tsvector` | Native `to_tsvector` (or custom) | Complete storage & index engine rewrite on native `tsvector`; external sort parallel `ambuild`; index reloptions (`options`, `limit`, `prefilter`); `bm25.*` GUCs; PostgreSQL 18 support. |
+| **`0.4.0` / `main` (unreleased)** | Extension schema | `tsvector` | Native `to_tsvector` (or custom) | Complete storage & index engine rewrite on native `tsvector`; external sort parallel `ambuild`; index reloptions (`options`, `limit`, `prefilter`); `bm25.*` GUCs; PostgreSQL 18 support. |
 | **`v0.3.0`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | Added `bm25_page_inspect(regclass, int)`, `to_bm25query(regclass, int[])` overload, and PostgreSQL 18 compatibility. |
 | **`v0.2.2`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | Added `bm25_catalog.enable_prefilter` GUC for accurate filtered Top-K BM25 search with `WHERE` clauses. |
 | **`v0.2.1`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | Bug fixes for growing/sealed segment transitions and vacuum cleanup. |

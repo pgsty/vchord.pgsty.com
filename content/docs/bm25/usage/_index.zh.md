@@ -3,6 +3,7 @@ title: "使用指南与混合检索"
 description: "索引管理、Top-K 查询、预过滤、与 vchord 的混合检索以及 Block-WeakAnd 内部原理。"
 weight: 20
 icon: fa-solid fa-code
+no_list: true
 ---
 
 了解如何在生产环境中构建、调优和查询 `vchord_bm25` 索引：

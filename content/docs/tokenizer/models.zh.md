@@ -118,6 +118,11 @@ $$);
 
 对于日文、韩文、中文等需要形态学词典分析的东亚语言，`pg_tokenizer` 集成了 [`lindera`](https://github.com/lindera/lindera)。
 
+使用 Lindera 6.2 构建时，原生词典配置为 `[segmenter]` 下的 `dictionary = "embedded://ipadic"`。目录表与预加载文件中已有的 `[segmenter.dictionary] kind = "ipadic"` 配置仍然兼容，旧格式的词典及用户词典 `path` 表也继续支持。外部编译词典需要使用 Lindera 6 重新构建。
+
+> [!IMPORTANT]
+> Lindera 6.2 内嵌的 IPADIC 从 Lindera 0.42 使用的 2007-08-01 版升级到 2025-09-20 版，词元 ID 会变化。使用升级后的分词器查询前，请重新生成已存储的 Lindera 词元数组，并重建使用这些数组的索引。未知词仍然会被过滤。
+
 > [!NOTE]
 > 如果你从源码编译 `pg_tokenizer`，请在编译时通过 `--features` 启用所需的 Lindera 词典特性：
 > ```bash

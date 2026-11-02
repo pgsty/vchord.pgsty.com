@@ -115,4 +115,4 @@ LIMIT 10;
 ```
 
 > [!TIP]
-> 请参阅我们的工程深度解析博客 [**在 PostgreSQL 中使用 ColBERT 重排序为向量检索加速**](/zh/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/) 以及 [**使用 Postgres 原生 BM25 与 VectorChord 实现混合检索**](/zh/docs/use-case/hybrid-search/)，了解在 PostgreSQL 内部执行“稠密向量 + BM25 + ColBERT 重排序”的完整 BEIR 基准测试对比。
+> 请参阅我们的工程深度解析博客 [**在 PostgreSQL 中使用 ColBERT 重排序为向量检索加速**](/zh/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/) 以及 [**使用 Postgres 原生 BM25 与 VectorChord 实现混合检索**](/zh/docs/vchord/use-case/hybrid-search/)，了解在 PostgreSQL 内部执行“稠密向量 + BM25 + ColBERT 重排序”的完整 BEIR 基准测试对比。

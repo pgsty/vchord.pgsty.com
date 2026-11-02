@@ -18,11 +18,11 @@ pig ext add pg_tokenizer
 
 ## 使用 Docker（`vchord-suite`） {#docker}
 
-[`tensorchord/vchord-suite`](/zh/docs/getting-started/vectorchord-suite/) Docker 镜像已预装完整的 Vchord 检索扩展套件：
+[`tensorchord/vchord-suite`](/zh/docs/vchord/getting-started/vectorchord-suite/) Docker 镜像已预装完整的 Vchord 检索扩展套件：
 - [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) —— 独立多语言分词器（`pgsty/pg_tokenizer`）
 - [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) —— 原生 BM25 排序索引（`pgsty/vchord_bm25`）
 - [`vchord`](https://github.com/pgsty/vchord) —— 可扩展、磁盘友好的向量相似性检索（`pgsty/vchord`）
-- [`pgvector`](https://github.com/pgvector/pgvector) —— 标准 PostgreSQL 向量数据类型
+- [`pgvector`](/zh/docs/vector/) —— 标准 PostgreSQL 向量数据类型
 
 ```bash
 docker run \

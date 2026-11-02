@@ -5,7 +5,7 @@ description: "在 PostgreSQL 中创建、配置、维护和检查 bm25 索引。
 weight: 10
 ---
 
-`vchord_bm25` 提供了 `bm25` 索引访问方法（`CREATE ACCESS METHOD bm25 TYPE INDEX HANDLER _bm25_amhandler`）以及 `bm25_ops` 操作符类。
+`vchord_bm25` 提供了 `bm25` 索引访问方法以及需要显式指定的 `bm25_ops` 操作符类。0.4.0 的 SQL 处理器为 `bm25_amhandler`，0.3.x 为 `_bm25_amhandler`。
 
 ## 创建 `bm25` 索引 {#creating-a-bm25-index}
 
@@ -39,7 +39,7 @@ WITH (
 | :--- | :--- | :--- | :--- | :--- |
 | `options` (`k1`) | `float`（TOML 内） | `1.2` | `1.2` – `2.0` | 词频饱和度参数 \(k_1\)。数值越大，文档内重复出现的词项权重越高。 |
 | `options` (`b`) | `float`（TOML 内） | `0.75` | `0.0` – `1.0` | 文档长度归一化参数 \(b\)。`0.0` 禁用长度归一化；`1.0` 完全按相对于 \(\text{avgdl}\) 的文档长度进行归一化。 |
-| `limit` | `int` | `0` | `0` – `65535` | 存储在索引上的默认 Top-K 检索上限（当会话 GUC `bm25.limit = 0` 时使用）。 |
+| `limit` | `int` | `0` | `0` – `65535` | 存储在索引上的默认 Top-K 检索上限（当会话 GUC `bm25.limit` 保持默认来源或执行 `RESET` 后使用）。 |
 | `prefilter` | `bool` | `false` | `true` / `false` | 存储在索引上的默认预过滤行为（可在会话级通过 `bm25.prefilter` 覆盖）。 |
 
 你可以使用 `ALTER INDEX` 动态更新现有索引上的 `limit` 或 `prefilter` 参数：

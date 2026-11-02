@@ -3,6 +3,7 @@ title: "Getting Started"
 description: "Overview, installation, and quick start guide for vchord_bm25 and pg_tokenizer."
 weight: 10
 icon: fa-solid fa-rocket
+no_list: true
 ---
 
 Get started with **`vchord_bm25`** in PostgreSQL:

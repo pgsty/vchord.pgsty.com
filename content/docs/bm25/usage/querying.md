@@ -82,12 +82,16 @@ Special values of `bm25_catalog.bm25_limit`:
 
 In the `main` branch, the effective limit is determined in priority order:
 
-1. Session GUC `bm25.limit` (if `> 0`)
-2. Index storage parameter `WITH (limit = ...)` (if `> 0`)
+1. An explicitly set session GUC `bm25.limit`, including zero.
+2. Otherwise, the index storage parameter `WITH (limit = ...)`.
+
+Both defaults are zero; set a positive limit before searching. Explicit zero errors and does not fall back. `RESET "bm25.limit"` restores the index default.
 
 ```sql
-SET bm25.limit = 100;
+SET "bm25.limit" = 100;
 ```
+
+Settings from `postgresql.conf`, `ALTER DATABASE`, `ALTER ROLE`, or client startup options also override index reloptions. `RESET` restores that configured default; it falls back to the index only when the GUC source returns to the built-in default.
 
 > [!WARNING]
 > Always ensure `bm25_catalog.bm25_limit` (or `bm25.limit`) is **greater than or equal to** the `LIMIT` in your SQL query. If your SQL query specifies `LIMIT 200` while `bm25_limit` is `100`, the index scan will stop after yielding 100 rows.

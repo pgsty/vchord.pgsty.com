@@ -3,6 +3,7 @@ title: "Usage & Hybrid Search"
 description: "Index management, Top-K querying, prefiltering, hybrid search with vchord, and Block-WeakAnd internals."
 weight: 20
 icon: fa-solid fa-code
+no_list: true
 ---
 
 Learn how to build, tune, and query `vchord_bm25` indexes in production:

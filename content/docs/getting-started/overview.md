@@ -1,21 +1,21 @@
 ---
 title: "Overview"
 linkTitle: "Overview"
-description: "VectorChord (vchord) is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search."
+description: "vchord is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search."
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/getting-started/overview.md"
 aliases:
   - "/vectorchord/getting-started/overview/"
 ---
 
-VectorChord (vchord) is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search.
+`vchord` is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search.
 
-With VectorChord, you can store 400,000 vectors for just $1, enabling significant savings: 6x more vectors compared to Pinecone's optimized storage and 26x more than pgvector/pgvecto.rs for the same price[^1]. For further insights, check out our [launch blog post](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).
+With `vchord`, you can store 400,000 vectors for just $1, enabling significant savings: 6x more vectors compared to Pinecone's optimized storage and 26x more than pgvector/pgvecto.rs for the same price[^1]. For further insights, check out our [launch blog post](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).
 
 <a id="Features"></a>
 ## Features
 
-VectorChord introduces remarkable enhancements over pgvecto.rs and pgvector:
+`vchord` introduces remarkable enhancements over pgvecto.rs and pgvector:
 
 **⚡ Enhanced Performance**: Delivering optimized operations with up to 5x faster queries, 16x higher insert throughput, and 16x quicker[^1] index building compared to pgvector's HNSW implementation.
 
@@ -23,7 +23,7 @@ VectorChord introduces remarkable enhancements over pgvecto.rs and pgvector:
 
 **💰 Affordable Vector Search**: Query 100M 768-dimensional vectors using just 32GB of memory, achieving 35ms P50 latency with top10 recall@95%, helping you keep infrastructure costs down while maintaining high search quality.
 
-**🔌 Seamless Integration**: Fully compatible with pgvector data types and syntax while providing optimal defaults out of the box - no manual parameter tuning needed. Just drop in VectorChord for enhanced performance.
+**🔌 Seamless Integration**: Fully compatible with pgvector data types and syntax while providing optimal defaults out of the box - no manual parameter tuning needed. Just drop in `vchord` for enhanced performance.
 
 **🔧 Accelerated Index Build**: Leverage IVF to build indexes externally (e.g., on GPU) for faster KMeans clustering, combined with RaBitQ[^2] compression to efficiently store vectors while maintaining search quality through autonomous reranking.
 
@@ -104,10 +104,4 @@ For more usage, please read:
 <a id="License"></a>
 ## License
 
-This software is licensed under a dual license model:
-
-1. **GNU Affero General Public License v3 (AGPLv3)**: You may use, modify, and distribute this software under the terms of the AGPLv3.
-
-2. **Elastic License v2 (ELv2)**: You may also use, modify, and distribute this software under the Elastic License v2, which has specific restrictions.
-
-You may choose either license based on your needs. We welcome any commercial collaboration or support, so please email us [vectorchord-inquiry@tensorchord.ai](mailto:vectorchord-inquiry@tensorchord.ai) with any questions or requests regarding the licenses.
+`vchord` is licensed under the **GNU Affero General Public License v3.0 ([`AGPL-3.0-only`](https://github.com/pgsty/vchord/blob/main/LICENSE))**. We welcome any commercial collaboration or support inquiries—please email us at [rh@vonng.com](mailto:rh@vonng.com) with any questions.

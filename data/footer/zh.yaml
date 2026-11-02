@@ -1,0 +1,29 @@
+columns:
+  - title: "vchord 文档"
+    links:
+      - { label: "概览与快速开始", url: "docs/getting-started/overview/" }
+      - { label: "安装指南", url: "docs/getting-started/installation/" }
+      - { label: "索引指南", url: "docs/usage/indexing/" }
+      - { label: "图索引 (vchordg)", url: "docs/usage/graph-index/" }
+      - { label: "基准测试", url: "docs/benchmark/performance/" }
+  - title: "Vchord 检索套件"
+    links:
+      - { label: "vchord_bm25 文档", url: "bm25/" }
+      - { label: "pg_tokenizer 文档", url: "bm25/tokenizer/" }
+      - { label: "混合检索与 ColBERT", url: "bm25/usage/hybrid-search/" }
+      - { label: "云服务参考", url: "cloud/" }
+      - { label: "pgvecto.rs 历史文档", url: "pgvecto-rs/" }
+  - title: "博客与开源生态"
+    links:
+      - { label: "工程技术博客", url: "blog/post/" }
+      - { label: "版本发布说明", url: "blog/release/" }
+      - { label: "GitHub (pgsty/vchord)", url: "https://github.com/pgsty/vchord", external: true }
+      - { label: "GitHub (pgsty/vchord_bm25)", url: "https://github.com/pgsty/vchord_bm25", external: true }
+      - { label: "GitHub (pgsty/pg_tokenizer)", url: "https://github.com/pgsty/pg_tokenizer", external: true }
+      - { label: "Pigsty 发行版", url: "https://pigsty.cc/", external: true }
+  - title: "关于项目"
+    links:
+      - { label: "关于 Vchord", url: "about/" }
+      - { label: "开源许可证", url: "about/license/" }
+      - { label: "署名与来源", url: "about/attribution/" }
+      - { label: "商标声明", url: "about/trademark/" }

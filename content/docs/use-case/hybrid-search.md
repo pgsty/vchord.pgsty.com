@@ -11,7 +11,7 @@ aliases:
 
 In the era of RAG (Retrieval-Augmented Generation), efficiently retrieving relevant data from vast datasets is crucial for businesses and developers. Traditional keyword-based retrieval methods, such as those utilizing **BM25** as a scoring mechanism, excel in ranking documents based on term frequency and exact keyword matches. This makes them highly effective for structured queries and keyword-heavy content. However, they struggle with understanding synonyms, contextual nuances, and semantic intent. Conversely, vector-based retrieval captures deep semantic meaning, enabling better generalization across varied queries but sometimes sacrificing precision in exact keyword matches. Hybrid Search bridges this gap by combining BM25’s precision with vector search’s contextual understanding, delivering faster, more accurate, and semantically aware results.
 
-This article explores how to implement Hybrid Search in Postgres using [VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25) for keyword-based retrieval and [VectorChord](https://github.com/tensorchord/VectorChord) for semantic search. By leveraging VectorChord-bm25's BM25 ranking with the **Block-WeakAnd** algorithm and VectorChord's advanced vector similarity capabilities, you can build a robust search system that seamlessly integrates keyword precision with semantic understanding. Whether you're building a recommendation engine, a document retrieval system, or an enterprise search solution, this guide will walk you through the steps to unlock the full potential of hybrid search.
+This article explores how to implement Hybrid Search in Postgres using [VectorChord-bm25](https://github.com/pgsty/vchord_bm25) for keyword-based retrieval and [VectorChord](https://github.com/pgsty/vchord) for semantic search. By leveraging VectorChord-bm25's BM25 ranking with the **Block-WeakAnd** algorithm and VectorChord's advanced vector similarity capabilities, you can build a robust search system that seamlessly integrates keyword precision with semantic understanding. Whether you're building a recommendation engine, a document retrieval system, or an enterprise search solution, this guide will walk you through the steps to unlock the full potential of hybrid search.
 
 All related benchmark codes can be found [here](https://github.com/xieydd/vectorchord-hybrid-search).
 
@@ -23,7 +23,7 @@ Hybrid Search merges the results from vector search and keyword search. Vector s
 
 ## What is the VectorChord?
 
-You may be familiar with [pgvector](https://github.com/pgvector/pgvector), an open-source vector similarity search extension for Postgres. However, scalable or performance-critical scenarios may require a more advanced vector search solution. [VectorChord](https://github.com/tensorchord/VectorChord) is an excellent choice.
+You may be familiar with [pgvector](https://github.com/pgvector/pgvector), an open-source vector similarity search extension for Postgres. However, scalable or performance-critical scenarios may require a more advanced vector search solution. [VectorChord](https://github.com/pgsty/vchord) is an excellent choice.
 
 Check out the blog post "[VectorChord: Store 400k Vectors for $1 in PostgreSQL](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)" to learn more about its motivation and design.
 
@@ -275,7 +275,7 @@ The table above demonstrates several conclusions:
 
 * On some datasets, RRF may lead the performance decrease. Please conduct verification tests before deciding whether to use RRF. If effective, choosing RRF will be a very economical choice, as it is much, much faster than reranking with the cross-encoder model, and almost no resource consumption.
 
-All related benchmark codes can be found [here](https://github.com/xieydd/vectorchord-hybrid-search). If you have any questions, please feel free to contact us on [Discord](https://discord.gg/KqswhpVgdU) or email us at [vectorchord-inquiry@tensorchord.ai](https://mailto:vectorchord-inquiry@tensorchord.ai/).
+All related benchmark codes can be found [here](https://github.com/xieydd/vectorchord-hybrid-search). If you have any questions, please feel free to contact us on [Discord](https://discord.gg/KqswhpVgdU) or email us at [rh@vonng.com](mailto:rh@vonng.com).
 
 ## Future Work
 
@@ -287,8 +287,8 @@ The results highlight the great potential of the hybrid search method. In the fu
 <a id="References"></a>
 ## References
 
-* [https://github.com/tensorchord/vectorChord/](https://github.com/tensorchord/vectorChord/)
-* [https://github.com/tensorchord/VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)
+* [https://github.com/pgsty/vchord](https://github.com/pgsty/vchord)
+* [https://github.com/pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25)
 * [https://techcommunity.microsoft.com/blog/adforpostgresql/introducing-the-graphrag-solution-for-azure-database-for-postgresql/4299871](https://techcommunity.microsoft.com/blog/adforpostgresql/introducing-the-graphrag-solution-for-azure-database-for-postgresql/4299871)
 * [https://www.pinecone.io/learn/hybrid-search-intro/](https://www.pinecone.io/learn/hybrid-search-intro/)
 * [https://www.pinecone.io/learn/series/rag/rerankers/](https://www.pinecone.io/learn/series/rag/rerankers/)

@@ -1,6 +1,6 @@
 ---
-title: "VectorChord: Scalable Vector Search for PostgreSQL"
-description: "Scalable, fast, and disk-friendly vector similarity search for PostgreSQL, powered by RaBitQ quantization and maintained by the Pigsty community."
+title: "Vchord: Scalable Vector Search for PostgreSQL"
+description: "Scalable, fast, and disk-friendly vector & BM25 search extensions for PostgreSQL (vchord, vchord_bm25, pg_tokenizer), maintained by PGSTY."
 url: "/"
 weight: 1
 type: home

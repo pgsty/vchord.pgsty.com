@@ -13,7 +13,7 @@ aliases:
 ---
 
 > [!TIP]
-> Update: Check our latest extension VectorChord-BM25 for end2end BM25 ranking in PostgreSQL. Read more at [https://blog.vectorchord.ai/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)
+> Update: Check our latest extension VectorChord-BM25 for end2end BM25 ranking in PostgreSQL. Read more at [https://vchord.pgsty.com/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)
 
 %[https://github.com/tensorchord/VectorChord-bm25] 
 

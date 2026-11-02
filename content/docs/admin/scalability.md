@@ -99,4 +99,4 @@ Whether you’re launching a startup on a budget-friendly VPS or scaling a large
 
 With its powerful indexing algorithm, VectorChord not only surpasses standard PostgreSQL solutions like pgvector by efficiently utilizing memory and high-speed SSDs, but also outperforms specialized vector databases in handling massive data volumes and high QPS demands. At the same cost, it delivers superior performance while eliminating the complexity of maintaining a separate vector search system.
 
-If you’re eager to explore large-scale vector search solutions, join our [Discord community](https://discord.gg/KqswhpVgdU) or reach out to us at [support@tensorchord.ai](mailto:support@tensorchord.ai). Let’s unlock the full potential of your data together!
+If you’re eager to explore large-scale vector search solutions, join our [Discord community](https://discord.gg/KqswhpVgdU) or reach out to us at [rh@vonng.com](mailto:rh@vonng.com). Let’s unlock the full potential of your data together!

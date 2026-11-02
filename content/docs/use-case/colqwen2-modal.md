@@ -64,7 +64,7 @@ Alright, theory's great, but let's roll up our sleeves and build this thing! We'
 
 Before we start, ensure you have:
 
-* A PostgreSQL instance (Docker recommended) with the VectorChord extension installed OR a [**VectorChord Cloud**](https://cloud.vectorchord.ai/) cluster.
+* A PostgreSQL instance (Docker recommended) with the VectorChord extension installed OR a [**VectorChord Cloud**](/cloud/) cluster.
 
 * A [**Modal**](https://modal.com/) account (free tier available). Modal's fast GPU provisioning and scaling are perfect for the embedding generation step. To efficiently process a large volume of documents using the ColQwen2 model, it's crucial to leverage Modal's rapid startup and GPU expansion features. This approach will significantly reduce the time required for local processing.
 
@@ -342,7 +342,7 @@ Ready to try it yourself?
 
 * **Explore the Code:** [https://github.com/xieydd/vectorchord-colqwen2](https://github.com/xieydd/vectorchord-colqwen2)
 
-* **Dive Deeper into VectorChord:** Check out the [**VectorChord documentation**](/) or try the hassle-free [**VectorChord Cloud**](https://cloud.vectorchord.ai/).
+* **Dive Deeper into VectorChord:** Check out the [**VectorChord documentation**](/) or try the hassle-free [**VectorChord Cloud**](/cloud/).
 
 * **Experiment:** Try different VLMs or datasets.
 

@@ -77,4 +77,4 @@ VectorChord 0.2 builds on its predecessor with a 30% smaller index size and 50% 
 
 We warmly welcome the community to explore VectorChord 0.2! Whether you’re optimizing storage with Float16, scaling high-dimensional workloads, or leveraging ARM’s cost-performance benefits, we’re here to support your journey. Your feedback shapes what’s next—let’s build smarter vector search, together. 🚀
 
-Take these advancements further with [VectorChord Cloud](https://vectorchord.ai/), offering a hassle-free managed service and a free trial to jumpstart your projects. Whether you’re optimizing storage, scaling complex workloads, or leveraging ARM’s efficiency, our cloud platform handles the infrastructure so you can focus on innovation.
+Take these advancements further with [VectorChord Cloud](/cloud/), offering a hassle-free managed service and a free trial to jumpstart your projects. Whether you’re optimizing storage, scaling complex workloads, or leveraging ARM’s efficiency, our cloud platform handles the infrastructure so you can focus on innovation.

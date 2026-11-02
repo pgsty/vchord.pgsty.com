@@ -195,7 +195,7 @@ SELECT id, text, embedding <&> to_bm25query('documents_embedding_bm25', 'Postgre
     LIMIT 10;
 ```
 
-Please check out the [tokenizer documentation](https://github.com/tensorchord/VectorChord-bm25/blob/main/tokenizer.md) if you want to know more about it.
+Please check out the [tokenizer documentation](/bm25/tokenizer/) if you want to know more about it.
 
 ## Faster than ElasticSearch (Really?)
 

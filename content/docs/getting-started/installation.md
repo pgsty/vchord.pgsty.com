@@ -184,10 +184,10 @@ echo 'build.rustflags = ["-Ctarget-cpu=icelake"]' >> ./cargo/config.toml
 If you have not installed PostgreSQL yet, please install PostgreSQL following https://www.postgresql.org/download/linux/debian/. If you have not installed pgvector yet, you could install pgvector by `apt install postgresql-18-pgvector` before the 3rd step.
 
 > [!TIP] Note on release URLs
-> The GitHub organization hosting VectorChord's source was recently transferred. Links to github.com/tensorchord/VectorChord/releases will redirect to the new org. This is expected and does not indicate a compromised release; maintainers and commit history are unchanged.
+> New VectorChord releases are hosted at `github.com/pgsty/vchord/releases`, while historical releases (`1.1.1` and earlier) remain available at `github.com/tensorchord/VectorChord/releases`.
 
 
-1. Download Debian packages in [the release page](https://github.com/tensorchord/VectorChord/releases/latest), and install them by `apt`.
+1. Download Debian packages in [the release page](https://github.com/pgsty/vchord/releases), and install them by `apt`.
 
 ```sh
 wget https://github.com/tensorchord/VectorChord/releases/download/1.1.1/postgresql-18-vchord_1.1.1-1_$(dpkg --print-architecture).deb
@@ -213,10 +213,10 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 If you have not installed PostgreSQL yet, please install PostgreSQL following https://www.postgresql.org/download/linux/ubuntu/. If you have not installed pgvector yet, you could install pgvector by `apt install postgresql-18-pgvector` before the 3rd step.
 
 > [!TIP] Note on release URLs
-> The GitHub organization hosting VectorChord's source was recently transferred. Links to github.com/tensorchord/VectorChord/releases will redirect to the new org. This is expected and does not indicate a compromised release; maintainers and commit history are unchanged.
+> New VectorChord releases are hosted at `github.com/pgsty/vchord/releases`, while historical releases (`1.1.1` and earlier) remain available at `github.com/tensorchord/VectorChord/releases`.
 
 
-1. Download Debian packages in [the release page](https://github.com/tensorchord/VectorChord/releases/latest), and install them by `apt`.
+1. Download Debian packages in [the release page](https://github.com/pgsty/vchord/releases), and install them by `apt`.
 
 ```sh
 wget https://github.com/tensorchord/VectorChord/releases/download/1.1.1/postgresql-18-vchord_1.1.1-1_$(dpkg --print-architecture).deb
@@ -283,7 +283,7 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
 If you have not installed PostgreSQL yet, please install PostgreSQL. If you have not installed pgvector yet, you could install pgvector before the 3rd step.
 
-1. Download prebuilt binaries in [the release page](https://github.com/tensorchord/VectorChord/releases/latest), and repackage it referring to your distribution's documentation. Then install it by system package manager. We do not recommend doing this, but if you wish, you can also manually copy the files to the system directory.
+1. Download prebuilt binaries in [the release page](https://github.com/pgsty/vchord/releases), and repackage it referring to your distribution's documentation. Then install it by system package manager. We do not recommend doing this, but if you wish, you can also manually copy the files to the system directory.
 
 ```sh
 cp -r ./pkglibdir/. $(pg_config --pkglibdir)

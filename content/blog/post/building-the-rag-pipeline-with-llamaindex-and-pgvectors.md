@@ -48,7 +48,7 @@ CREATE EXTENSION vectors;
 
 ## **Create the database and load documents**
 
-First, create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto.rs-docs/src/getting-started/overview.md**](https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/getting-started/overview.md) as an example.
+First, create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto-rs/getting-started/overview.md**](/pgvecto-rs/getting-started/overview/) as an example.
 
 ```python
 import logging

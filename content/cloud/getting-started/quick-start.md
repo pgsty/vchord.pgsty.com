@@ -25,7 +25,7 @@ You need to specify the following information:
   - **Plan**: The plan you want to use for your cluster, for information about Cloud's paid plan options, see [Cloud plans](/cloud/pricing/price-plan/).
   - **Cluster Name**: A unique name for your cluster.
   - **Extension Settings**:
-    - **Extension**: We support two Vector Search extensions, [pgvectors](https://github.com/tensorchord/pgvecto.rs) and its successor [vectorchord](https://github.com/tensorchord/VectorChord)
+    - **Extension**: We support two Vector Search extensions, [pgvectors](https://github.com/tensorchord/pgvecto.rs) and its successor [vectorchord](https://github.com/pgsty/vchord)
       - **vectorchord**: Scalable, Fast, and Disk-friendly Vector search in Postgres
       - **pgvectors**: Scalable, Low-latency and Hybrid-enabled Vector Search in Postgres. Revolutionize Vector Search, not Database.
       > [!WARNING]

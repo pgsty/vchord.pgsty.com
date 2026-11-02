@@ -99,7 +99,7 @@ While maintaining a recall greater than 0.95, we also assessed the multi-thread 
 
 VectorChord is a new PostgreSQL extension designed for efficient vector search. It allows users to store 400,000 vectors for just $1, significantly cheaper than competitors. By utilizing IVF and RaBitQ quantization, VectorChord optimizes search speed and memory usage, making it suitable for large datasets.
 
-We offer cloud-managed services for VectorChord at [PGVecto.rs Cloud](https://cloud.pgvecto.rs/). Our platform simplifies deployment and management, enabling you to scale your vector database solutions with ease and efficiency. If you have any questions about VectorChord, please feel free to reach out. We're here to assist you! You can either open an issue in our repository or email us at [vectorchord-inquiry@tensorchord.ai](mailto:vectorchord-inquiry@tensorchord.ai).
+We offer cloud-managed services for VectorChord at [PGVecto.rs Cloud](/cloud/). Our platform simplifies deployment and management, enabling you to scale your vector database solutions with ease and efficiency. If you have any questions about VectorChord, please feel free to reach out. We're here to assist you! You can either open an issue in our repository or email us at [vectorchord-inquiry@tensorchord.ai](mailto:vectorchord-inquiry@tensorchord.ai).
 
 %[https://github.com/tensorchord/VectorChord] 
 

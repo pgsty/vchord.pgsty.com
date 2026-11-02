@@ -64,7 +64,7 @@ We now use efficient mechanisms with quantized bit-vector scans to identify matc
     
 * **Optimized Rotation Matrix & Simplified Configuration:** Also thanks to Jianyang, a new Fast Hadamard Transform optimizes rotation matrices and removes the `prewarm_dim` GUC, simplifying configuration and slightly speeding up the process.
     
-* **Rewritten Documentation:** We've comprehensively rewritten our documentation, now offering **more user guidance and a detailed API reference** to help you get the most out of VectorChord. Check [https://docs.vectorchord.ai/vectorchord/](/docs/).
+* **Rewritten Documentation:** We've comprehensively rewritten our documentation, now offering **more user guidance and a detailed API reference** to help you get the most out of VectorChord. Check [https://vchord.pgsty.com/docs/](/docs/).
     
 
 <a id="get-started-with-vectorchord-0-4"></a>

@@ -9,7 +9,7 @@ aliases:
 ---
 
 > [!WARNING]
-> We strongly encourage you to explore our new [VectorChord](https://github.com/tensorchord/VectorChord/) implementation, which offers improved stability and performance. Users are encouraged to migrate to VectorChord. See the [migration guide](/docs/admin/migration/) for assistance.
+> We strongly encourage you to explore our new [VectorChord](https://github.com/pgsty/vchord) implementation, which offers improved stability and performance. Users are encouraged to migrate to VectorChord. See the [migration guide](/docs/admin/migration/) for assistance.
 
 
 There are four ways to install `pgvecto.rs`.

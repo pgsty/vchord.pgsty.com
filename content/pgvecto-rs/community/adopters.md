@@ -13,4 +13,4 @@ aliases:
 
 ## Add your app here
 
-If you are using `pgvecto.rs` in your app, please [edit this page](https://github.com/tensorchord/pgvecto.rs-docs/tree/main/src/pgvecto_rs/community/adopters.md). We are glad to get your feedback and help you to improve your experience with `pgvecto.rs`.
+If you are using `pgvecto.rs` in your app, please [edit this page](https://github.com/pgsty/vchord.pgsty.com/blob/main/content/pgvecto-rs/community/adopters.md). We are glad to get your feedback and help you to improve your experience with `pgvecto.rs`.

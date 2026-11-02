@@ -19,3 +19,25 @@ blog:
       copyright: "© 2023–Present TensorChord Inc."
     zh:
       copyright: "© 2023–至今 TensorChord Inc."
+
+bm25:
+  name: pgsty/vchord_bm25
+  license: AGPL-3.0-only
+  notice: /about/attribution/
+  copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+  lang:
+    en:
+      copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+    zh:
+      copyright: "© 2024–至今 TensorChord Inc. & PGSTY"
+
+tokenizer:
+  name: pgsty/pg_tokenizer
+  license: Apache-2.0
+  notice: /about/attribution/
+  copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+  lang:
+    en:
+      copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+    zh:
+      copyright: "© 2024–至今 TensorChord Inc. & PGSTY"

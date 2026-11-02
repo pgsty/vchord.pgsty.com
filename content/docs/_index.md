@@ -1,6 +1,6 @@
 ---
-title: "VectorChord Documentation"
-linkTitle: "VectorChord"
+title: "vchord Documentation"
+linkTitle: "vchord"
 description: "Scalable, fast, and disk-friendly vector similarity search in PostgreSQL powered by RaBitQ quantization."
 weight: 10
 icon: fa-solid fa-book
@@ -17,4 +17,4 @@ cascade:
   upstream_modified: True
 ---
 
-Welcome to the **VectorChord** documentation. Select a topic below to get started with installation, indexing (`vchordrq` and `vchordg`), multi-vector retrieval, hybrid search, benchmarks, and production operations.
+Welcome to the **`vchord`** documentation. Select a topic below to get started with installation, indexing (`vchordrq` and `vchordg`), multi-vector retrieval, hybrid search, benchmarks, and production operations.

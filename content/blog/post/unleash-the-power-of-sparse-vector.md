@@ -120,7 +120,7 @@ for i in range(len(sparse_weight_id)):
 Now we have both the sparse and dense embeddings. It's time to insert them into the vector database.
 
 <a id="storing-vectors-in-pgvecto-rs-http-pgvecto-rs"></a>
-## Storing vectors in [pgvecto.rs](http://pgvecto.rs)
+## Storing vectors in [pgvecto.rs](/pgvecto-rs/)
 
 First, a deployed [`pgvecto.rs`](/pgvecto-rs/) instance is required for vector storage and retrieval. This can be achieved by the official `pgvecto-rs` Docker image:
 

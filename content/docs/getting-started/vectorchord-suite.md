@@ -1,7 +1,7 @@
 ---
-title: "VectorChord Suite"
-linkTitle: "VectorChord Suite"
-description: "Retrieval-Augmented Generation (RAG) is revolutionizing our interaction with vast datasets and language models. RAG systems offer more precise, contextually awa"
+title: "Vchord Suite"
+linkTitle: "Vchord Suite"
+description: "Retrieval-Augmented Generation (RAG) is revolutionizing our interaction with vast datasets and language models. Build production-ready RAG directly in PostgreSQL with the Vchord Suite."
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/getting-started/vectorchord-suite.md"
 aliases:
@@ -14,22 +14,22 @@ Many solutions feature complex architectures, using distinct databases for vecto
 
 What if you could build a powerful, production-ready RAG system directly within your trusted PostgreSQL database?
 
-Enter the **VectorChord Suite**, a collection of PostgreSQL extensions designed to bring high-performance vector search, native BM25 ranking, and flexible tokenization capabilities right into Postgres. Let's explore the components and how they enable next-generation RAG solutions.
+Enter the **Vchord Suite**, a collection of PostgreSQL extensions designed to bring high-performance vector search, native BM25 ranking, and flexible tokenization capabilities right into Postgres. Let's explore the components and how they enable next-generation RAG solutions.
 
-## What is the VectorChord Suite?
+## What is the Vchord Suite?
 
 The suite comprises three key PostgreSQL extensions working in concert:
 
-1. [**VectorChord:**](https://github.com/tensorchord/VectorChord) The core vector search engine. It's specifically designed for scalable, high-performance, and disk-efficient vector similarity search within PostgreSQL.
+1. [**`vchord` (`pgsty/vchord`):**](https://github.com/pgsty/vchord) The core vector search engine. It's specifically designed for scalable, high-performance, and disk-efficient vector similarity search within PostgreSQL.
 
-2. [**VectorChord-bm25:**](https://github.com/tensorchord/VectorChord-bm25) This extension implements the sophisticated BM25 ranking algorithm directly inside PostgreSQL, leveraging efficient Block-WeakAnd algorithms. BM25 is a standard for relevance ranking based on keyword frequency and document characteristics.
+2. [**`vchord_bm25` (`pgsty/vchord_bm25`):**](https://github.com/pgsty/vchord_bm25) This extension implements the sophisticated BM25 ranking algorithm directly inside PostgreSQL, leveraging efficient Block-WeakAnd algorithms. BM25 is a standard for relevance ranking based on keyword frequency and document characteristics.
 
-3. [**pg_tokenizer.rs:**](https://github.com/tensorchord/pg_tokenizer.rs) Provides essential text tokenization capabilities needed for effective full-text search, enabling fine-grained control over how text is processed for full-text search.
+3. [**`pg_tokenizer` (`pgsty/pg_tokenizer`):**](https://github.com/pgsty/pg_tokenizer) Provides essential text tokenization capabilities needed for effective full-text search, enabling fine-grained control over how text is processed for full-text search.
 
 
 By combining these extensions, you unlock powerful capabilities for building advanced RAG systems entirely within PostgreSQL.
 
-## How to Use the VectorChord Suite
+## How to Use the Vchord Suite
 
 You can use the `tensorchord/vchord-suite` Docker image to run multiple extensions which are provided by TensorChord. The image is based on the Docker official PostgreSQL image and includes the following extensions:
 - `vchord`
@@ -70,30 +70,30 @@ vchord_bm25  | 0.3.0   | bm25_catalog      | vchord_bm25: A postgresql extension
 vector       | 0.8.1   | public            | vector data type and ivfflat and hnsw access methods
 ```
 
-## Use Cases for the VectorChord Suite
+## Use Cases for the Vchord Suite
 
-### Use Case 1: Powerful Hybrid Search with Native BM25 and VectorChord
+### Use Case 1: Powerful Hybrid Search with Native BM25 and `vchord`
 
 <img src="/docs/images/hybrid-search.jpeg" alt="Hybrid Search" width="600" align="center"/>
 
 In the RAG era, effective retrieval is paramount. Neither keyword search nor vector search alone is perfect:
 
-* **Keyword Search (like BM25):** Excels at precision, finding documents with exact keyword matches. It's great for structured queries and term-specific searches. However, it struggles with synonyms, paraphrasing, and understanding the underlying *meaning* or semantic intent. (Leverages `VectorChord-bm25` and `pg_tokenizer`).
+* **Keyword Search (like BM25):** Excels at precision, finding documents with exact keyword matches. It's great for structured queries and term-specific searches. However, it struggles with synonyms, paraphrasing, and understanding the underlying *meaning* or semantic intent. (Leverages `vchord_bm25` and `pg_tokenizer`).
 
-* **Vector Search:** Captures deep semantic meaning and relationships between concepts, allowing it to find relevant information even if the exact keywords aren't present. However, it can sometimes lack precision for queries demanding specific term matches. (Leverages `VectorChord`).
+* **Vector Search:** Captures deep semantic meaning and relationships between concepts, allowing it to find relevant information even if the exact keywords aren't present. However, it can sometimes lack precision for queries demanding specific term matches. (Leverages `vchord`).
 
 
-**The Solution: Hybrid Search.** By combining the strengths of both approaches within PostgreSQL, the VectorChord Suite bridges this gap. You can run a query that leverages:
+**The Solution: Hybrid Search.** By combining the strengths of both approaches within PostgreSQL, the Vchord Suite bridges this gap. You can run a query that leverages:
 
-* `VectorChord-bm25` (powered by `pg_tokenizer`) for keyword precision.
+* `vchord_bm25` (powered by `pg_tokenizer`) for keyword precision.
 
-* `VectorChord` for semantic understanding.
+* `vchord` for semantic understanding.
 
 
 The results from both can be intelligently combined (e.g., using reciprocal rank fusion - RRF or Model-based rerank) to produce a final ranking that is more accurate, contextually relevant, and semantically aware than either method could achieve alone. This delivers significantly better retrieval performance for your RAG applications.
 
 <a id="use-case-2-beyond-text-ocr-free-rag-with-colqwen2-vectorchord"></a>
-### Use Case 2: Beyond Text - OCR-Free RAG with ColQwen2 & VectorChord
+### Use Case 2: Beyond Text - OCR-Free RAG with ColQwen2 & `vchord`
 
 Building RAG systems for documents like PDFs or scanned images often involves cumbersome pre-processing pipelines. Traditional methods rely heavily on Optical Character Recognition (OCR) and layout analysis to extract text. This process can be:
 
@@ -110,14 +110,14 @@ This is now achievable by combining:
 
 1. **Multi-Modal Vision Language Models (VLMs):** Models like ColQwen2 can process images (document pages) and generate embeddings that capture *both* textual content and visual layout information.
 
-2. **VectorChord's Multi-Vector Capabilities:** VectorChord can efficiently store and search *multiple* vectors per document within PostgreSQL – allowing you to store embeddings representing different aspects (e.g., text content, visual layout).
+2. **`vchord`'s Multi-Vector Capabilities:** `vchord` can efficiently store and search *multiple* vectors per document within PostgreSQL – allowing you to store embeddings representing different aspects (e.g., text content, visual layout).
 
 
 With this setup, you can query your document database using prompts that reference visual elements ("Find documents with a bar chart comparing sales figures") or combined textual and visual cues, directly within PostgreSQL. This simplifies your RAG stack, potentially boosts retrieval accuracy by preserving visual context, and eliminates the bottlenecks associated with traditional OCR pipelines.
 
 ## Why Build RAG in PostgreSQL?
 
-Leveraging the VectorChord Suite within PostgreSQL offers significant advantages:
+Leveraging the Vchord Suite within PostgreSQL offers significant advantages:
 
 * **Unified Data:** Keep your source data, text, metadata, and vector embeddings all in one place.
 
@@ -133,7 +133,7 @@ Leveraging the VectorChord Suite within PostgreSQL offers significant advantages
 <a id="Conclusion"></a>
 ## Conclusion
 
-The VectorChord Suite transforms PostgreSQL into a powerful, production-ready platform for building advanced RAG solutions. By integrating high-performance vector search (`VectorChord`), sophisticated keyword ranking (`VectorChord-bm25`), and flexible text processing (`pg_tokenizer`), you can implement cutting-edge techniques like hybrid search and OCR-free multi-modal retrieval directly within your database. Simplify your architecture, enhance retrieval accuracy, and unlock the full potential of RAG with VectorChord in PostgreSQL.
+The Vchord Suite transforms PostgreSQL into a powerful, production-ready platform for building advanced RAG solutions. By integrating high-performance vector search (`vchord`), sophisticated keyword ranking (`vchord_bm25`), and flexible text processing (`pg_tokenizer`), you can implement cutting-edge techniques like hybrid search and OCR-free multi-modal retrieval directly within your database. Simplify your architecture, enhance retrieval accuracy, and unlock the full potential of RAG with Vchord in PostgreSQL.
 
 ## Blog Posts
 
@@ -149,8 +149,8 @@ In our recent blog posts, we shared some user cases where all Docker images can 
 <a id="References"></a>
 ## References
 
-* [https://blog.vectorchord.ai/vectorchord-store-400k-vectors-for-1-in-postgresql](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)
+* [https://vchord.pgsty.com/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)
 
-* [https://blog.vectorchord.ai/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)
+* [https://vchord.pgsty.com/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)
 
-* [https://blog.vectorchord.ai/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search](/blog/post/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/)
+* [https://vchord.pgsty.com/blog/post/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/](/blog/post/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/)

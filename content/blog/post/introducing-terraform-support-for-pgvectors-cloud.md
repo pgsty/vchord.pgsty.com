@@ -11,7 +11,7 @@ aliases:
   - "/introducing-terraform-support-for-pgvectors-cloud/"
 ---
 
-We are thrilled to announce the release of our [Terraform provider for PGVecto.rs Cloud](https://registry.terraform.io/providers/tensorchord/pgvecto-rs-cloud/latest). This new provider is designed to simplify the process of managing resources on our [cloud service](https://cloud.pgvecto.rs/), providing users with an intuitive and streamlined experience for managing their Postgres cluster setup and operation through infrastructure as a code tool — **Terraform**. For those unfamiliar with [Terraform](https://www.terraform.io/), it is an open-source tool for building, changing, and versioning infrastructure safely and efficiently. It enables users to define their infrastructure as code, allowing them to provision and manage resources programmatically.
+We are thrilled to announce the release of our [Terraform provider for PGVecto.rs Cloud](https://registry.terraform.io/providers/tensorchord/pgvecto-rs-cloud/latest). This new provider is designed to simplify the process of managing resources on our [cloud service](/cloud/), providing users with an intuitive and streamlined experience for managing their Postgres cluster setup and operation through infrastructure as a code tool — **Terraform**. For those unfamiliar with [Terraform](https://www.terraform.io/), it is an open-source tool for building, changing, and versioning infrastructure safely and efficiently. It enables users to define their infrastructure as code, allowing them to provision and manage resources programmatically.
 
 # A word about PGVecto.rs: Scalable Vector Search in Postgres
 
@@ -42,7 +42,7 @@ Before you begin, ensure you have the following:
 
 1. Terraform Installed: Download and install Terraform from [**here**](https://www.terraform.io/downloads.html) by following the provided instructions.
     
-2. PGVecto.rs Cloud Account: Access to PGVecto.rs Cloud and your API Key are essential. Go to the [**PGVecto.rs Cloud Console**](https://cloud.pgvecto.rs/keys) and create an API key. The API key must have the `ProjectOwner` permissions.
+2. PGVecto.rs Cloud Account: Access to PGVecto.rs Cloud and your API Key are essential. Go to the [**PGVecto.rs Cloud Console**](/cloud/manage/apikey/) and create an API key. The API key must have the `ProjectOwner` permissions.
     
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1721659329747/ec3dba71-1794-4ad7-8d27-60b8af568d0f.png)

@@ -2,10 +2,9 @@
 # Basics
 #=======================================#
 baseURL: https://vchord.pgsty.com/
-title: VectorChord - Scalable Vector Search for PostgreSQL
+title: Vchord - Scalable Vector & BM25 Search for PostgreSQL
 defaultContentLanguage: en
 defaultContentLanguageInSubdir: false
-disableLanguages: [zh]
 enableRobotsTXT: true
 enableGitInfo: true
 hasCJKLanguage: true
@@ -41,19 +40,19 @@ languages:
     label: English
     locale: en-US
     weight: 1
-    title: VectorChord
+    title: Vchord
     params:
-      description: "Scalable, fast, and disk-friendly vector similarity search for PostgreSQL — successor to pgvecto.rs, maintained by Pigsty."
+      description: "Scalable, fast, and disk-friendly vector & BM25 search for PostgreSQL — successor to pgvecto.rs, maintained by Pigsty."
       upstream_copyright: "© 2023–Present TensorChord Inc."
       ui:
         command_palette:
           commands:
             - id: quick_start
               title: Quick Start
-              description: Launch VectorChord with Docker or PostgreSQL packages in minutes
+              description: Launch vchord with Docker or PostgreSQL packages in minutes
               url: /docs/getting-started/overview/
               icon: fa-solid fa-bolt
-              keywords: [start, quickstart, docker, install, vchordrq]
+              keywords: [start, quickstart, docker, install, vchord, vchordrq]
             - id: indexing_guide
               title: Indexing Guide
               description: Choose between vchordrq (disk-friendly RaBitQ IVF) and vchordg (high-QPS graph)
@@ -66,6 +65,12 @@ languages:
               url: /docs/usage/quantization-types/
               icon: fa-solid fa-terminal
               keywords: [reference, sql, guc, operators, parameters, rabitq]
+            - id: bm25_docs
+              title: vchord_bm25 & pg_tokenizer
+              description: Native Okapi BM25 ranking index, Block-WeakAnd search, and pg_tokenizer
+              url: /bm25/
+              icon: fa-solid fa-magnifying-glass
+              keywords: [bm25, vchord_bm25, pg_tokenizer, full-text, search, hybrid, tokenizer]
             - id: benchmark_results
               title: Benchmarks
               description: Cost, recall, QPS, and index build time across 1M to 100M vectors
@@ -120,6 +125,44 @@ languages:
           params:
             icon: fa-solid fa-sliders
             description: Upgrades, troubleshooting, and operational notes
+        - identifier: bm25
+          name: BM25
+          pageRef: /bm25
+          weight: 15
+          params:
+            icon: fa-solid fa-magnifying-glass
+        - identifier: bm25-getting-started
+          parent: bm25
+          name: Getting Started
+          pageRef: /bm25/getting-started
+          weight: 10
+          params:
+            icon: fa-solid fa-rocket
+            description: Overview, installation, and quick start for vchord_bm25
+        - identifier: bm25-usage
+          parent: bm25
+          name: Usage & Hybrid Search
+          pageRef: /bm25/usage
+          weight: 20
+          params:
+            icon: fa-solid fa-ranking-star
+            description: BM25 indexing, Top-K querying, prefiltering, RRF, and Block-WeakAnd
+        - identifier: bm25-tokenizer
+          parent: bm25
+          name: Tokenizers (pg_tokenizer)
+          pageRef: /bm25/tokenizer
+          weight: 30
+          params:
+            icon: fa-solid fa-language
+            description: Text analyzers, stemmers, custom models, Jieba, and Lindera
+        - identifier: bm25-reference
+          parent: bm25
+          name: Reference & Benchmarks
+          pageRef: /bm25/reference
+          weight: 40
+          params:
+            icon: fa-solid fa-book
+            description: SQL types, operators, functions, GUCs, and BEIR benchmarks
         - identifier: blog
           name: Blog
           pageRef: /blog
@@ -141,19 +184,7 @@ languages:
           weight: 20
           params:
             icon: fa-solid fa-tag
-            description: Version announcements for VectorChord and pgvecto.rs
-        - identifier: cloud
-          name: Cloud
-          pageRef: /cloud
-          weight: 30
-          params:
-            icon: fa-solid fa-cloud
-        - identifier: pgvecto-rs
-          name: pgvecto.rs
-          pageRef: /pgvecto-rs
-          weight: 40
-          params:
-            icon: fa-solid fa-cube
+            description: Version announcements for vchord and pgvecto.rs
         - identifier: about
           name: About
           pageRef: /about
@@ -176,11 +207,170 @@ languages:
     label: 简体中文
     locale: zh-CN
     weight: 2
-    title: VectorChord
+    title: Vchord
     hasCJKLanguage: true
     params:
-      description: "由 Pigsty 维护的高性能、磁盘友好型 PostgreSQL 向量检索引擎。"
+      description: "由 Pigsty 维护的高性能、可扩展、磁盘友好型 PostgreSQL 向量与全文检索引擎 —— pgvecto.rs 的继任者。"
       upstream_copyright: "© 2023–至今 TensorChord Inc."
+      ui:
+        command_palette:
+          commands:
+            - id: quick_start
+              title: 快速开始
+              description: 使用 Docker 或 PostgreSQL 软件包在几分钟内启动 vchord
+              url: /zh/docs/getting-started/overview/
+              icon: fa-solid fa-bolt
+              keywords: [start, quickstart, docker, install, vchord, vchordrq, 快速开始, 安装]
+            - id: indexing_guide
+              title: 索引指南
+              description: 在 vchordrq（磁盘友好型 RaBitQ IVF）与 vchordg（高 QPS 图索引）之间选型
+              url: /zh/docs/usage/indexing/
+              icon: fa-solid fa-layer-group
+              keywords: [index, vchordrq, vchordg, rabitq, kmeans, 索引]
+            - id: reference_api
+              title: 量化与 SQL 类型
+              description: RaBitQ4/RaBitQ8 类型、操作符、索引选项与 GUC 参数参考
+              url: /zh/docs/usage/quantization-types/
+              icon: fa-solid fa-terminal
+              keywords: [reference, sql, guc, operators, parameters, rabitq, 量化, 参数]
+            - id: bm25_docs
+              title: vchord_bm25 与 pg_tokenizer
+              description: PostgreSQL 原生 Okapi BM25 排序索引、Block-WeakAnd 检索与 pg_tokenizer
+              url: /zh/bm25/
+              icon: fa-solid fa-magnifying-glass
+              keywords: [bm25, vchord_bm25, pg_tokenizer, full-text, search, hybrid, tokenizer, 全文检索, 分词]
+            - id: benchmark_results
+              title: 基准测试
+              description: 100 万至 1 亿向量规模下的成本、召回率、QPS 与索引构建耗时对比
+              url: /zh/docs/benchmark/performance/
+              icon: fa-solid fa-chart-line
+              keywords: [benchmark, performance, qps, recall, cost, 基准测试, 性能]
+    menu:
+      main:
+        - identifier: docs
+          name: 文档
+          pageRef: /docs
+          weight: 10
+          params:
+            icon: fa-solid fa-book
+        - identifier: docs-getting-started
+          parent: docs
+          name: 快速开始
+          pageRef: /docs/getting-started
+          weight: 10
+          params:
+            icon: fa-solid fa-rocket
+            description: 概览、安装方式以及从 pgvecto.rs 迁移
+        - identifier: docs-usage
+          parent: docs
+          name: 使用指南
+          pageRef: /docs/usage
+          weight: 20
+          params:
+            icon: fa-solid fa-code
+            description: 索引构建、查询、MaxSim 多向量检索、性能调优与 SQL 参考
+        - identifier: docs-use-case
+          parent: docs
+          name: 应用场景
+          pageRef: /docs/use-case
+          weight: 30
+          params:
+            icon: fa-solid fa-diagram-project
+            description: 混合检索、ColBERT 重排序与多模态检索
+        - identifier: docs-benchmark
+          parent: docs
+          name: 基准测试
+          pageRef: /docs/benchmark
+          weight: 40
+          params:
+            icon: fa-solid fa-chart-line
+            description: 大规模场景下的性能、召回率与成本对比
+        - identifier: docs-admin
+          parent: docs
+          name: 运维管理
+          pageRef: /docs/admin
+          weight: 50
+          params:
+            icon: fa-solid fa-sliders
+            description: 迁移升级、水平扩展与 Kubernetes 部署
+        - identifier: bm25
+          name: BM25
+          pageRef: /bm25
+          weight: 15
+          params:
+            icon: fa-solid fa-magnifying-glass
+        - identifier: bm25-getting-started
+          parent: bm25
+          name: 快速开始
+          pageRef: /bm25/getting-started
+          weight: 10
+          params:
+            icon: fa-solid fa-rocket
+            description: vchord_bm25 架构概览、安装指南与快速上手
+        - identifier: bm25-usage
+          parent: bm25
+          name: 使用与混合检索
+          pageRef: /bm25/usage
+          weight: 20
+          params:
+            icon: fa-solid fa-ranking-star
+            description: BM25 索引构建、Top-K 查询、预过滤、RRF 混合检索与 Block-WeakAnd 原理
+        - identifier: bm25-tokenizer
+          parent: bm25
+          name: 分词器 (pg_tokenizer)
+          pageRef: /bm25/tokenizer
+          weight: 30
+          params:
+            icon: fa-solid fa-language
+            description: 文本分析器、词干提取、自定义词表模型、结巴中文与 Lindera 日文分词
+        - identifier: bm25-reference
+          parent: bm25
+          name: 参考与基准测试
+          pageRef: /bm25/reference
+          weight: 40
+          params:
+            icon: fa-solid fa-book
+            description: SQL 类型、操作符、函数、GUC 参数以及 BEIR 基准测试
+        - identifier: blog
+          name: 博客
+          pageRef: /blog
+          weight: 20
+          params:
+            icon: fa-solid fa-blog
+        - identifier: blog-post
+          parent: blog
+          name: 工程与深度解析
+          pageRef: /blog/post
+          weight: 10
+          params:
+            icon: fa-solid fa-compass-drafting
+            description: RaBitQ 量化、十亿级基准测试、BM25 与 ColBERT 架构深度剖析
+        - identifier: blog-release
+          parent: blog
+          name: 发布说明
+          pageRef: /blog/release
+          weight: 20
+          params:
+            icon: fa-solid fa-tag
+            description: vchord 与 pgvecto.rs 各版本发布公告
+        - identifier: about
+          name: 关于
+          pageRef: /about
+          weight: 50
+          params:
+            icon: fa-solid fa-circle-info
+        - identifier: pigsty
+          name: Pigsty
+          weight: 60
+          url: https://pigsty.cc
+          params:
+            icon: fa-solid fa-database
+        - identifier: github
+          name: GitHub
+          weight: 70
+          url: https://github.com/pgsty/vchord
+          params:
+            icon: fa-brands fa-github
 
 #=======================================#
 # Taxonomies and blog URLs
@@ -240,11 +430,11 @@ outputs:
 # Site parameters
 #=======================================#
 params:
-  description: "VectorChord is a scalable, fast, and disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, maintained by the Pigsty community."
+  description: "vchord is a scalable, fast, and disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, maintained by the Pigsty community."
   logo: img/vchord.svg
   version: 1.1.1
   copyright:
-    authors: '[PIGSTY & VectorChord Contributors](https://pgsty.com) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)'
+    authors: '[PIGSTY & Vchord Contributors](https://pgsty.com) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)'
     from_year: 2023
     url: https://pgsty.com
 
@@ -277,7 +467,7 @@ params:
     preset: paper
     preset_menu: [paper, slate, ink, terminal]
     shell_types: [docs, blog]
-    quick_links: [docs, blog, cloud, pgvecto-rs]
+    quick_links: [docs, bm25, blog]
     sidebar_icon_policy: groups
     typography: technical
     breadcrumb: true

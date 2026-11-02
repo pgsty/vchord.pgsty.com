@@ -6,8 +6,9 @@ This repository builds **`https://vchord.pgsty.com/`**, the documentation and bl
 
 - **Framework**: Hugo Extended `0.168.0` + Go `1.27.3` + `github.com/pgsty/oink v1.4.0`
 - **Upstream Docs Source**: `https://github.com/tensorchord/pgvecto.rs-docs` (`https://docs.vectorchord.ai/`)
+- **Upstream BM25 & Tokenizer Sources**: `https://github.com/supervc-stack/VectorChord-bm25` and `https://github.com/supervc-stack/pg_tokenizer.rs`
 - **Upstream Blog Source**: `https://blog.vectorchord.ai/`
-- **Code Repository**: `https://github.com/pgsty/vchord`
+- **Code Repositories**: `https://github.com/pgsty/vchord`, `https://github.com/pgsty/vchord_bm25`, and `https://github.com/pgsty/pg_tokenizer`
 
 ---
 

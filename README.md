@@ -1,6 +1,6 @@
 # vchord.pgsty.com
 
-Source repository for **[vchord.pgsty.com](https://vchord.pgsty.com/)**, the documentation and engineering blog for **[VectorChord (`pgsty/vchord`)](https://github.com/pgsty/vchord)** — scalable, fast, and disk-friendly vector similarity search for PostgreSQL, maintained by the [Pigsty](https://pigsty.io/) community.
+Source repository for **[vchord.pgsty.com](https://vchord.pgsty.com/)**, the documentation and engineering blog for the **Vchord** PostgreSQL extension suite — **[`vchord` (`pgsty/vchord`)](https://github.com/pgsty/vchord)**, **[`vchord_bm25` (`pgsty/vchord_bm25`)](https://github.com/pgsty/vchord_bm25)**, and **[`pg_tokenizer` (`pgsty/pg_tokenizer`)](https://github.com/pgsty/pg_tokenizer)** — scalable vector and BM25 lexical search for PostgreSQL, maintained by [PGSTY](https://pigsty.io/).
 
 Built with [Hugo Extended `0.168.0`](https://gohugo.io/) and the [OINK `v1.4.0`](https://github.com/pgsty/oink) documentation theme.
 
@@ -8,12 +8,13 @@ Built with [Hugo Extended `0.168.0`](https://gohugo.io/) and the [OINK `v1.4.0`]
 
 | Path | Description |
 | :--- | :--- |
-| `content/docs/` | **VectorChord** documentation (`getting-started`, `usage`, `use-case`, `benchmark`, `admin`, `customer-stories`) |
-| `content/cloud/` | **VectorChord Cloud** guides, cluster management, monitoring, and billing reference |
-| `content/pgvecto-rs/` | **pgvecto.rs** legacy documentation and migration reference |
-| `content/blog/` | **VectorChord Blog** — release notes (`content/blog/release/`) and deep-dive engineering articles (`content/blog/post/`) |
+| `content/docs/` | **`vchord`** documentation (`getting-started`, `usage`, `use-case`, `benchmark`, `admin`, `customer-stories`) |
+| `content/bm25/` | **`vchord_bm25` & `pg_tokenizer`** documentation (`getting-started`, `usage`, `tokenizer`, `reference`) |
+| `content/cloud/` | **Cloud Archive** — reference guides for managed cluster architecture |
+| `content/pgvecto-rs/` | **`pgvecto.rs`** legacy documentation and migration reference |
+| `content/blog/` | **Vchord Blog** — release notes (`content/blog/release/`) and deep-dive engineering articles (`content/blog/post/`) |
 | `content/about/` | Licensing, upstream attribution, and trademark policy |
-| `data/home/en.yaml` | OINK 1.4.0 declarative homepage composition |
+| `data/home/en.yaml`, `data/home/zh.yaml` | OINK 1.4.0 declarative homepage composition |
 
 ## Local Development
 

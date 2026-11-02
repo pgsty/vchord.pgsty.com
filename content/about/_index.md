@@ -1,7 +1,7 @@
 ---
-title: About VectorChord & vchord.pgsty.com
+title: About Vchord & vchord.pgsty.com
 linkTitle: About
-description: Project overview, licensing, upstream attribution, and trademark policy for the Pigsty-maintained VectorChord distribution and documentation site.
+description: Project overview, licensing, upstream attribution, and trademark policy for the PGSTY-maintained Vchord extension suite and documentation site.
 type: docs
 sidebar_root_for: self
 weight: 50
@@ -10,18 +10,17 @@ cascade:
   type: docs
 ---
 
-**VectorChord (`vchord`)** is a PostgreSQL extension designed for scalable, high-performance, and disk-friendly vector similarity search, developed as the architectural successor to [`pgvecto.rs`](/pgvecto-rs/).
+**Vchord** is a PostgreSQL extension suite for scalable vector similarity search and BM25 full-text search, consisting of **[`vchord`](https://github.com/pgsty/vchord)**, **[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)**, and **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)**.
 
-This repository (`pgsty/vchord.pgsty.com`) and website (`https://vchord.pgsty.com/`) provide a complete, fast, local-first documentation and technical blog reference for [`pgsty/vchord`](https://github.com/pgsty/vchord), maintained by the [Pigsty](https://pigsty.io/) community using the [OINK 1.4.0](https://oink.pgsty.com/) documentation framework.
+This repository (`pgsty/vchord.pgsty.com`) and website (`https://vchord.pgsty.com/`) provide a complete, fast, local-first documentation and technical blog reference for [`pgsty/vchord`](https://github.com/pgsty/vchord), [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25), and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer), maintained by [PGSTY](https://pigsty.io/) using the [OINK 1.4.0](https://oink.pgsty.com/) documentation framework.
 
 > [!NOTE]
-> **`pgsty/vchord` is a community-maintained fork of `tensorchord/VectorChord`.** It is not affiliated with, endorsed by, or sponsored by TensorChord Inc. See [Attribution](/about/attribution/) and [Trademark Policy](/about/trademark/) for details.
+> **`pgsty/vchord`, `pgsty/vchord_bm25`, and `pgsty/pg_tokenizer` are PGSTY-maintained forks of `tensorchord/VectorChord`, `tensorchord/VectorChord-bm25`, and `tensorchord/pg_tokenizer.rs`.** See [Attribution](/about/attribution/) and [Trademark Policy](/about/trademark/) for details.
 
 ## Documentation Scope
 
 | Section | Coverage |
 | :--- | :--- |
-| **[VectorChord Docs](/docs/)** | Installation, migration from `pgvecto.rs`, `vchordrq` and `vchordg` indexing, MaxSim multi-vector retrieval, range queries, PostgreSQL tuning, external index precomputation, benchmarks, and SQL reference. |
-| **[Engineering Blog](/blog/)** | All 37 engineering deep-dives, benchmark analyses, hybrid search tutorials, and release announcements (`pgvecto.rs 0.2` through `VectorChord 1.1`). |
-| **[VectorChord Cloud](/cloud/)** | Reference documentation for VectorChord Cloud clusters, connection endpoints, scaling, VPC peering, monitoring, and billing. |
-| **[pgvecto.rs Archive](/pgvecto-rs/)** | Complete legacy documentation for `pgvecto.rs` (`vectors` extension), including installation, indexing, filtering, framework integrations, and administration. |
+| **[`vchord` Docs](/docs/)** | Installation, migration from `pgvecto.rs`, `vchordrq` and `vchordg` indexing, MaxSim multi-vector retrieval, range queries, PostgreSQL tuning, external index precomputation, benchmarks, and SQL reference. |
+| **[`vchord_bm25` & `pg_tokenizer`](/bm25/)** | Complete documentation for [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) (`vchord_bm25`) and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) (`pg_tokenizer`): Okapi BM25 scoring, Block-WeakAnd Top-K index scans, prefiltering, hybrid search with `vchord`, multilingual text analyzers (`jieba`, `lindera`, Snowball, HuggingFace), and SQL/GUC reference. |
+| **[Engineering Blog](/blog/)** | All 37 engineering deep-dives, benchmark analyses, hybrid search tutorials, and release announcements. |

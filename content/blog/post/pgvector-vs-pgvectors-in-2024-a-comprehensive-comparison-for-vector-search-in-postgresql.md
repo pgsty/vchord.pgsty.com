@@ -40,7 +40,7 @@ We present the recall, latency (in milliseconds), and RPS (requests per second) 
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1707279248378/4ebbb813-0593-4949-9898-9abdee58e4fc.png?auto=compress,format&format=webp)
 
-[**pgvecto.rs**](http://pgvecto.rs/), when used with VBASE, consistently yields improved recall, particularly when working with low probability values.
+[**pgvecto.rs**](/pgvecto-rs/), when used with VBASE, consistently yields improved recall, particularly when working with low probability values.
 
 ### Sparse Vector Search
 

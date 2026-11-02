@@ -74,7 +74,7 @@ Assuming we already have the vectors stored in VectorChord, we will need to:
 
 We provide some scripts to make it easy to get started:
 
-%[https://github.com/tensorchord/VectorChord/blob/main/scripts/README.md#run-external-index-precomputation-toolkit] 
+[External Build Documentation](/docs/usage/external-build/)
 
 You can clone the repo and try it by yourself:
 

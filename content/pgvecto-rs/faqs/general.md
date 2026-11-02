@@ -9,7 +9,7 @@ aliases:
 ---
 
 > [!WARNING]
-> We strongly suggest you explore our new [VectorChord](https://github.com/tensorchord/VectorChord/) implementation, offering enhanced stability and performance. Users are advised to transition to VectorChord. Refer to the [migration guide](/docs/admin/migration/) for assistance.
+> We strongly suggest you explore our new [VectorChord](https://github.com/pgsty/vchord) implementation, offering enhanced stability and performance. Users are advised to transition to VectorChord. Refer to the [migration guide](/docs/admin/migration/) for assistance.
 
 
 ## The vector type or operator class is not found

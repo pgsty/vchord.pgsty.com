@@ -55,7 +55,7 @@ CREATE EXTENSION vectors;
 
 We will show how to use `pgvecto.rs` in LangChain to retrieve the most similar vectors.
 
-First, you need to create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto.rs-docs/src/getting-started/overview.md**](https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/getting-started/overview.md) as an example.
+First, you need to create the text loader and the text splitter to split the text into chunks. We use the markdown file [**pgvecto-rs/getting-started/overview.md**](/pgvecto-rs/getting-started/overview/) as an example.
 
 ```python
 ## Loading Environment Variables

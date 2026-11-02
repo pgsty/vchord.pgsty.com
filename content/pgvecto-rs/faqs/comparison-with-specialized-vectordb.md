@@ -1,14 +1,14 @@
 ---
 title: "Why not a specialty vector database?"
 linkTitle: "pgvecto.rs vs. Specialized VectorDB"
-description: "Read our complete blog at Do we really need a specialized vector database? (2023) | vectorchord.ai."
+description: "Read our complete blog at Do we really need a specialized vector database? (2023) | vchord.pgsty.com."
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/faqs/comparison-with-specialized-vectordb.md"
 aliases:
   - "/faqs/comparison-with-specialized-vectordb/"
 ---
 
-Read our complete blog at [Do we really need a specialized vector database? (2023) | vectorchord.ai](/blog/post/do-we-really-need-a-specialized-vector-database-2023/).
+Read our complete blog at [Do we really need a specialized vector database? (2023) | vchord.pgsty.com](/blog/post/do-we-really-need-a-specialized-vector-database-2023/).
 
 Imagine this, your existing data is stored in a Postgres database, and you want to use a vector database to do some vector similarity search. You have to move your data from Postgres to the vector database, and you have to maintain two databases at the same time. This is not a good idea.
 

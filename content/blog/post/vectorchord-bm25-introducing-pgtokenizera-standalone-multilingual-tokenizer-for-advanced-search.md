@@ -205,7 +205,7 @@ This release significantly boosts the flexibility and power of VectorChord-BM25,
 
 * **GitHub Repository:** [https://github.com/tensorchord/VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)
     
-* **Tokenizer Documentation:** [https://github.com/tensorchord/pg\_tokenizer.rs](https://github.com/tensorchord/pg_tokenizer.rs)
+* **Tokenizer Documentation:** [https://vchord.pgsty.com/bm25/tokenizer/](/bm25/tokenizer/)
     
 
 We encourage you to try out version 0.2 and explore the new tokenization capabilities. Your feedback is invaluable – please report any issues or suggest features on our GitHub repository.

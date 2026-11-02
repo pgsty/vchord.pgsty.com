@@ -20,7 +20,7 @@ One possible solution is to combine sentence-level vector search with token-leve
 
 The multi-vector approach is not limited to pure text retrieval tasks; it can also be used in visual document understanding. For multimodal retrieval models, state-of-the-art models like [ColPali](https://huggingface.co/vidore/colpali-v1.3) and [ColQwen](https://huggingface.co/vidore/colqwen2-v1.0-merged) directly encode document images into multi-vectors and demonstrate stronger performance compared to OCR-to-text approaches.
 
-This blog will demonstrate using the PostgreSQL extension [VectorChord](https://github.com/tensorchord/VectorChord/) and pgvector with ColBERT rerank.
+This blog will demonstrate using the PostgreSQL extension [VectorChord](https://github.com/pgsty/vchord) and pgvector with ColBERT rerank.
 
 <a id="Tutorial"></a>
 ## Tutorial
@@ -189,7 +189,7 @@ All the related benchmark codes can be found [here](https://github.com/kemingy/v
 
 ## Future work
 
-Vector search and full-text search with ColBERT rerank can further improve performance. We’re also working on the [PostgreSQL BM25 extensions](https://github.com/tensorchord/VectorChord-bm25). Stay tuned.
+Vector search and full-text search with ColBERT rerank can further improve performance. We’re also working on the [PostgreSQL BM25 extensions](https://github.com/pgsty/vchord_bm25). Stay tuned.
 
 <a id="References"></a>
 ### References
@@ -198,8 +198,8 @@ Vector search and full-text search with ColBERT rerank can further improve perfo
 
 * [https://github.com/stanford-futuredata/ColBERT](https://github.com/stanford-futuredata/ColBERT)
 
-* [https://github.com/tensorchord/vectorChord/](https://github.com/tensorchord/vectorChord/)
+* [https://github.com/pgsty/vchord](https://github.com/pgsty/vchord)
 
-* [https://github.com/tensorchord/VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)
+* [https://github.com/pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25)
 
 * [https://huggingface.co/blog/manu/colpali](https://huggingface.co/blog/manu/colpali)

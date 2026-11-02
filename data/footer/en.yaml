@@ -1,0 +1,28 @@
+columns:
+  - title: "VectorChord Docs"
+    links:
+      - { label: "Overview & Quick Start", url: "docs/getting-started/overview/" }
+      - { label: "Installation", url: "docs/getting-started/installation/" }
+      - { label: "Indexing Guide", url: "docs/usage/indexing/" }
+      - { label: "Graph Index (vchordg)", url: "docs/usage/graph-index/" }
+      - { label: "Benchmarks", url: "docs/benchmark/performance/" }
+  - title: "Suite & Sections"
+    links:
+      - { label: "Hybrid Search & BM25", url: "docs/use-case/hybrid-search/" }
+      - { label: "Multi-Vector (ColBERT)", url: "docs/usage/multi-vector-retrieval/" }
+      - { label: "VectorChord Cloud", url: "cloud/" }
+      - { label: "pgvecto.rs Docs", url: "pgvecto-rs/" }
+      - { label: "Migrate from pgvecto.rs", url: "docs/admin/migration/" }
+  - title: "Blog & Ecosystem"
+    links:
+      - { label: "Engineering Blog", url: "blog/post/" }
+      - { label: "Release Notes", url: "blog/release/" }
+      - { label: "GitHub (pgsty/vchord)", url: "https://github.com/pgsty/vchord", external: true }
+      - { label: "Pigsty Distribution", url: "https://pigsty.io/", external: true }
+      - { label: "PG Extension Repo", url: "https://pgext.cloud/", external: true }
+  - title: "About"
+    links:
+      - { label: "About VectorChord", url: "about/" }
+      - { label: "License", url: "about/license/" }
+      - { label: "Attribution", url: "about/attribution/" }
+      - { label: "Trademark Policy", url: "about/trademark/" }

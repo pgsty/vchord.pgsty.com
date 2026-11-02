@@ -1,0 +1,281 @@
+sections:
+  - hero
+  - metrics
+  - capabilities
+  - type: cards
+    key: suite
+  - steps
+  - faq
+  - cta
+
+hero:
+  eyebrow: VectorChord 1.1.1 · PostgreSQL 13–18 · Successor to pgvecto.rs
+  title_lines:
+    - Scalable Vector Search
+    - Built for PostgreSQL
+  title_size: 3.6rem
+  lead: >-
+    Store 400,000 vectors per $1 and index 100 million vectors in 20 minutes.
+    Powered by RaBitQ 4-bit/8-bit quantization, disk-friendly IVF (`vchordrq`),
+    high-QPS graphs (`vchordg`), MaxSim multi-vector retrieval, and native `pgvector` compatibility.
+  note: Forked from tensorchord/VectorChord · Maintained by Pigsty · Dual-licensed Apache-2.0 / AGPL-3.0
+  image:
+    light: img/vchord-architecture-light.svg
+    dark: img/vchord-architecture-dark.svg
+    alt: >-
+      VectorChord architecture: PostgreSQL vector, vector[], and bm25vector types flow through
+      RaBitQ 4-bit/8-bit quantization into vchordrq, vchordg, and bm25 native index engines.
+  media:
+    ratio: 1.18fr 0.82fr
+    max_width: 440px
+    hide_below: lg
+  actions:
+    - label: Get Started
+      url: /docs/getting-started/overview/
+      icon: fa-solid fa-rocket
+      style: primary
+    - label: Installation
+      url: /docs/getting-started/installation/
+      icon: fa-solid fa-download
+      style: ghost
+    - label: Benchmarks
+      url: /docs/benchmark/performance/
+      icon: fa-solid fa-chart-line
+      style: ghost
+  detail:
+    label: What's new in VectorChord 1.1
+    url: /blog/release/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/
+
+metrics:
+  eyebrow: Proven at 100M+ Scale
+  title: Enterprise vector scale at a fraction of the RAM
+  desc: Benchmarks on GIST-1M, Cohere-10M, and LAION-100M against HNSW and commercial vector databases.
+  columns: 4
+  link_label: View benchmark
+  items:
+    - value: "400k / $1"
+      label: Vectors per dollar
+      desc: 26x more vectors stored per $1 on AWS vs pgvector HNSW
+      icon: fa-solid fa-coins
+      url: /docs/benchmark/price/
+    - value: "20 min"
+      label: 100M index build
+      desc: External index precomputation or 6x faster in-DB build
+      icon: fa-solid fa-bolt
+      url: /docs/usage/external-build/
+    - value: "16×"
+      label: Faster insert throughput
+      desc: Minimal write amplification compared to in-memory HNSW
+      icon: fa-solid fa-gauge-high
+      url: /docs/benchmark/performance/
+    - value: "95%+"
+      label: Recall@10 accuracy
+      desc: Guaranteed theoretical error bounds with RaBitQ4 and RaBitQ8
+      icon: fa-solid fa-bullseye
+      url: /blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/
+
+capabilities:
+  eyebrow: Core Engine Architecture
+  title: Designed for disk, memory, and hybrid retrieval
+  text: VectorChord pairs SIGMOD'24 RaBitQ quantization with PostgreSQL's native storage, WAL, and buffer manager.
+  items:
+    - ref: 01 / VCHORDRQ · DISK-FRIENDLY IVF
+      title: Store 100M+ vectors without exhausting RAM
+      url: /docs/usage/indexing/
+      motto: Hierarchical K-Means + RaBitQ 4-bit / 8-bit Quantization
+      bullets:
+        - 'Compresses 32-bit float vectors by **8× to 32×** with mathematically bounded distance estimation error'
+        - 'Only compact centroids stay in memory; quantized inverted lists stream from SSD with `io_uring` / `posix_fadvise` prefetching'
+        - 'Supports external multi-node or GPU index precomputation for 100M+ vectors with zero production CPU contention'
+      value: Scale to hundreds of millions of vectors on a 32 GB PostgreSQL node.
+      visual:
+        type: code
+        aria_label: Create a disk-friendly vchordrq index with hierarchical K-Means
+        title: vchordrq.sql
+        lines:
+          - { class: c, prefix: '-- ', text: 'Enable VectorChord (auto-loads pgvector)' }
+          - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord CASCADE;' }
+          - { class: c, prefix: '-- ', text: 'Build a hierarchical RaBitQ index' }
+          - { class: k, prefix: '', text: 'CREATE INDEX items_emb_idx ON items' }
+          - { class: k, prefix: '  ', text: 'USING vchordrq (embedding vector_l2_ops)' }
+          - { class: v, prefix: '  ', text: 'WITH (options = $$' }
+          - { class: v, prefix: '    ', text: 'residual_quantization = true' }
+          - { class: v, prefix: '    ', text: '[build.internal]' }
+          - { class: v, prefix: '    ', text: 'lists = [4096]' }
+          - { class: v, prefix: '  ', text: '$$);' }
+    - ref: 02 / VCHORDG · HIGH-QPS GRAPH
+      title: Low-latency graph search without HNSW bloat
+      url: /docs/usage/indexing/
+      motto: Single-layer RaBitQ graph index for latency-critical workloads
+      bullets:
+        - 'Eliminates multi-layer HNSW memory overhead while delivering **2×–5× higher QPS** and lower p99 latency'
+        - 'Up to **50% smaller index footprint** and **4× faster index construction** than `pgvector` HNSW'
+        - 'First-class support for `vector`, `halfvec`, and `vector[]` multi-vector embeddings'
+      value: Drop-in replacement when your working set fits in memory and QPS is paramount.
+      visual:
+        type: code
+        aria_label: Create a high-QPS vchordg graph index
+        title: vchordg.sql
+        lines:
+          - { class: c, prefix: '-- ', text: 'High-QPS graph index with RaBitQ8' }
+          - { class: k, prefix: '', text: 'CREATE INDEX items_graph_idx ON items' }
+          - { class: k, prefix: '  ', text: 'USING vchordg (embedding vector_ip_ops)' }
+          - { class: v, prefix: '  ', text: 'WITH (options = $$' }
+          - { class: v, prefix: '    ', text: 'm = 32' }
+          - { class: v, prefix: '    ', text: 'ef_construction = 64' }
+          - { class: v, prefix: '    ', text: ' alpha = [1.0, 1.2]' }
+          - { class: v, prefix: '    ', text: 'bits = 8' }
+          - { class: v, prefix: '  ', text: '$$);' }
+    - ref: 03 / MAXSIM · MULTI-VECTOR COLBERT
+      title: Late-interaction ColBERT & ColPali in SQL
+      url: /docs/usage/multi-vector-retrieval/
+      motto: Native vector[] indexing with WARP dynamic pruning
+      bullets:
+        - 'First PostgreSQL extension to natively index `vector[]` token-level document embeddings with `@#` (`MaxSim`)'
+        - 'Implements **WARP** (Web-scale Accelerated Residual Pruning) over RaBitQ centroids to skip irrelevant token comparisons'
+        - 'Powers multimodal PDF/visual document retrieval with **ColPali** and fine-grained text retrieval with **ColBERTv2**'
+      value: Up to 70% higher retrieval accuracy on complex domain queries without external reranking clusters.
+      visual:
+        type: code
+        aria_label: Multi-vector MaxSim query in SQL
+        title: maxsim_colbert.sql
+        lines:
+          - { class: c, prefix: '-- ', text: 'Store per-token embeddings as vector(128)[]' }
+          - { class: k, prefix: '', text: 'CREATE TABLE docs (id bigserial, embs vector(128)[]);' }
+          - { class: k, prefix: '', text: 'CREATE INDEX ON docs USING vchordrq (embs vector_maxsim_ops)' }
+          - { class: v, prefix: '  ', text: 'WITH (options = $$ [build.internal] lists = [1000] $$);' }
+          - { class: c, prefix: '-- ', text: 'Query with the MaxSim (@#) operator' }
+          - { class: k, prefix: '', text: 'SELECT id FROM docs' }
+          - { class: k, prefix: '  ', text: 'ORDER BY embs @# ARRAY[''[0.1, ...]'']::vector[]' }
+          - { class: k, prefix: '  ', text: 'LIMIT 10;' }
+    - ref: 04 / HYBRID SEARCH · BM25 + RRF
+      title: Complete retrieval suite inside PostgreSQL
+      url: /docs/use-case/hybrid-search/
+      motto: Combine VectorChord, VectorChord-bm25, and pg_tokenizer.rs
+      bullets:
+        - '**VectorChord-bm25**: Block-WeakAnd (WAND) BM25 inverted index delivering 3× faster lexical top-K than ParadeDB'
+        - '**pg_tokenizer.rs**: multilingual tokenizers (BERT, HuggingFace, Lindera Japanese, Jieba Chinese, Snowball)'
+        - 'Fuse dense semantic search and BM25 keyword scores in one SQL query via Reciprocal Rank Fusion (RRF) or ColBERT reranking'
+      value: Keep relational data, vector search, and full-text BM25 in one transactional database.
+      visual:
+        type: components
+        aria_label: VectorChord retrieval ecosystem components
+        columns: 2
+        items:
+          - { icon: fa-solid fa-layer-group, title: VectorChord, detail: vchordrq · vchordg · MaxSim, url: /docs/getting-started/overview/ }
+          - { icon: fa-solid fa-magnifying-glass, title: VectorChord-bm25, detail: Block-WAND BM25 index, url: /docs/use-case/hybrid-search/ }
+          - { icon: fa-solid fa-language, title: pg_tokenizer.rs, detail: Multilingual & LLM tokenizers, url: /docs/use-case/hybrid-search/ }
+          - { icon: fa-solid fa-database, title: pgvector Types, detail: vector & halfvec compatible, url: /docs/getting-started/overview/ }
+          - { icon: fa-solid fa-cloud, title: VectorChord Cloud, detail: Managed cluster reference, url: /cloud/ }
+          - { icon: fa-solid fa-cube, title: pgvecto.rs, detail: Legacy docs & migration path, url: /pgvecto-rs/ }
+
+suite:
+  eyebrow: Documentation Sections
+  title: Explore the complete VectorChord documentation
+  desc: Everything from quickstart SQL and production tuning to deep-dive engineering articles, cloud administration, and legacy pgvecto.rs references.
+  columns: 3
+  link_label: Open section
+  items:
+    - title: VectorChord Documentation
+      meta: Core Engine · v1.1.1
+      icon: fa-solid fa-book
+      desc: Installation, vchordrq & vchordg indexing, MaxSim multi-vector search, range queries, performance tuning, external index builds, and SQL reference.
+      url: /docs/
+    - title: Engineering Blog & Releases
+      meta: 37 Articles & Release Notes
+      icon: fa-solid fa-blog
+      desc: Deep dives on RaBitQ quantization, 100M–1B vector benchmarks, DiskANN vs HNSW, BM25 Block-WAND, ColBERT WARP, and all release notes.
+      url: /blog/
+    - title: Benchmarks & Cost Analysis
+      meta: Performance & TCO
+      icon: fa-solid fa-chart-line
+      desc: Reproducible benchmarks across GIST-1M, Cohere-10M, and LAION-100M comparing VectorChord with pgvector, pgvectorscale, Elasticsearch, and Qdrant.
+      url: /docs/benchmark/
+    - title: Use Cases & Hybrid Search
+      meta: RAG · BM25 · ColBERT
+      icon: fa-solid fa-diagram-project
+      desc: End-to-end recipes for hybrid dense + BM25 search with Reciprocal Rank Fusion, ColBERTv2 reranking, and 5x pgvector memory compression.
+      url: /docs/use-case/
+    - title: VectorChord Cloud Docs
+      meta: Managed Service Reference
+      icon: fa-solid fa-cloud
+      desc: Reference documentation for VectorChord Cloud clusters, connection pooling, scaling, VPC peering, monitoring metrics, and backup administration.
+      url: /cloud/
+    - title: pgvecto.rs Archive & Migration
+      meta: Predecessor Reference
+      icon: fa-solid fa-cube
+      desc: Complete historical documentation for pgvecto.rs (v0.1–v0.4) plus step-by-step migration guides to move existing deployments to VectorChord.
+      url: /pgvecto-rs/
+
+steps:
+  eyebrow: Quick Start
+  title: Run VectorChord in three steps
+  desc: Start a local container or install native packages via Pigsty, enable the extension, and run your first similarity search.
+  items:
+    - icon: fa-brands fa-docker
+      title: Start PostgreSQL with VectorChord
+      desc: Launch the prebuilt Docker image (includes both `vchord` and `pgvector`), or install via [Pigsty / packages](/docs/getting-started/installation/).
+      cmd:
+        code: docker run -d --name vchord -e POSTGRES_PASSWORD=postgres -p 5432:5432 tensorchord/vchord-postgres:pg18-v1.1.1
+    - icon: fa-solid fa-plug
+      title: Enable the extension
+      desc: Connect with `psql` and enable `vchord` (`CASCADE` automatically enables `vector`).
+      cmd:
+        code: psql -h 127.0.0.1 -U postgres -c "CREATE EXTENSION IF NOT EXISTS vchord CASCADE;"
+    - icon: fa-solid fa-magnifying-glass-chart
+      title: Create a vchordrq index & query
+      desc: Index your `vector` or `halfvec` column using `vchordrq` and query with standard `<->`, `<#>`, or `<=>` operators.
+      cmd:
+        code: psql -h 127.0.0.1 -U postgres -c "CREATE INDEX ON items USING vchordrq (embedding vector_l2_ops);"
+
+faq:
+  eyebrow: Frequently Asked Questions
+  title: Understanding VectorChord & pgsty/vchord
+  flat: true
+  items:
+    - question: How does VectorChord relate to pgvector and pgvecto.rs?
+      answer: >-
+        **VectorChord** is the next-generation successor to [`pgvecto.rs`](/pgvecto-rs/),
+        redesigned around SIGMOD'24 **RaBitQ** quantization and PostgreSQL's native page storage
+        and WAL replication. Unlike `pgvecto.rs`, VectorChord uses `pgvector`'s standard `vector`
+        and `halfvec` data types and `<->`, `<#>`, `<=>` operators directly, so existing `pgvector`
+        applications can switch indexes (`USING vchordrq` or `USING vchordg`) without rewriting queries.
+        See the [Migration Guide](/docs/admin/migration/).
+      open: true
+    - question: When should I choose vchordrq versus vchordg?
+      answer: >-
+        Choose **`vchordrq`** (RaBitQ Inverted File) for large datasets (1M to 100M+ vectors),
+        cost-sensitive deployments, high insert/update throughput, or when your vectors exceed available RAM.
+        Choose **`vchordg`** (RaBitQ Graph) when your dataset fits comfortably in memory and you need
+        maximum QPS and ultra-low single-query latency without HNSW's multi-layer memory overhead.
+        Compare both in the [Indexing Guide](/docs/usage/indexing/).
+    - question: What is RaBitQ, and why is RaBitQ8 added in VectorChord 1.1?
+      answer: >-
+        **RaBitQ** (Randomized Bit Quantization) compresses 32-bit floating-point vectors into compact
+        4-bit (`bits = 4`, default) or 8-bit (`bits = 8`) representations with a sharp theoretical
+        error bound and hardware-accelerated SIMD inner-product estimation. While 4-bit RaBitQ is
+        ideal for most workloads, **RaBitQ8** provides near-lossless accuracy before reranking for
+        tightly clustered or highly skewed vector distributions. Read the [RaBitQ & IVF deep dive](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).
+    - question: Why did Pigsty fork VectorChord as pgsty/vchord?
+      answer: >-
+        [`pgsty/vchord`](https://github.com/pgsty/vchord) and `vchord.pgsty.com` are maintained by the
+        [Pigsty](https://pigsty.io/) community to ensure long-term open-source continuity, reproducible
+        RPM/DEB packaging across PostgreSQL 13–18 on Enterprise Linux, Debian, and Ubuntu, and a complete,
+        fast, local-first documentation and engineering archive. See [Attribution](/about/attribution/).
+
+cta:
+  title: Ready to scale vector search in PostgreSQL?
+  desc: Follow the Getting Started guide, explore the SQL reference, or read the engineering blog.
+  actions:
+    - label: Getting Started
+      url: /docs/getting-started/overview/
+      icon: fa-solid fa-rocket
+      style: primary
+    - label: Indexing Guide
+      url: /docs/usage/indexing/
+      icon: fa-solid fa-terminal
+      style: ghost
+    - label: Read the Blog
+      url: /blog/
+      icon: fa-solid fa-blog
+      style: ghost

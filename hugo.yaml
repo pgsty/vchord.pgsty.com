@@ -1,0 +1,311 @@
+#=======================================#
+# Basics
+#=======================================#
+baseURL: https://vchord.pgsty.com/
+title: VectorChord - Scalable Vector Search for PostgreSQL
+defaultContentLanguage: en
+defaultContentLanguageInSubdir: false
+disableLanguages: [zh]
+enableRobotsTXT: true
+enableGitInfo: true
+hasCJKLanguage: true
+capitalizeListTitles: false
+timeZone: UTC
+
+pagination:
+  pagerSize: 20
+
+frontmatter:
+  lastmod:
+    - lastmod
+    - ":git"
+    - date
+    - publishDate
+
+#=======================================#
+# Hugo Module
+#=======================================#
+module:
+  proxy: direct
+  hugoVersion:
+    extended: true
+    min: "0.168.0"
+  imports:
+    - path: github.com/pgsty/oink
+
+#=======================================#
+# Languages and navigation
+#=======================================#
+languages:
+  en:
+    label: English
+    locale: en-US
+    weight: 1
+    title: VectorChord
+    params:
+      description: "Scalable, fast, and disk-friendly vector similarity search for PostgreSQL — successor to pgvecto.rs, maintained by Pigsty."
+      upstream_copyright: "© 2023–Present TensorChord Inc."
+      ui:
+        command_palette:
+          commands:
+            - id: quick_start
+              title: Quick Start
+              description: Launch VectorChord with Docker or PostgreSQL packages in minutes
+              url: /docs/getting-started/overview/
+              icon: fa-solid fa-bolt
+              keywords: [start, quickstart, docker, install, vchordrq]
+            - id: indexing_guide
+              title: Indexing Guide
+              description: Choose between vchordrq (disk-friendly RaBitQ IVF) and vchordg (high-QPS graph)
+              url: /docs/usage/indexing/
+              icon: fa-solid fa-layer-group
+              keywords: [index, vchordrq, vchordg, rabitq, kmeans]
+            - id: reference_api
+              title: Quantization & SQL Types
+              description: RaBitQ4/RaBitQ8 types, operators, index options, and GUC parameters
+              url: /docs/usage/quantization-types/
+              icon: fa-solid fa-terminal
+              keywords: [reference, sql, guc, operators, parameters, rabitq]
+            - id: benchmark_results
+              title: Benchmarks
+              description: Cost, recall, QPS, and index build time across 1M to 100M vectors
+              url: /docs/benchmark/performance/
+              icon: fa-solid fa-chart-line
+              keywords: [benchmark, performance, qps, recall, cost]
+    menu:
+      main:
+        - identifier: docs
+          name: Docs
+          pageRef: /docs
+          weight: 10
+          params:
+            icon: fa-solid fa-book
+        - identifier: docs-getting-started
+          parent: docs
+          name: Getting Started
+          pageRef: /docs/getting-started
+          weight: 10
+          params:
+            icon: fa-solid fa-rocket
+            description: Overview, installation, and migration from pgvecto.rs
+        - identifier: docs-usage
+          parent: docs
+          name: Usage
+          pageRef: /docs/usage
+          weight: 20
+          params:
+            icon: fa-solid fa-code
+            description: Indexing, querying, MaxSim multi-vector, tuning, and SQL reference
+        - identifier: docs-use-case
+          parent: docs
+          name: Use Cases
+          pageRef: /docs/use-case
+          weight: 30
+          params:
+            icon: fa-solid fa-diagram-project
+            description: Hybrid search, ColBERT reranking, and memory compression
+        - identifier: docs-benchmark
+          parent: docs
+          name: Benchmark
+          pageRef: /docs/benchmark
+          weight: 40
+          params:
+            icon: fa-solid fa-chart-line
+            description: Performance, recall, and cost comparisons at scale
+        - identifier: docs-admin
+          parent: docs
+          name: Administration
+          pageRef: /docs/admin
+          weight: 50
+          params:
+            icon: fa-solid fa-sliders
+            description: Upgrades, troubleshooting, and operational notes
+        - identifier: blog
+          name: Blog
+          pageRef: /blog
+          weight: 20
+          params:
+            icon: fa-solid fa-blog
+        - identifier: blog-post
+          parent: blog
+          name: Engineering & Deep Dives
+          pageRef: /blog/post
+          weight: 10
+          params:
+            icon: fa-solid fa-compass-drafting
+            description: RaBitQ quantization, billion-scale benchmarks, BM25, and ColBERT
+        - identifier: blog-release
+          parent: blog
+          name: Release Notes
+          pageRef: /blog/release
+          weight: 20
+          params:
+            icon: fa-solid fa-tag
+            description: Version announcements for VectorChord and pgvecto.rs
+        - identifier: cloud
+          name: Cloud
+          pageRef: /cloud
+          weight: 30
+          params:
+            icon: fa-solid fa-cloud
+        - identifier: pgvecto-rs
+          name: pgvecto.rs
+          pageRef: /pgvecto-rs
+          weight: 40
+          params:
+            icon: fa-solid fa-cube
+        - identifier: about
+          name: About
+          pageRef: /about
+          weight: 50
+          params:
+            icon: fa-solid fa-circle-info
+        - identifier: pigsty
+          name: Pigsty
+          weight: 60
+          url: https://pigsty.io
+          params:
+            icon: fa-solid fa-database
+        - identifier: github
+          name: GitHub
+          weight: 70
+          url: https://github.com/pgsty/vchord
+          params:
+            icon: fa-brands fa-github
+  zh:
+    label: 简体中文
+    locale: zh-CN
+    weight: 2
+    title: VectorChord
+    hasCJKLanguage: true
+    params:
+      description: "由 Pigsty 维护的高性能、磁盘友好型 PostgreSQL 向量检索引擎。"
+      upstream_copyright: "© 2023–至今 TensorChord Inc."
+
+#=======================================#
+# Taxonomies and blog URLs
+#=======================================#
+taxonomies:
+  categories: categories
+  tags: tags
+  author: authors
+
+permalinks:
+  blog: '/:sections/:contentbasename/'
+
+#=======================================#
+# Markdown and syntax highlighting
+#=======================================#
+markup:
+  goldmark:
+    parser:
+      wrapStandAloneImageWithinParagraph: false
+      attribute:
+        block: true
+      autoHeadingID: true
+      autoHeadingIDType: github
+    renderer:
+      unsafe: true
+    extensions:
+      footnote: true
+      linkify: true
+      table: true
+      taskList: true
+      typographer: true
+      passthrough:
+        enable: true
+        delimiters:
+          inline:
+            - ['\(', '\)']
+          block:
+            - ['$$', '$$']
+            - ['\[', '\]']
+  highlight:
+    style: tango
+    codeFences: true
+    noClasses: false
+  tableOfContents:
+    startLevel: 2
+    endLevel: 4
+
+#=======================================#
+# Outputs
+#=======================================#
+outputs:
+  home: [HTML, RSS, markdown, LLMS]
+  page: [HTML, markdown]
+  section: [HTML, RSS, print, markdown]
+
+#=======================================#
+# Site parameters
+#=======================================#
+params:
+  description: "VectorChord is a scalable, fast, and disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, maintained by the Pigsty community."
+  logo: img/vchord.svg
+  version: 1.1.1
+  copyright:
+    authors: '[PIGSTY & VectorChord Contributors](https://pgsty.com) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)'
+    from_year: 2023
+    url: https://pgsty.com
+
+  page_width: normal
+  time_format_blog: 2006-01-02
+  time_format_default: 2006-01-02
+  footer_icp: ""
+
+  # Upstream provenance defaults
+  upstream_name: tensorchord/pgvecto.rs-docs
+  upstream_license: Apache-2.0
+  upstream_notice: /about/attribution/
+
+  archived_version: false
+  url_latest_version: https://vchord.pgsty.com
+  github_repo: https://github.com/pgsty/vchord.pgsty.com
+  github_project_repo: https://github.com/pgsty/vchord
+  github_branch: main
+
+  offline_search: true
+  offline_search_index: content
+  offline_search_summary_length: 90
+  offline_search_max_results: 10
+  highlight_classes: true
+
+  comments:
+    enable: false
+
+  ui:
+    preset: paper
+    preset_menu: [paper, slate, ink, terminal]
+    shell_types: [docs, blog]
+    quick_links: [docs, blog, cloud, pgvecto-rs]
+    sidebar_icon_policy: groups
+    typography: technical
+    breadcrumb: true
+    navbar_logo: true
+    navbar_translucent_over_cover_disable: false
+    navbar_theme: dark
+    sidebar_menu_compact: true
+    sidebar_menu_foldable: true
+    sidebar_menu_truncate: 2000
+    sidebar_cache_limit: 1000
+    sidebar_root_enabled: true
+    sidebar_expand_levels: 2
+    dark_mode: true
+    scroll_spy: false
+    sidebar_root_menu: true
+    sidebar_width_min: 220
+    sidebar_width_max: 480
+    sidebar_item_overflow: ellipsis
+    page_context_menu:
+      enable: true
+      assistant_links: false
+      links: []
+    feedback:
+      enable: false
+    reading_time: false
+    section_index: cards
+    blog_index: cards
+    blog_index_columns: 3
+    blog_index_toggle: true
+    blog_index_size: 18
+    backlinks: true

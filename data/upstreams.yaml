@@ -1,0 +1,21 @@
+docs:
+  name: tensorchord/pgvecto.rs-docs
+  license: Apache-2.0
+  notice: /about/attribution/
+  copyright: "© 2023–Present TensorChord Inc."
+  lang:
+    en:
+      copyright: "© 2023–Present TensorChord Inc."
+    zh:
+      copyright: "© 2023–至今 TensorChord Inc."
+
+blog:
+  name: blog.vectorchord.ai
+  license: CC-BY-4.0
+  notice: /about/attribution/
+  copyright: "© 2023–Present TensorChord Inc."
+  lang:
+    en:
+      copyright: "© 2023–Present TensorChord Inc."
+    zh:
+      copyright: "© 2023–至今 TensorChord Inc."

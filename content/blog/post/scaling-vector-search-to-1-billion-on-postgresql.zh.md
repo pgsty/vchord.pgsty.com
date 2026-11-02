@@ -2,10 +2,11 @@
 title: "在 PostgreSQL 上将向量搜索扩展至 10 亿规模"
 date: 2026-01-15
 description: "单机 2 小时内完成极速索引构建"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vector-database"
 upstream_link: "https://blog.vectorchord.ai/scaling-vector-search-to-1-billion-on-postgresql"
+upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/scaling-vector-search-to-1-billion-on-postgresql/"
   - "/scaling-vector-search-to-1-billion-on-postgresql/"

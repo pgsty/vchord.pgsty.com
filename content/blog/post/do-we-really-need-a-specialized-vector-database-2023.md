@@ -2,10 +2,11 @@
 title: "Do we really need a specialized vector database? (2023)"
 date: 2025-02-18
 description: "Notice: This article, originally published in 2023, discusses the relevance and necessity of specialized vector databases, particularly in relation to…"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/do-we-really-need-a-specialized-vector-database-2023"
+upstream_copyright: "© 2025 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/do-we-really-need-a-specialized-vector-database-2023/"
   - "/do-we-really-need-a-specialized-vector-database-2023/"

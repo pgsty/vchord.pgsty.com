@@ -2,11 +2,12 @@
 title: "All-in-one VectorChord Suite: Building Production-Ready RAG Solutions Directly in PostgreSQL"
 date: 2025-04-29
 description: "Build production-ready RAG solutions in PostgreSQL with VectorChord Suite's vector search, BM25 ranking, and flexible tokenization extensions"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"
   - "/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"

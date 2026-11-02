@@ -2,10 +2,11 @@
 title: "pg_bestmatch.rs：用 BM25 全面提升 PostgreSQL 文本查询能力"
 date: 2024-06-14
 description: "Postgres BM25 全文检索、更出色的 RAG 与混合搜索"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "rag"
 upstream_link: "https://blog.vectorchord.ai/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25"
+upstream_copyright: "© 2024 Jinjing Zhou (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/pgbestmatchrs-elevate-your-postgresql-text-queries-with-bm25/"

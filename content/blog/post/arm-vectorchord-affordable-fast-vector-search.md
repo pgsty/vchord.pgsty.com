@@ -2,11 +2,12 @@
 title: "ARM + VectorChord: Affordable, Fast Vector Search"
 date: 2025-01-21
 description: "ARM64 servers like AWS Graviton save costs. VectorChord - 26x cheaper than pgvector. Optimized for ARM64/x86, it delivers fast, efficient vector search"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/arm-vectorchord-affordable-fast-vector-search"
+upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/arm-vectorchord-affordable-fast-vector-search/"
   - "/arm-vectorchord-affordable-fast-vector-search/"

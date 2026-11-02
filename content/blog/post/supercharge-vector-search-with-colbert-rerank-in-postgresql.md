@@ -2,10 +2,11 @@
 title: "Supercharge vector search with ColBERT rerank in PostgreSQL"
 date: 2025-01-23
 description: "Learn to enhance vector search accuracy with ColBERT rerank using PostgreSQL and VectorChord in this comprehensive tutorial"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "colbert"
 upstream_link: "https://blog.vectorchord.ai/supercharge-vector-search-with-colbert-rerank-in-postgresql"
+upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/supercharge-vector-search-with-colbert-rerank-in-postgresql/"
   - "/supercharge-vector-search-with-colbert-rerank-in-postgresql/"

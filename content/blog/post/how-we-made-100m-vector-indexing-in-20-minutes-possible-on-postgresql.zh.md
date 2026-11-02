@@ -2,10 +2,11 @@
 title: "我们如何在 PostgreSQL 上实现 20 分钟构建 1 亿向量索引"
 date: 2025-12-03
 description: "在过去几个月里，我们收到了来自用户和合作伙伴的一致反馈：尽管我们致力于提供可扩展、高性能的 pgvector 替代方案，但在十亿级规模下，索引构建时间和内存占用仍然是核心痛点……"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
 upstream_link: "https://blog.vectorchord.ai/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql"
+upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"
   - "/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"

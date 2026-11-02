@@ -2,11 +2,12 @@
 title: "VectorChord 1.0: Developer-First Vector Search on Postgres, 100x Faster Indexing than pgvector"
 date: 2025-12-04
 description: "Two years ago, when we published the very first pgvecto.rs blog post, we made a bet: Postgres is the best place to do vector search. Since then we’ve been…"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
   - "/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"

@@ -2,10 +2,11 @@
 title: "Building the RAG pipeline with LlamaIndex and pgvecto.rs"
 date: 2024-03-08
 description: "In this blog post, we will show you how to build a RAG pipeline with pgvecto.rs and LlamaIndex."
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "ai"
 upstream_link: "https://blog.vectorchord.ai/building-the-rag-pipeline-with-llamaindex-and-pgvectors"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-the-rag-pipeline-with-llamaindex-and-pgvectors/"
   - "/building-the-rag-pipeline-with-llamaindex-and-pgvectors/"

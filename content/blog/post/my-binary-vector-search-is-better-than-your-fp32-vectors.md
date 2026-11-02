@@ -2,10 +2,11 @@
 title: "My binary vector search is better than your FP32 vectors"
 date: 2024-03-22
 description: "Binary Vector Search: The 30x Memory Reduction Revolution with Preserved Accuracy"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/my-binary-vector-search-is-better-than-your-fp32-vectors"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/my-binary-vector-search-is-better-than-your-fp32-vectors/"

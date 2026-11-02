@@ -2,8 +2,9 @@
 title: "pgvector vs. pgvecto.rs in 2024: A Comprehensive Comparison for Vector Search in PostgreSQL"
 date: 2024-03-19
 description: "In this blog post, we will illustrate the differences between pgvector and pgvecto.rs."
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 upstream_link: "https://blog.vectorchord.ai/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/"

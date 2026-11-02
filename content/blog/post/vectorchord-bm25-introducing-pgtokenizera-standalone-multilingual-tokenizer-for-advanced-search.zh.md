@@ -2,11 +2,12 @@
 title: "VectorChord-BM25：推出独立的多语言高级搜索分词器 pg_tokenizer"
 date: 2025-04-02
 description: "我们很高兴宣布发布 VectorChord-BM25 0.2 版本，这款 PostgreSQL 扩展旨在将先进的基于 BM25 的全文检索排序能力直接带入数据库……"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vector-database"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/"
   - "/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/"

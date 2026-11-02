@@ -3,7 +3,7 @@ title: "Installation"
 description: "Install pg_tokenizer via Pigsty native Linux packages, Docker, Debian/ZIP archives, or cargo-pgrx."
 weight: 5
 icon: fa-solid fa-download
-upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/01-installation.md"
+upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/01-installation.md"
 ---
 
 ## Linux Packages via `pig` (Recommended)

@@ -2,11 +2,12 @@
 title: "Hybrid search with Postgres Native BM25 and VectorChord"
 date: 2025-03-13
 description: "Hybrid search combining BM25 and pgvector compatible extension VectorChord, seamlessly integrated within PostgreSQL."
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/hybrid-search-with-postgres-native-bm25-and-vectorchord"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/hybrid-search-with-postgres-native-bm25-and-vectorchord/"

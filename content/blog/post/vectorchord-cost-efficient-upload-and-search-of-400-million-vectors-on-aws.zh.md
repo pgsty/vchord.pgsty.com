@@ -2,11 +2,12 @@
 title: "VectorChord：在 AWS 上高性价比地上传与搜索 4 亿向量"
 date: 2025-05-30
 description: "使用 VectorChord 与 PostgreSQL 上传、构建索引并搜索 4 亿规模向量，包含硬件选型技巧与搜索性能调优建议"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws"
+upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws/"
   - "/vectorchord-cost-efficient-upload-and-search-of-400-million-vectors-on-aws/"

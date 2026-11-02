@@ -2,10 +2,11 @@
 title: "Unleash the power of sparse vector"
 date: 2024-07-05
 description: "Unlock the potential of data pipelines with pure vector search using sparse vectors, BGE-M3, and pgvecto.rs"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "sparsevectors"
 upstream_link: "https://blog.vectorchord.ai/unleash-the-power-of-sparse-vector"
+upstream_copyright: "© 2024 Junyu Chen (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/unleash-the-power-of-sparse-vector/"

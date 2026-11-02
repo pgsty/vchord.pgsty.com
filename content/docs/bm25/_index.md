@@ -12,7 +12,7 @@ aliases:
 cascade:
   type: docs
   upstream_source: "bm25"
-  upstream_link: "https://github.com/supervc-stack/VectorChord-bm25"
+  upstream_link: "https://github.com/tensorchord/VectorChord-bm25"
   upstream_modified: true
 ---
 

@@ -2,10 +2,11 @@
 title: "Why HNSW is Not the Answer"
 date: 2024-12-18
 description: "HNSW (Hierarchical Navigable Small World) has become the go-to algorithm for many vector databases. Its multi-layered graph structure and ability to…"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/why-hnsw-is-not-the-answer"
+upstream_copyright: "© 2024 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/why-hnsw-is-not-the-answer/"
   - "/why-hnsw-is-not-the-answer/"

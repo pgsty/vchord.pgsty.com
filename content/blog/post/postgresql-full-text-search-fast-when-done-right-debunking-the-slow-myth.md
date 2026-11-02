@@ -2,10 +2,11 @@
 title: "PostgreSQL Full-Text Search: Fast When Done Right (Debunking the Slow Myth)"
 date: 2025-04-02
 description: "Boost PostgreSQL full-text search speed by 50x with simple optimizations. Use VectorChord-BM25 to accelerate and better BM25 ranking in postgres."
-author: "Jinjing Zhou, Junyu Chen"
+author: "[Jinjing Zhou](https://github.com/VoVAllen), [Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "bm25"
 upstream_link: "https://blog.vectorchord.ai/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth"
+upstream_copyright: "© 2025 Jinjing Zhou, Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth/"
   - "/postgresql-full-text-search-fast-when-done-right-debunking-the-slow-myth/"

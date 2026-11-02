@@ -2,11 +2,12 @@
 title: "Bringing Search‑Engine Ranking to PostgreSQL with VectorChord‑BM25"
 date: 2025-08-12
 description: "Modern applications rely on PostgreSQL for its fully ACID‑compliant, expressive SQL, and rich ecosystem of extensions. The database handles relational…"
-author: "Zoie Wang"
+author: "[Zoie Wang](https://hashnode.com/@zoie) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25"
+upstream_copyright: "© 2025 Zoie Wang (TensorChord Inc.)"
 aliases:
   - "/blog/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"
   - "/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"

@@ -2,12 +2,13 @@
 title: "VectorChord 0.2：支持 60,000 维向量，ARM 架构下索引速度提升 50%"
 date: 2025-02-17
 description: "VectorChord 0.2：增强 PostgreSQL 向量搜索能力，支持高达 60,000 维向量、Float16 类型以及更快的 ARM 性能"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"
   - "/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"

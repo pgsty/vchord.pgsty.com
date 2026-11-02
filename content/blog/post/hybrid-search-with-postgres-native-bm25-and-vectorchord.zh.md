@@ -2,11 +2,12 @@
 title: "基于 Postgres 原生 BM25 与 VectorChord 的混合搜索"
 date: 2025-03-13
 description: "结合 BM25 与兼容 pgvector 的扩展 VectorChord，在 PostgreSQL 中无缝集成混合搜索。"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/hybrid-search-with-postgres-native-bm25-and-vectorchord"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/hybrid-search-with-postgres-native-bm25-and-vectorchord/"

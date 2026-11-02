@@ -2,10 +2,11 @@
 title: "推出 Vechord：以 Pythonic 的方式将 PostgreSQL 打造成你的搜索引擎"
 date: 2025-04-23
 description: "借助支持无缝向量与关键词搜索的 Python 库 Vechord，将 PostgreSQL 打造成强大的搜索引擎"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
 upstream_link: "https://blog.vectorchord.ai/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way"
+upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way/"
   - "/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way/"

@@ -2,10 +2,11 @@
 title: "PostgreSQL 向量搜索：内存与磁盘方案对比分析"
 date: 2025-04-03
 description: "PostgreSQL 中的向量搜索：全面对比 VectorChord、pgvector 与 pgvectorscale 在内存与磁盘场景下的性能表现"
-author: "Junyu Chen, xieydd"
+author: "[Junyu Chen](https://github.com/cutecutecat), [xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions"
+upstream_copyright: "© 2025 Junyu Chen, xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"
   - "/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"

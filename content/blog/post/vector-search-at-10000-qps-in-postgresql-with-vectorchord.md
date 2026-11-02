@@ -2,11 +2,12 @@
 title: "Vector Search at 10,000 QPS in PostgreSQL with VectorChord"
 date: 2025-02-27
 description: "VectorChord, the successor to pgvecto.rs, is a PostgreSQL extension for vector search, scaling up to 10,000 QPS with ease."
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vector-search-at-10000-qps-in-postgresql-with-vectorchord"
+upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-at-10000-qps-in-postgresql-with-vectorchord/"
   - "/vector-search-at-10000-qps-in-postgresql-with-vectorchord/"

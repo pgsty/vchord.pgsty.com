@@ -3,7 +3,7 @@ title: "安装指南"
 description: "通过 Pigsty 原生 Linux 软件包、Docker 镜像、Debian/ZIP 归档包或 cargo-pgrx 源码安装 pg_tokenizer。"
 weight: 5
 icon: fa-solid fa-download
-upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/01-installation.md"
+upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/01-installation.md"
 ---
 
 ## 通过 `pig` 安装原生 Linux 软件包（推荐） {#linux-packages-via-pig}

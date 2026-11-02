@@ -2,11 +2,12 @@
 title: "一站式 VectorChord 套件：直接在 PostgreSQL 中构建生产就绪的 RAG 解决方案"
 date: 2025-04-29
 description: "利用 VectorChord 套件的向量搜索、BM25 排序和灵活分词扩展，直接在 PostgreSQL 中构建生产就绪的 RAG 解决方案"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"
   - "/all-in-one-vectorchord-suite-building-production-ready-rag-solutions-directly-in-postgresql/"

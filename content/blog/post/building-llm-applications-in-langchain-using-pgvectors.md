@@ -2,10 +2,11 @@
 title: "Building LLM Applications in LangChain using  pgvecto.rs"
 date: 2024-03-08
 description: "Supercharge your LLM (Large Language Model) applications in LangChain by leveraging the powerful capabilities of pgvecto.rs"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "ai"
 upstream_link: "https://blog.vectorchord.ai/building-llm-applications-in-langchain-using-pgvectors"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-llm-applications-in-langchain-using-pgvectors/"
   - "/building-llm-applications-in-langchain-using-pgvectors/"

@@ -2,10 +2,11 @@
 title: "在 PostgreSQL 中用 30 亿向量守护地球"
 date: 2025-04-08
 description: "借助 VectorChord 在 PostgreSQL 中对 30 亿以上向量执行大规模向量搜索，获得快速、可扩展的相似度检索体验。"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/3-billion-vectors-in-postgresql-to-protect-the-earth"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/3-billion-vectors-in-postgresql-to-protect-the-earth/"
   - "/3-billion-vectors-in-postgresql-to-protect-the-earth/"

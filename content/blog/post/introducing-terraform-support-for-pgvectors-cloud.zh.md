@@ -2,10 +2,11 @@
 title: "为 PGVecto.rs Cloud 引入 Terraform 支持"
 date: 2024-07-24
 description: "像管理其他基础设施组件一样，使用 Terraform 管理 PGVecto.rs Cloud"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/introducing-terraform-support-for-pgvectors-cloud"
+upstream_copyright: "© 2024 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-terraform-support-for-pgvectors-cloud/"
   - "/introducing-terraform-support-for-pgvectors-cloud/"

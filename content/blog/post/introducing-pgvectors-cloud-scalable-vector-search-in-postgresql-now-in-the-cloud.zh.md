@@ -2,10 +2,11 @@
 title: "推出 PGVecto.rs Cloud：PostgreSQL 可扩展向量搜索现已上云"
 date: 2024-08-02
 description: "我们激动地宣布推出 PGVecto.rs Cloud——将可扩展向量搜索的强大能力带入你的 PostgreSQL 数据库，现已作为全托管云服务正式上线……"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vector-database"
 upstream_link: "https://blog.vectorchord.ai/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud/"
   - "/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud/"

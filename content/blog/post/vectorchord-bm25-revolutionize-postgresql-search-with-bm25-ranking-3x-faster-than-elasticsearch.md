@@ -2,11 +2,12 @@
 title: "VectorChord-BM25: Revolutionize PostgreSQL Search with BM25 Ranking — 3x Faster Than ElasticSearch"
 date: 2025-02-24
 description: "VectorChord-BM25 enhances PostgreSQL search with BM25 ranking, 3x faster than ElasticSearch. Supports BERT, Tocken, and Unicode tokenizers"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/"

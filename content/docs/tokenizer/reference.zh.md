@@ -3,7 +3,7 @@ title: "SQL 与 TOML 参考"
 description: "pg_tokenizer 中全部 tokenizer_catalog SQL 函数与 TOML 配置选项的完整参考手册。"
 weight: 50
 icon: fa-solid fa-book
-upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/00-reference.md"
+upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/00-reference.md"
 ---
 
 ## SQL 函数参考（`tokenizer_catalog`） {#sql-functions}

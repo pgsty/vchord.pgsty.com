@@ -2,10 +2,11 @@
 title: "Do we really need a specialized vector database?"
 date: 2024-03-08
 description: "With the popularity of LLM (Large Language Model), vector databases have also become a hot topic. With just a few lines of simple Python code, a vector…"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "ai"
 upstream_link: "https://blog.vectorchord.ai/do-we-really-need-a-specialized-vector-database"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/do-we-really-need-a-specialized-vector-database/"
   - "/do-we-really-need-a-specialized-vector-database/"

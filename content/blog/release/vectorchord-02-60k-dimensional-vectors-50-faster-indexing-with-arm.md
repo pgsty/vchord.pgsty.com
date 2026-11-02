@@ -2,12 +2,13 @@
 title: "VectorChord 0.2: 60K-Dimensional Vectors, 50% Faster Indexing with ARM"
 date: 2025-02-17
 description: "VectorChord 0.2: Enhanced vector search in PostgreSQL with up to 60K dimensions, Float16 support, and faster ARM performance"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"
   - "/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"

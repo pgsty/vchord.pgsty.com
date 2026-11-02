@@ -2,10 +2,11 @@
 title: "Optimize RAG with Contextual Retrieval in PostgreSQL"
 date: 2025-05-30
 description: "Enhance generation in language models using PostgreSQL for contextual retrieval with vector search and keyword bm25 scoring."
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "contextual-retrieval"
 upstream_link: "https://blog.vectorchord.ai/optimize-rag-with-contextual-retrieval-in-postgresql"
+upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/optimize-rag-with-contextual-retrieval-in-postgresql/"
   - "/optimize-rag-with-contextual-retrieval-in-postgresql/"

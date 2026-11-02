@@ -2,12 +2,13 @@
 title: "VectorChord 0.3: Bringing Efficient Multi-Vector Contextual Late Interaction in PostgreSQL"
 date: 2025-04-13
 description: "VectorChord 0.3 boosts PostgreSQL vector search using MaxSim and WARP"
-author: "Keming, Jinjing Zhou"
+author: "[Keming Yang](https://github.com/kemingy), [Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "multivector"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql"
+upstream_copyright: "© 2025 Keming Yang, Jinjing Zhou (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql/"

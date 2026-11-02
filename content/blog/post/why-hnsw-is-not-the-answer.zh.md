@@ -2,10 +2,11 @@
 title: "为什么 HNSW 不是终极答案"
 date: 2024-12-18
 description: "HNSW（分层可导航小世界图）已成为众多向量数据库的首选算法。其多层图结构以及高效遍历向量嵌入的能力使其备受青睐……"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/why-hnsw-is-not-the-answer"
+upstream_copyright: "© 2024 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/why-hnsw-is-not-the-answer/"
   - "/why-hnsw-is-not-the-answer/"

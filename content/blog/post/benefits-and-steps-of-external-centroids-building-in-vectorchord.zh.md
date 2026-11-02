@@ -2,11 +2,12 @@
 title: "VectorChord 外部聚类中心构建的优势与操作步骤"
 date: 2024-12-10
 description: "利用外部计算资源与层次化 K-means 在 VectorChord 中进行外部聚类中心构建，显著提升大规模向量搜索的索引效率"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/benefits-and-steps-of-external-centroids-building-in-vectorchord"
+upstream_copyright: "© 2024 Keming Yang (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/benefits-and-steps-of-external-centroids-building-in-vectorchord/"

@@ -12,7 +12,7 @@ aliases:
 cascade:
   type: docs
   upstream_source: "tokenizer"
-  upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs"
+  upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs"
   upstream_modified: true
 ---
 

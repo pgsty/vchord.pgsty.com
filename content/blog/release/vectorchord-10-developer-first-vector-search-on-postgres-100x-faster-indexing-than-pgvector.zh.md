@@ -2,11 +2,12 @@
 title: "VectorChord 1.0：Postgres 上开发者优先的向量搜索，索引速度比 pgvector 快 100 倍"
 date: 2025-12-04
 description: "两年前，当我们发布第一篇 pgvecto.rs 博客文章时，我们下了一个赌注：Postgres 是进行向量搜索的最佳场所。从那时起，我们一直在持续迭代……"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
   - "/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"

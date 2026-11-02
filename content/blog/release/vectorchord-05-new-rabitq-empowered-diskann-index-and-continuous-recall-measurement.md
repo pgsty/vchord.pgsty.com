@@ -2,12 +2,13 @@
 title: "VectorChord 0.5: New RaBitQ-empowered DiskANN Index and Continuous Recall Measurement"
 date: 2025-09-26
 description: "DiskANN & Continuous Recall Monitor in Postgres Vector Search"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
   - "/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"

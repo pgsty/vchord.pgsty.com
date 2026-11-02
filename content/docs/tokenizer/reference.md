@@ -3,7 +3,7 @@ title: "SQL & TOML Reference"
 description: "Complete reference for all tokenizer_catalog SQL functions and TOML configuration options in pg_tokenizer."
 weight: 50
 icon: fa-solid fa-book
-upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/00-reference.md"
+upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/00-reference.md"
 ---
 
 ## SQL Functions (`tokenizer_catalog`)

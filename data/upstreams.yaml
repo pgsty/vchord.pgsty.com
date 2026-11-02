@@ -2,42 +2,42 @@ docs:
   name: tensorchord/pgvecto.rs-docs
   license: Apache-2.0
   notice: /docs/about/attribution/
-  copyright: "© 2023–Present TensorChord Inc."
+  copyright: "© 2023–2026 TensorChord Inc."
   lang:
     en:
-      copyright: "© 2023–Present TensorChord Inc."
+      copyright: "© 2023–2026 TensorChord Inc."
     zh:
-      copyright: "© 2023–至今 TensorChord Inc."
+      copyright: "© 2023–2026 TensorChord Inc."
 
 blog:
   name: blog.vectorchord.ai
   license: CC-BY-4.0
   notice: /docs/about/attribution/
-  copyright: "© 2023–Present TensorChord Inc."
+  copyright: "© 2023–2026 TensorChord Inc."
   lang:
     en:
-      copyright: "© 2023–Present TensorChord Inc."
+      copyright: "© 2023–2026 TensorChord Inc."
     zh:
-      copyright: "© 2023–至今 TensorChord Inc."
+      copyright: "© 2023–2026 TensorChord Inc."
 
 bm25:
-  name: pgsty/vchord_bm25
+  name: tensorchord/VectorChord-bm25
   license: AGPL-3.0-only
   notice: /docs/about/attribution/
-  copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+  copyright: "© 2024–2026 TensorChord Inc."
   lang:
     en:
-      copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+      copyright: "© 2024–2026 TensorChord Inc."
     zh:
-      copyright: "© 2024–至今 TensorChord Inc. & PGSTY"
+      copyright: "© 2024–2026 TensorChord Inc."
 
 tokenizer:
-  name: pgsty/pg_tokenizer
+  name: tensorchord/pg_tokenizer.rs
   license: Apache-2.0
   notice: /docs/about/attribution/
-  copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+  copyright: "© 2024–2026 TensorChord Inc."
   lang:
     en:
-      copyright: "© 2024–Present TensorChord Inc. & PGSTY"
+      copyright: "© 2024–2026 TensorChord Inc."
     zh:
-      copyright: "© 2024–至今 TensorChord Inc. & PGSTY"
+      copyright: "© 2024–2026 TensorChord Inc."

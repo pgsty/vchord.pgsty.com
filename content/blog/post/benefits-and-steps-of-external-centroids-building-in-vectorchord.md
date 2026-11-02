@@ -2,11 +2,12 @@
 title: "Benefits and Steps of External Centroids Building in VectorChord"
 date: 2024-12-10
 description: "Enhance vector search efficiency with external centroids building in VectorChord using external resources and hierarchical K-means"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/benefits-and-steps-of-external-centroids-building-in-vectorchord"
+upstream_copyright: "© 2024 Keming Yang (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/benefits-and-steps-of-external-centroids-building-in-vectorchord/"

@@ -2,10 +2,11 @@
 title: "释放稀疏向量的强大潜能"
 date: 2024-07-05
 description: "结合稀疏向量、BGE-M3 与 pgvecto.rs，以纯向量搜索释放数据流水线的全部潜能"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "sparsevectors"
 upstream_link: "https://blog.vectorchord.ai/unleash-the-power-of-sparse-vector"
+upstream_copyright: "© 2024 Junyu Chen (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/unleash-the-power-of-sparse-vector/"

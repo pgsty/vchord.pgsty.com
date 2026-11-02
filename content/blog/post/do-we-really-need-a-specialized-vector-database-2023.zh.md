@@ -2,10 +2,11 @@
 title: "我们真的需要专门的向量数据库吗？(2023)"
 date: 2025-02-18
 description: "注：本文最初发表于 2023 年，探讨了专用向量数据库的适用性与必要性，特别是与 Postgres 及其向量能力之间的对比。"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/do-we-really-need-a-specialized-vector-database-2023"
+upstream_copyright: "© 2025 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/do-we-really-need-a-specialized-vector-database-2023/"
   - "/do-we-really-need-a-specialized-vector-database-2023/"

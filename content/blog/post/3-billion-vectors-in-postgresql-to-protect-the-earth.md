@@ -2,10 +2,11 @@
 title: "3 Billion Vectors in PostgreSQL to Protect the Earth"
 date: 2025-04-08
 description: "Perform ​large-scale vector search in PostgreSQL with ​3 billion+ vectors—powered by ​VectorChord. Get ​fast, scalable similarity search."
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/3-billion-vectors-in-postgresql-to-protect-the-earth"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/3-billion-vectors-in-postgresql-to-protect-the-earth/"
   - "/3-billion-vectors-in-postgresql-to-protect-the-earth/"

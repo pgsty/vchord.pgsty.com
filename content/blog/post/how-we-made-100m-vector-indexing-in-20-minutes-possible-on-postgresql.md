@@ -2,10 +2,11 @@
 title: "How We Made 100M Vector Indexing in 20 Minutes Possible on PostgreSQL"
 date: 2025-12-03
 description: "In the past few months, we’ve heard consistent feedback from users and partners: while our goal of providing a scalable, high-performance alternative to…"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
 upstream_link: "https://blog.vectorchord.ai/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql"
+upstream_copyright: "© 2025 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"
   - "/how-we-made-100m-vector-indexing-in-20-minutes-possible-on-postgresql/"

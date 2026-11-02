@@ -2,10 +2,11 @@
 title: "Vector Search Over PostgreSQL: A Comparative Analysis of Memory and Disk Solutions"
 date: 2025-04-03
 description: "Vector Search in PostgreSQL: Comparing VectorChord, pgvector, and pgvectorscale for Memory and Disk Performance"
-author: "Junyu Chen, xieydd"
+author: "[Junyu Chen](https://github.com/cutecutecat), [xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions"
+upstream_copyright: "© 2025 Junyu Chen, xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"
   - "/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/"

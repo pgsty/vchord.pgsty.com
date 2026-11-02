@@ -2,12 +2,13 @@
 title: "VectorChord 0.5：全新的 RaBitQ 赋能 DiskANN 索引与持续召回率评估"
 date: 2025-09-26
 description: "Postgres 向量搜索中的 DiskANN 索引与持续召回率监控"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
   - "/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"

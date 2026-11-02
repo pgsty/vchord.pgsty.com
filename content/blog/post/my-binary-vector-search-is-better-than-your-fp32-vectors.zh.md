@@ -2,10 +2,11 @@
 title: "我的二值向量搜索比你的 FP32 向量更强"
 date: 2024-03-22
 description: "二值向量搜索：在保持精度的同时实现 30 倍内存缩减的革命"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
 upstream_link: "https://blog.vectorchord.ai/my-binary-vector-search-is-better-than-your-fp32-vectors"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/my-binary-vector-search-is-better-than-your-fp32-vectors/"

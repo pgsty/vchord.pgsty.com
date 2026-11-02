@@ -2,10 +2,11 @@
 title: "在 PostgreSQL 中使用 ColBERT 重排序为向量搜索赋能"
 date: 2025-01-23
 description: "通过本篇详尽教程，学习如何结合 PostgreSQL 与 VectorChord 使用 ColBERT 重排序来提升向量搜索准确度"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "colbert"
 upstream_link: "https://blog.vectorchord.ai/supercharge-vector-search-with-colbert-rerank-in-postgresql"
+upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/supercharge-vector-search-with-colbert-rerank-in-postgresql/"
   - "/supercharge-vector-search-with-colbert-rerank-in-postgresql/"

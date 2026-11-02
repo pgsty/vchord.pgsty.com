@@ -2,10 +2,11 @@
 title: "在 PostgreSQL 中利用上下文检索优化 RAG"
 date: 2025-05-30
 description: "在 PostgreSQL 中结合向量搜索与关键词 BM25 评分实现上下文检索（Contextual Retrieval），全面提升大语言模型的生成质量。"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "contextual-retrieval"
 upstream_link: "https://blog.vectorchord.ai/optimize-rag-with-contextual-retrieval-in-postgresql"
+upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/optimize-rag-with-contextual-retrieval-in-postgresql/"
   - "/optimize-rag-with-contextual-retrieval-in-postgresql/"

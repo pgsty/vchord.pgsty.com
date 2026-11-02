@@ -2,10 +2,11 @@
 title: "Introducing PGVecto.rs Cloud - Scalable Vector Search in PostgreSQL, Now in the Cloud"
 date: 2024-08-02
 description: "In an exciting development, we are thrilled to announce the launch of PGVecto.rs Cloud - bringing the power of scalable vector search to your PostgreSQL…"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vector-database"
 upstream_link: "https://blog.vectorchord.ai/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud/"
   - "/introducing-pgvectors-cloud-scalable-vector-search-in-postgresql-now-in-the-cloud/"

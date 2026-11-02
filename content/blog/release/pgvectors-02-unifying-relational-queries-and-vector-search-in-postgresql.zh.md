@@ -2,11 +2,12 @@
 title: "pgvecto.rs 0.2：在 PostgreSQL 中统一关系型查询与向量搜索"
 date: 2024-02-20
 description: "pgvecto.rs 0.2 是一次突破性的版本发布，弥合了 PostgreSQL 中关系型查询与向量搜索之间的鸿沟，表现优于 pgvector。"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "vectorsearch"
 upstream_link: "https://blog.vectorchord.ai/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"
   - "/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"

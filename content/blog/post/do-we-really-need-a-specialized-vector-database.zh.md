@@ -2,10 +2,11 @@
 title: "我们真的需要专门的向量数据库吗？"
 date: 2024-03-08
 description: "随着大语言模型（LLM）的普及，向量数据库也成为了热门话题。只需寥寥几行简单的 Python 代码，向量数据库就能充当 LLM 的外挂大脑……"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "ai"
 upstream_link: "https://blog.vectorchord.ai/do-we-really-need-a-specialized-vector-database"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/do-we-really-need-a-specialized-vector-database/"
   - "/do-we-really-need-a-specialized-vector-database/"

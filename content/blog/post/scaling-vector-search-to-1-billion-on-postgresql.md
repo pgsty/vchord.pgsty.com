@@ -2,10 +2,11 @@
 title: "Scaling Vector Search to 1 Billion on PostgreSQL"
 date: 2026-01-15
 description: "Fast Indexing in 2 Hours Using One Machine"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vector-database"
 upstream_link: "https://blog.vectorchord.ai/scaling-vector-search-to-1-billion-on-postgresql"
+upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/scaling-vector-search-to-1-billion-on-postgresql/"
   - "/scaling-vector-search-to-1-billion-on-postgresql/"

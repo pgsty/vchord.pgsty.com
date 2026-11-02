@@ -2,10 +2,11 @@
 title: "VectorChord：在 PostgreSQL 中仅花 $1 存储 40 万向量"
 date: 2024-12-05
 description: "隆重推出 pgvecto.rs 的继任者 VectorChord。使用 VectorChord，您可以在 1 亿条 768 维向量数据集上以 0.95 的精度实现 131 QPS"
-author: "Ce Gao, Jinjing Zhou, Junyu Chen"
+author: "[Ce Gao](https://github.com/gaocegege), [Jinjing Zhou](https://github.com/VoVAllen), [Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-store-400k-vectors-for-1-in-postgresql"
+upstream_copyright: "© 2024 Ce Gao, Jinjing Zhou, Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-store-400k-vectors-for-1-in-postgresql/"
   - "/vectorchord-store-400k-vectors-for-1-in-postgresql/"

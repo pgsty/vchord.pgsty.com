@@ -2,12 +2,13 @@
 title: "VectorChord 0.4：凭借高级 I/O 与预过滤实现更快的 PostgreSQL 向量搜索"
 date: 2025-06-05
 description: "VectorChord 0.4 增强了 PostgreSQL 向量搜索能力，通过高级 I/O 和预过滤显著改善 AI 应用的延迟与吞吐量"
-author: "Jinjing Zhou"
+author: "[Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "pgvector"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-04-faster-postgresql-vector-search-with-advanced-io-and-prefiltering"
+upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-04-faster-postgresql-vector-search-with-advanced-io-and-prefiltering/"
   - "/vectorchord-04-faster-postgresql-vector-search-with-advanced-io-and-prefiltering/"

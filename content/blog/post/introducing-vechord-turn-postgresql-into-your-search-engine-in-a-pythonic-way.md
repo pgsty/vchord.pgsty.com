@@ -2,10 +2,11 @@
 title: "Introducing Vechord: Turn PostgreSQL into your search engine in a Pythonic way."
 date: 2025-04-23
 description: "Turn PostgreSQL into a powerful search engine with Vechord, a Python library for seamless vector and keyword search"
-author: "Keming"
+author: "[Keming Yang](https://github.com/kemingy) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "vectorsearch"
 upstream_link: "https://blog.vectorchord.ai/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way"
+upstream_copyright: "© 2025 Keming Yang (TensorChord Inc.)"
 aliases:
   - "/blog/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way/"
   - "/introducing-vechord-turn-postgresql-into-your-search-engine-in-a-pythonic-way/"

@@ -2,10 +2,11 @@
 title: "使用 pgvecto.rs 在 LangChain 中构建大语言模型应用"
 date: 2024-03-08
 description: "利用 pgvecto.rs 的强大能力，为你在 LangChain 中构建的大语言模型（LLM）应用全面加速"
-author: "Ce Gao"
+author: "[Ce Gao](https://github.com/gaocegege) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "ai"
 upstream_link: "https://blog.vectorchord.ai/building-llm-applications-in-langchain-using-pgvectors"
+upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/building-llm-applications-in-langchain-using-pgvectors/"
   - "/building-llm-applications-in-langchain-using-pgvectors/"

@@ -2,12 +2,13 @@
 title: "VectorChord 0.3：在 PostgreSQL 中实现高效的多向量上下文晚期交互"
 date: 2025-04-13
 description: "VectorChord 0.3 利用 MaxSim 和 WARP 大幅提升 PostgreSQL 向量搜索能力"
-author: "Keming, Jinjing Zhou"
+author: "[Keming Yang](https://github.com/kemingy), [Jinjing Zhou](https://github.com/VoVAllen) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "multivector"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql"
+upstream_copyright: "© 2025 Keming Yang, Jinjing Zhou (TensorChord Inc.)"
 math: true
 aliases:
   - "/blog/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql/"

@@ -2,12 +2,13 @@
 title: "VectorChord 1.1: Native 4/8 Bit Vector Types and Per-Index Query Defaults"
 date: 2026-02-14
 description: "VectorChord 1.1 introduces RaBitQ8, RaBitQ4 for efficient storage and improved multi-index querying"
-author: "Junyu Chen"
+author: "[Junyu Chen](https://github.com/cutecutecat) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "release"
   - "vector-database"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults"
+upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"
   - "/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"

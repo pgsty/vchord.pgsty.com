@@ -2,11 +2,12 @@
 title: "Beyond Text: Unlock OCR-Free RAG in PostgreSQL with Modal & VectorChord"
 date: 2025-04-15
 description: "Building effective Retrieval-Augmented Generation (RAG) systems for documents often feels like wrestling with messy, complex pipelines. Especially when…"
-author: "xieydd"
+author: "[xieydd](https://github.com/xieydd) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "ocr"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord"
+upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/"
   - "/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/"

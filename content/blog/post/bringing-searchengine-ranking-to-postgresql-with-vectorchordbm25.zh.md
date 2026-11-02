@@ -2,11 +2,12 @@
 title: "借助 VectorChord-BM25 将搜索引擎级排序引入 PostgreSQL"
 date: 2025-08-12
 description: "现代应用依赖 PostgreSQL 完全符合 ACID 的事务特性、表达力丰富的 SQL 以及蓬勃发展的扩展生态。在关系型负载之外，VectorChord-BM25 将 BM25 相关性评分算法直接引入了 PostgreSQL。"
-author: "Zoie Wang"
+author: "[Zoie Wang](https://hashnode.com/@zoie) · [TensorChord](https://github.com/tensorchord)"
 tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25"
+upstream_copyright: "© 2025 Zoie Wang (TensorChord Inc.)"
 aliases:
   - "/blog/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"
   - "/bringing-searchengine-ranking-to-postgresql-with-vectorchordbm25/"

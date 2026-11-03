@@ -14,7 +14,7 @@ aliases:
 
 `VectorChord`、`VectorChord-bm25` 与 `pg_tokenizer.rs` 的原开发公司 **TensorChord Inc.** 已清算并停止对上游仓库的日常维护。应原作者请求，**[PGSTY](https://pigsty.cc/)** 社区正式接手维护这三个扩展：
 
-- **供应链持续性与版本适配**：PGSTY 社区将持续维护代码仓库，确保开源软件供应链不中断，持续适配更新版本的 **PostgreSQL**（`PG 14–18+`）与 **`pgrx`**（`0.17+`）框架，并构建主流 Linux 发行版的原生 RPM/DEB 软件包。
+- **供应链持续性与版本适配**：PGSTY 社区持续维护代码仓库，已将三个扩展统一升级至 **`pgrx 0.19.3`** 基线（支持 `pg14`–`pg19` 特性），并针对 **PostgreSQL**（`PG 14–18`）测试与打包扩展套件。主流 [16 个 Linux 发行版与架构目标](/zh/download/)均提供预构建原生 RPM/DEB 软件包，完整的依赖项与开源许可证盘点详见[软件物料清单 (SBOM)](/zh/docs/about/sbom/)。
 - **功能演进路线图**：我们不承诺任何新功能的开发，新功能需求与演进路线图将视维护团队的精力余量来响应。
 - **安全问题反馈**：如果您发现任何安全问题或严重缺陷，非常欢迎通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 提交给我们。
 
@@ -22,7 +22,7 @@ aliases:
 
 1. **文档内容（`content/docs/`、`content/cloud/`）**
    - **VectorChord 与 pgvecto.rs 文档**：[`https://github.com/tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs)（`https://docs.vectorchord.ai/`）—— © 2023–2026 TensorChord Inc.（Apache-2.0）
-   - **BM25 与分词器文档**：[`https://github.com/tensorchord/VectorChord-bm25`](https://github.com/tensorchord/VectorChord-bm25)、[`https://github.com/tensorchord/pg_tokenizer.rs`](https://github.com/tensorchord/pg_tokenizer.rs) 与 [`https://github.com/tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) —— © 2024–2026 TensorChord Inc.
+   - **BM25 与分词器文档**：[`https://github.com/supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)、[`https://github.com/supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs) 与 [`https://github.com/tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) —— © 2024–2026 TensorChord Inc.
    - **pgvector 文档（`content/docs/vector/`）**：整理自 [`https://github.com/pgvector/pgvector`](https://github.com/pgvector/pgvector) —— © 2021–2026 Andrew Kane（PostgreSQL 许可证）。
    - **适配说明**：迁移并统一整理至 Hugo + [OINK `v1.4.0`](https://github.com/pgsty/oink)，包含 GitHub 风格提示框规范化、KaTeX 数学公式分隔符标准化、站内链接解析修正、结构化导航元数据补齐以及完整中文化翻译。
 
@@ -33,8 +33,8 @@ aliases:
 
 3. **Vchord 扩展家族（`vchord`、`vchord_bm25` 与 `pg_tokenizer`）**
    - **`vchord`（[`pgsty/vchord`](https://github.com/pgsty/vchord)）Fork 自**：[`https://github.com/tensorchord/VectorChord`](https://github.com/tensorchord/VectorChord)
-   - **`vchord_bm25`（[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)）Fork 自**：[`https://github.com/tensorchord/VectorChord-bm25`](https://github.com/tensorchord/VectorChord-bm25)
-   - **`pg_tokenizer`（[`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)）Fork 自**：[`https://github.com/tensorchord/pg_tokenizer.rs`](https://github.com/tensorchord/pg_tokenizer.rs)
+   - **`vchord_bm25`（[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)）Fork 自**：[`https://github.com/supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)
+   - **`pg_tokenizer`（[`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)）Fork 自**：[`https://github.com/supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs)
    - **前代项目**：[`https://github.com/tensorchord/pgvecto.rs`](https://github.com/tensorchord/pgvecto.rs)
 
 ## 页面级溯源 {#page-level-provenance}

@@ -21,7 +21,7 @@ blog:
       copyright: "© 2023–2026 TensorChord Inc."
 
 bm25:
-  name: tensorchord/VectorChord-bm25
+  name: supervc-stack/VectorChord-bm25
   license: AGPL-3.0-only
   notice: /docs/about/attribution/
   copyright: "© 2024–2026 TensorChord Inc."
@@ -32,7 +32,7 @@ bm25:
       copyright: "© 2024–2026 TensorChord Inc."
 
 tokenizer:
-  name: tensorchord/pg_tokenizer.rs
+  name: supervc-stack/pg_tokenizer.rs
   license: Apache-2.0
   notice: /docs/about/attribution/
   copyright: "© 2024–2026 TensorChord Inc."

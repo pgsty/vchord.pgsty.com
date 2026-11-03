@@ -22,7 +22,7 @@ cascade:
 本仓库（`pgsty/vchord.pgsty.com`）与网站（`https://vchord.pgsty.com/`）为 [`pgsty/vchord`](https://github.com/pgsty/vchord)、[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 提供完整、快速、本地优先的文档与技术博客参考，由 [Pigsty](https://pigsty.cc/) 社区基于 [OINK 1.4.0](https://oink.pgsty.com/) 文档框架构建与维护。
 
 > [!NOTE]
-> **`pgsty/vchord`、`pgsty/vchord_bm25` 与 `pgsty/pg_tokenizer` 分别是 `tensorchord/VectorChord`、`tensorchord/VectorChord-bm25` 与 `tensorchord/pg_tokenizer.rs` 的社区维护分支。** 本项目与 TensorChord Inc. 不存在隶属、背书或赞助关系。详情请参阅[署名与来源](/zh/docs/about/attribution/)及[商标声明](/zh/docs/about/trademark/)。
+> **`pgsty/vchord`、`pgsty/vchord_bm25` 与 `pgsty/pg_tokenizer` 分别是 `tensorchord/VectorChord`、`supervc-stack/VectorChord-bm25` 与 `supervc-stack/pg_tokenizer.rs` 的社区维护分支。** 本项目与 TensorChord Inc. 不存在隶属、背书或赞助关系。详情请参阅[署名与来源](/zh/docs/about/attribution/)及[商标声明](/zh/docs/about/trademark/)。
 
 ## 文档范围 {#documentation-scope}
 
@@ -36,3 +36,4 @@ cascade:
 | **[`pg_bestmatch` 文档](/zh/docs/bestmatch/)** | `pg_bestmatch.rs` 扩展文档：在 PostgreSQL 内部生成兼容 [`pgvector`](/zh/docs/vector/) `sparsevec` 与 [`pgvecto.rs`](/zh/docs/vectors/) `svector` 的 BM25 稀疏向量。 |
 | **[工程技术博客](/zh/blog/)** | 全部 37 篇工程深度解析、基准测试对比、混合检索教程以及历次版本发布公告（涵盖 `pgvecto.rs 0.2` 至 `VectorChord 1.1`）。 |
 | **[VectorChord Cloud](/zh/cloud/)** | VectorChord Cloud 托管集群、连接端点、弹性扩缩容、监控指标与账单管理参考文档。 |
+{.wide .expand}

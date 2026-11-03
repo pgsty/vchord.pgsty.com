@@ -29,6 +29,7 @@ With these improvements, we can now use far cheaper machines with much less memo
 | Previous minimum | Amazon i7i.8xlarge | 🟨 $2174 monthly | 135 GB / 256 GB |
 | Recommend for faster indexing | Amazon i7i.4xlarge | ✅ $**1087** monthly | 12 GB / 128 GB |
 | Minimum | Amazon i7i.xlarge + GPU for indexing | ✅ $**272** monthly + GPU cost | 6 GB / 32 GB |
+{.wide .expand}
 
 In the following sections, we will introduce how we optimized these phases to make index building faster and more memory-efficient. The optimizations are organized as follows: one targets each phase.
 
@@ -37,6 +38,7 @@ In the following sections, we will introduce how we optimized these phases to ma
 | [Hierarchical K-means](#hierarchical-k-means) ➕ [Dimensionality Reduction](#dimensionality-reduction) | 1️⃣ Initialization | 🚀 30 min (GPU) → 8 min (CPU) 🧾 135 → 23 GB |
 | [Reducing Contention](#4-reducing-contention) | 2️⃣ Insertion | 🚀 420 min → 9 min |
 | [Parallelize Compaction](#5-parallelize-compaction) | 3️⃣ Compaction | 🚀 8 min → 1 min |
+{.wide .expand}
 
 ## 2\. Background
 

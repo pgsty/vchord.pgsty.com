@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/customer-stories/earthgenome/"
   - "/vectorchord/customer-stories/earthgenome/"
+icon: fa-solid fa-earth-americas
 ---
 
 监测地球健康状况是我们这个时代最关键的挑战之一。我们的星球正面临巨大的环境压力，而要理解这些变化，需要从不间断捕获的海量卫星数据（高达 PB 级的像素）中抽丝剥茧。无论是追踪亚马逊雨林的森林砍伐、识别偏远地区的非法采矿作业，还是监测农业活动对脆弱生态系统的影响，将这些原始数据转化为可付诸行动的情报都至关重要。

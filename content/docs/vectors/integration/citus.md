@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/integration/citus.md"
 aliases:
   - "/integration/citus/"
+icon: fa-solid fa-cubes-stacked
 ---
 
 `citus` is a PostgreSQL extension that turns Postgres into a distributed database. `pgvecto.rs` works well with `citus` Here are the steps to enable vector search in a distributed PostgreSQL instance.

@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/search.md"
 aliases:
   - "/usage/search/"
+icon: fa-solid fa-magnifying-glass
 ---
 
 获取与目标向量最近的 5 个邻居：

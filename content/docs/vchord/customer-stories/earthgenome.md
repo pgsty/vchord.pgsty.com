@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/customer-stories/earthgenome/"
   - "/vectorchord/customer-stories/earthgenome/"
+icon: fa-solid fa-earth-americas
 ---
 
 Monitoring the health of our planet is one of the most critical challenges of our time. Our planet faces immense environmental pressures, and understanding these changes requires sifting through an unimaginable amount of satellite data – petabytes of pixels captured constantly. From tracking deforestation in the Amazon to identifying illegal mining operations in remote regions or monitoring agricultural impacts on sensitive ecosystems, turning this data into actionable intelligence is paramount.

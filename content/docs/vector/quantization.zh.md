@@ -3,6 +3,7 @@ title: "向量量化与稀疏向量"
 linkTitle: "向量量化与稀疏向量"
 description: "pgvector 中的半精度向量（halfvec）、二值量化（bit）、稀疏向量（sparsevec）与套娃（Matryoshka）子向量索引。"
 weight: 40
+icon: fa-solid fa-compress
 upstream_link: https://github.com/pgvector/pgvector#half-precision-vectors
 math: true
 ---
@@ -15,6 +16,7 @@ math: true
 | `halfvec(n)` | 16 位半精度浮点（`float16`） | 4,000 维 | \(2n + 8\) 字节 |
 | `bit(n)` | 1 位二值比特（`0` / `1`） | 64,000 维 | \(\lceil n / 8 \rceil + 8\) 字节 |
 | `sparsevec(n)` | 非零 `下标:float32` 键值对 | 最多 1,000 个非零元素（总维度可达 100 万） | \(8 \times \text{nnz} + 16\) 字节 |
+{.wide .expand}
 
 > [!TIP] `vchord` 中的 RaBitQ 量化
 > 除了 `pgvector` 内置的量化类型外，[`vchord`](/zh/docs/vchord/) 还提供 `rabitq8`（8-bit）与 `rabitq4`（4-bit）专用量化向量类型，并在 `vchordrq` 索引中支持高达 **60,000 维**的超长向量。详见 [`vchord` 量化类型](/zh/docs/vchord/usage/quantization-types/)。

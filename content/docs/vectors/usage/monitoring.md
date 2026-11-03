@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/monitoring.md"
 aliases:
   - "/usage/monitoring/"
+icon: fa-solid fa-heart-pulse
 ---
 
 We provide a view `pg_vector_index_stat` to monitor the progress of indexing.
@@ -24,6 +25,7 @@ We provide a view `pg_vector_index_stat` to monitor the progress of indexing.
 | idx_write    | int8   | Not null if `idx_status` is `NORMAL`. The number of tuples in write buffer.         |
 | idx_size     | int8   | Not null if `idx_status` is `NORMAL`. The byte size for all the segments.           |
 | idx_options  | text   | Not null if `idx_status` is `NORMAL`. The configuration of the index.               |
+{.wide .expand}
 
 > [!DETAILS] `idx_options` Details
 > The `idx_options` is a JSON string that includes vector, segment, optimization, and indexing options. Examples below:

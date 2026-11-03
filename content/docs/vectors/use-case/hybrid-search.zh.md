@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/hybrid-search.md"
 aliases:
   - "/use-case/hybrid-search/"
+icon: fa-solid fa-code-merge
 ---
 
 本节将向您展示如何使用 `pgvecto.rs` 实现混合搜索（Hybrid Search）。

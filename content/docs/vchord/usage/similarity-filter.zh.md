@@ -10,6 +10,7 @@ aliases:
   - "/vectorchord/usage/similarity-filter/"
   - "/docs/vchord/usage/range-query/"
   - "/vectorchord/usage/range-query/"
+icon: fa-solid fa-circle-dot
 ---
 
 通常，我们会使用 `ORDER BY` 和 `LIMIT` 子句来执行向量搜索。但在某些情况下，您可能希望使用 `WHERE` 子句过滤掉距离查询向量太远的向量。很自然地，您可能会写出如下 SQL：

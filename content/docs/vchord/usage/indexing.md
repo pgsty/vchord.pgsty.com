@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/docs/usage/indexing/"
   - "/vectorchord/usage/indexing/"
+icon: fa-solid fa-sitemap
 ---
 
 VectorChord's index type `vchordrq` divides vectors into lists and searches only a subset of lists closest to the query vector. It provides fast build time and low memory consumption, while delivering [significantly better performance](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/#ivf-vs-hnsw) than both `hnsw` and `ivfflat`.
@@ -68,6 +69,7 @@ The parameter `lists` should be tuned based on the number of rows. The following
 | \(N \in [10^5, 2 \times 10^6)\)          | \(L = \frac{N}{500}\)                  | `[2000]`        |
 | \(N \in [2 \times 10^6, 5 \times 10^7)\) | \(L \in [4 \sqrt{N}, 8 \sqrt{N}]\)     | `[10000]`       |
 | \(N \in [5 \times 10^7, \infty)\)        | \(L \in [8 \sqrt{N}, 16\sqrt{N}]\)     | `[80000]`       |
+{.wide .expand}
 
 The process of building an index involves two steps: partitioning the vector space first, and then inserting rows into the index. The first step, partitioning the vector space, can be sped up using multiple threads.
 
@@ -143,6 +145,7 @@ The following table lists all available operator classes supported by `vchordrq`
 | `halfvec_maxsim_ops` | index works for `halfvec[]` type and scalable vector-similarity | `@#(halfvec[],halfvec[])` | N/A                      |
 | `rabitq8_maxsim_ops` | index works for `rabitq8[]` type and scalable vector-similarity | `@#(rabitq8[],rabitq8[])` | N/A                      |
 | `rabitq4_maxsim_ops` | index works for `rabitq4[]` type and scalable vector-similarity | `@#(rabitq4[],rabitq4[])` | N/A                      |
+{.wide .expand}
 
 `<->`, `<#>` and `<=>` are operators defined by pgvector.
 
@@ -334,7 +337,7 @@ This is the default value of index building. The index will not be partitioned. 
     - `SET vchordrq.probes = 1` means that only one probe is used.
     - `SET vchordrq.probes = 10` means that ten probes are used.
 - Note: The default value is an empty list. The length of this option must match the length of `lists`.
-    - Each entry must be an unsigned decimal integer in `0..=4294967295`. Spaces are ignored. Empty entries (`,5`, `1,,2`, `10,`) and overflowing values are rejected when planning or running a scan. The same rules apply to the index's `probes` fallback option.
+    - Each entry must be an unsigned decimal integer in `1..=4294967295`. Spaces are ignored. Empty entries (`,5`, `1,,2`, `10,`), zero values, and overflowing values are rejected when the setting or index option is assigned. The same rules apply to the index's `probes` fallback option.
     - If `lists = []`, then probes must be ` `.
     - If `lists = [11, 22]`, then probes can be `2,4` or `4,8`. It must not be incorrectly shaped, for example, ` `, `3`, `7,8,9`, `5,5,5,5`.
 

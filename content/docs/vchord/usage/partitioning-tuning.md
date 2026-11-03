@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/docs/usage/partitioning-tuning/"
   - "/vectorchord/usage/partitioning-tuning/"
+icon: fa-solid fa-table-columns
 ---
 
 For large tables, the partitioning phase dominates both build time and memory consumption.

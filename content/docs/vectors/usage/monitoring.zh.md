@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/monitoring.md"
 aliases:
   - "/usage/monitoring/"
+icon: fa-solid fa-heart-pulse
 ---
 
 我们提供了 `pg_vector_index_stat` 视图来监控索引的构建进度。
@@ -24,6 +25,7 @@ aliases:
 | idx_write    | int8   | 当 `idx_status` 为 `NORMAL` 时非空。写缓冲区（write buffer）中的元组数量。         |
 | idx_size     | int8   | 当 `idx_status` 为 `NORMAL` 时非空。所有分段占用的总字节大小。                     |
 | idx_options  | text   | 当 `idx_status` 为 `NORMAL` 时非空。索引的配置信息。                               |
+{.wide .expand}
 
 > [!DETAILS] `idx_options` 详情
 > `idx_options` 是一个包含向量（vector）、分段（segment）、优化（optimizing）和索引（indexing）选项的 JSON 字符串。示例如下：

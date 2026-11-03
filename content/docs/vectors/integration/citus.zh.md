@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/integration/citus.md"
 aliases:
   - "/integration/citus/"
+icon: fa-solid fa-cubes-stacked
 ---
 
 `citus` 是一个将 Postgres 转化为分布式数据库的 PostgreSQL 扩展。`pgvecto.rs` 能够与 `citus` 良好协作。下面介绍如何在分布式 PostgreSQL 实例中启用向量检索。

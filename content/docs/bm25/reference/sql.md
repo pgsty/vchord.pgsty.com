@@ -3,6 +3,7 @@ math: true
 title: "SQL Reference"
 description: "Complete SQL data types, operators, casts, index access methods, and functions for vchord_bm25 and pg_tokenizer."
 weight: 10
+icon: fa-solid fa-code
 ---
 
 > [!IMPORTANT]
@@ -16,6 +17,7 @@ weight: 10
 | `bm25vector` | `bm25_catalog` | `v0.1.0` – `v0.3.0` | `{token_id:freq, ...}` (e.g., `{1:1, 2:2, 15:1}`) | Sparse vector mapping 32-bit unsigned token IDs to 32-bit term frequencies. Stored with `STORAGE = EXTERNAL`. |
 | `bm25query` | `bm25_catalog` | `v0.1.0` – `v0.3.0` | `(index_oid regclass, query_vector bm25vector)` | Composite type pairing a target `bm25` index OID with a query `bm25vector`. |
 | `bm25query` | `public` / ext schema | `0.4.0` / `main` | `(vector tsvector, index regclass)` | Composite type pairing a query `tsvector` with a target `bm25` index OID. |
+{.wide .expand}
 
 ### `bm25vector` Literal Syntax (`v0.1` – `v0.3`)
 
@@ -41,6 +43,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | `<&>` | `tsvector` | `bm25query` | `float8` (`f64`) | `0.4.0` / `main` | Computes the **negative** BM25 relevance score on native `tsvector`. Supports index-accelerated `ORDER BY ... ASC` scans using `bm25_ops`. |
 | `=` | `bm25vector` | `bm25vector` | `bool` | `v0.2.0` – `v0.3.0` | Exact equality comparison between two `bm25vector` values. |
 | `<>` | `bm25vector` | `bm25vector` | `bool` | `v0.2.0` – `v0.3.0` | Inequality comparison between two `bm25vector` values. |
+{.wide .expand}
 
 ---
 
@@ -54,6 +57,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | `search_bm25query(target_vector bm25vector, query bm25query)` | `real` | `v0.1.0` – `v0.3.0` | Underlying implementation function for `bm25vector <&> bm25query`. |
 | `_bm25_evaluate(left tsvector, right bm25query)` | `float8` | `0.4.0` / `main` | Underlying implementation function for `tsvector <&> bm25query`. |
 | `bm25_page_inspect(index regclass, blkno int)` | `text` | `v0.3.0` | Returns human-readable diagnostic metadata for block `blkno` of a `bm25` index. |
+{.wide .expand}
 
 ---
 
@@ -64,10 +68,11 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | Access Method | `bm25` | Index | Handler `bm25_amhandler` in 0.4.0; `_bm25_amhandler` in 0.3.x |
 | Operator Family | `bm25_ops` | `USING bm25` | `<&>` in the extension schema (0.4.0), or `pg_catalog` (0.3.x), ordered by `float_ops` |
 | Operator Class | `bm25_ops` | `bm25vector` (`v0.1`–`v0.3`) / `tsvector` (`main`) | Explicit operator class for `USING bm25` |
+{.wide .expand}
 
 ---
 
-## `pg_tokenizer` Functions (`tokenizer_catalog`)
+## `pg_tokenizer` 0.2.0 Functions (`tokenizer_catalog`)
 
 All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 
@@ -78,6 +83,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `create_tokenizer(name TEXT, config TEXT)` | `void` | Creates a named tokenizer from a TOML configuration string. |
 | `drop_tokenizer(name TEXT)` | `void` | Drops an existing tokenizer. |
 | `tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | Tokenizes `text` using `tokenizer_name` and returns an array of integer token IDs (implicitly castable to `bm25vector`). |
+{.wide .expand}
 
 ### Text Analyzer Management
 
@@ -86,6 +92,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `create_text_analyzer(name TEXT, config TEXT)` | `void` | Creates a reusable named text analyzer pipeline (`character_filters`, `pre_tokenizer`, `token_filters`). |
 | `drop_text_analyzer(name TEXT)` | `void` | Drops a named text analyzer. |
 | `apply_text_analyzer(text TEXT, text_analyzer_name TEXT)` | `TEXT[]` | Runs a text analyzer on `text` and returns the array of normalized string tokens (useful for debugging). |
+{.wide .expand}
 
 ### Model Management
 
@@ -93,11 +100,12 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | :--- | :--- | :--- |
 | `create_custom_model(name TEXT, config TEXT)` | `void` | Trains a custom vocabulary model on an existing table column using a text analyzer. |
 | `drop_custom_model(name TEXT)` | `void` | Drops a custom model and its backing vocabulary table. |
-| `create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT)` | `void` | Creates a custom model, creates a tokenizer, populates `target_column` on `table_name`, and attaches an automatic `BEFORE INSERT OR UPDATE` trigger. |
+| `create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `void` | Creates a custom model, creates a tokenizer, populates `target_column` on `table_name`, and attaches an automatic `BEFORE INSERT OR UPDATE` trigger. `filter` is an optional trusted Boolean expression over source columns; omit it or pass SQL `NULL` to process all rows. The six-argument signature remains available. |
 | `create_huggingface_model(name TEXT, config TEXT)` | `void` | Imports a model from a HuggingFace `tokenizer.json` string. |
 | `drop_huggingface_model(name TEXT)` | `void` | Drops an imported HuggingFace model. |
 | `create_lindera_model(name TEXT, config TEXT)` | `void` | Creates a Lindera morphological analysis model (e.g., `ipadic`) from a TOML config. |
 | `drop_lindera_model(name TEXT)` | `void` | Drops a Lindera model. |
+{.wide .expand}
 
 ### Dictionary & Preload Management
 
@@ -110,6 +118,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `add_preload_model(name TEXT)` | `void` | Registers a model to be preloaded at PostgreSQL server startup (`shared_preload_libraries`). |
 | `remove_preload_model(name TEXT)` | `void` | Removes a model from the startup preload list. |
 | `list_preload_models()` | `TEXT[]` | Returns the list of models currently registered for preloading. |
+{.wide .expand}
 
 ### Internal Trigger & Helper Functions (`tokenizer_catalog`)
 
@@ -118,6 +127,9 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `apply_text_analyzer_for_custom_model(text TEXT, text_analyzer_name TEXT)` | `TEXT[]` | Applies `text_analyzer_name` and filters out tokens exceeding `2600` bytes (PostgreSQL B-tree `UNIQUE` index maximum key size) before inserting into a custom model vocabulary table. |
 | `custom_model_insert_trigger()` | `trigger` | `AFTER INSERT OR UPDATE` trigger function that extracts new tokens from the source text column and inserts unseen tokens into `tokenizer_catalog."model_<name>"`. |
 | `custom_model_tokenizer_set_target_column_trigger()` | `trigger` | `BEFORE INSERT OR UPDATE` trigger function installed by `create_custom_model_tokenizer_and_trigger` that automatically populates `NEW.<target_column> = tokenize(NEW.<source_column>, tokenizer_name)`. |
+{.wide .expand}
+
+`pg_tokenizer 0.2.0` also provides `analyze_to_tsvector(text, text_analyzer_name)` and `tokenize_to_tsvector(text, tokenizer_name)`. Both return native `tsvector` values with positions assigned consecutively after empty output tokens are removed. Store the result before indexing; replacing a catalog definition does not rewrite persisted vectors or rebuild a dependent BM25/GIN index.
 
 ---
 
@@ -131,6 +143,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `tokenizer_catalog.stopwords` | `name TEXT NOT NULL PRIMARY KEY`, `config TEXT NOT NULL` | Stores built-in (`lucene_english`, `nltk_english`, `iso_english`) and custom stopword dictionaries. |
 | `tokenizer_catalog.synonym` | `name TEXT NOT NULL PRIMARY KEY`, `config TEXT NOT NULL` | Stores custom synonym dictionaries. |
 | `tokenizer_catalog."model_<name>"` | `id SERIAL PRIMARY KEY`, `token TEXT NOT NULL UNIQUE` | Backing vocabulary table created for each custom model `<name>`, mapping unique normalized tokens to 1-based integer IDs. |
+{.wide .expand}
 
 ---
 
@@ -142,6 +155,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | :--- | :--- | :--- |
 | `text_analyzer` | `string` (optional) | Name of a pre-created `text_analyzer`. If omitted, inline `character_filters`, `pre_tokenizer`, and `token_filters` may be defined directly (when supported by `model`). |
 | `model` | `string` (required) | Name of a built-in model (`llmlingua2`, `bert_base_uncased`, `wiki_tocken`, `gemma2b`) or a user-created model (`custom`, `huggingface`, or `lindera`). |
+{.wide .expand}
 
 ### Text Analyzer Options (`create_text_analyzer`)
 
@@ -150,6 +164,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `character_filters` | `array` / `table` | List of character filters applied to the full string before splitting: `to_lowercase`, `unicode_normalization` (`nfc`, `nfd`, `nfkc`, `nfkd`). |
 | `pre_tokenizer` | `string` / `table` | Single pre-tokenizer that splits the string into initial tokens: `unicode_segmentation`, `regex` (Rust regex string), or `jieba` (`mode = "full" \| "precise" \| "search"`, `enable_hmm = true \| false`). |
 | `token_filters` | `array` | Ordered list of token filters: `skip_non_alphanumeric`, `stemmer` (30 Snowball stemmers), `stopwords` (`lucene_english`, `nltk_english`, `iso_english`, or custom), `synonym`, `pg_dict` (any `pg_ts_dict` except `Thesaurus`), `ngram` (`min_gram`, `max_gram` in `1..=255`, `preserve_original`). |
+{.wide .expand}
 
 ### Custom Model Options (`create_custom_model`)
 
@@ -158,3 +173,4 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `table` | `string` (required) | Target table name containing the source text corpus. |
 | `column` | `string` (required) | Source `TEXT` column name on `table` used to build the vocabulary. |
 | `text_analyzer` | `string` (required) | Name of the `text_analyzer` used to tokenize `column` into vocabulary terms. |
+{.wide .expand}

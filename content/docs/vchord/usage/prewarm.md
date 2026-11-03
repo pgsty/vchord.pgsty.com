@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/usage/prewarm/"
   - "/vectorchord/usage/prewarm/"
+icon: fa-solid fa-fire
 ---
 
 After PostgreSQL starts, tables and indexes are loaded from storage into the buffer pool only when they are accessed for the first time. As queries are executed, the frequently accessed parts of the index are naturally cached in the buffer pool. However, as initial queries are executed, the buffer pool is empty, which causes the queries to be slow.

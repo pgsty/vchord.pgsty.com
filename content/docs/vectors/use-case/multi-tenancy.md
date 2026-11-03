@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/multi-tenancy.md"
 aliases:
   - "/use-case/multi-tenancy/"
+icon: fa-solid fa-users
 ---
 
 Multi-tenancy is essential for SaaS applications, allowing a single instance to serve multiple users or groups while ensuring data privacy and security. This blog outlines the design and implementation a simple multi-tenant vector search system with pgvecto.rs.

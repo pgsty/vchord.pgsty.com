@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/usage/fallback-parameters/"
   - "/vectorchord/usage/fallback-parameters/"
+icon: fa-solid fa-sliders
 ---
 
 {{< badge text="since v1.1.0" tone="info" >}}
@@ -68,6 +69,7 @@ SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 - 说明：[`vchordrq.probes`](/zh/docs/vchord/usage/indexing/#search-parameters-vchordrq-probes) 的回退值。
 - 类型：整数列表（list of integers）
 - 默认值：` `
+- 取值范围：每项为 `1..=4294967295`；未分区索引可以使用空列表。
 
 #### `epsilon` {#epsilon}
 

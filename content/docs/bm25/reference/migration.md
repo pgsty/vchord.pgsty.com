@@ -2,6 +2,7 @@
 title: "Migrating to 0.4.0"
 description: "The native tsvector API, installation schema, permissions, and migration boundary for vchord_bm25 0.4.0."
 weight: 35
+icon: fa-solid fa-right-left
 ---
 
 The current `pgsty/vchord_bm25` source prepares **0.4.0 (unreleased)**. It uses PostgreSQL's native `tsvector` and a new index storage engine. Historical 0.3.x packages and suite images use `bm25vector`; the two APIs and index formats are incompatible.
@@ -15,6 +16,7 @@ The current `pgsty/vchord_bm25` source prepares **0.4.0 (unreleased)**. It uses 
 | Schema | Fixed `bm25_catalog` | Selected extension schema, relocatable |
 | Candidate limit | `bm25_catalog.bm25_limit`, default 100 | `bm25.limit` or index `limit`; both defaults are zero |
 | Tokenization | `pg_tokenizer` integer arrays | `to_tsvector`, or a compatible tokenizer producing positions |
+{.wide .expand}
 
 The current build ships `vchord_bm25--0.4.0.sql`, generated from the Rust library. Packaging compares the checked-in schema with the compiled API and rejects mismatches. The old install SQL remains available in Git for old binaries; changing the control version to 0.3.0 does not make the current engine compatible with it.
 

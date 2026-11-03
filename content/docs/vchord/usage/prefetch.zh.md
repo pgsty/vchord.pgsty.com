@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/usage/prefetch/"
   - "/vectorchord/usage/prefetch/"
+icon: fa-solid fa-bolt
 ---
 
 {{< badge text="since v0.4.0" tone="info" >}}
@@ -31,6 +32,7 @@ aliases:
 | `read_stream`     | PostgreSQL 中的异步 I/O 接口                                           | PostgreSQL 17, 18                 |
 | `prefetch_buffer` | VectorChord 的模拟异步 I/O 接口，在旧版本 PostgreSQL 上作为回退方案使用 | PostgreSQL 13, 14, 15, 16, 17, 18 |
 | `read_buffer`     | PostgreSQL 中的同步 I/O 接口                                           | PostgreSQL 13, 14, 15, 16, 17, 18 |
+{.wide .expand}
 
 要在 PostgreSQL 18 上通过 `read_stream` 充分发挥此功能的威力，您需要启用异步 I/O。另请参阅 [PostgreSQL 调优](/zh/docs/vchord/usage/postgresql-tuning/#asynchronous-i-o)。
 

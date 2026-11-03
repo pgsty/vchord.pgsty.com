@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/reference/vector-types/bvector/"
+icon: fa-solid fa-wave-square
 ---
 
 {{< badge text="since v0.3.0" tone="info" >}}

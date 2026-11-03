@@ -3,6 +3,7 @@ title: "HNSW & IVFFlat Indexing"
 linkTitle: "HNSW & IVFFlat Indexing"
 description: "Build, tune, and maintain HNSW and IVFFlat approximate nearest-neighbor indexes in pgvector, and compare with vchord."
 weight: 30
+icon: fa-solid fa-sitemap
 upstream_link: https://github.com/pgvector/pgvector#indexing
 math: true
 ---

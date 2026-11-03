@@ -292,6 +292,7 @@ def hybrid_contextual_search_rerank(
 | 关键词搜索（keyword search） | 0.7003 | 337.211 |
 | 上下文向量搜索（vector contextual search） | 0.8404 | 307.253 |
 | 上下文关键词搜索（keyword contextual search） | 0.8033 | 331.239 |
+{.wide .expand}
 
 * `topk=10`
     
@@ -302,5 +303,6 @@ def hybrid_contextual_search_rerank(
 | 关键词搜索（keyword search） | 0.7577 | 219.653 |
 | 上下文向量搜索（vector contextual search） | 0.8807 | 247.819 |
 | 上下文关键词搜索（keyword contextual search） | 0.8563 | 216.560 |
+{.wide .expand}
 
 所有代码均可在我们的 [`vechord`](https://github.com/tensorchord/vechord/pull/30) 仓库中找到。

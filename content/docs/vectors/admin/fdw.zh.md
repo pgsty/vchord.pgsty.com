@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/fdw.md"
 aliases:
   - "/admin/fdw/"
+icon: fa-solid fa-network-wired
 ---
 
 [外部数据包装器（Foreign Data Wrapper，简称 FDW）](https://wiki.postgresql.org/wiki/Foreign_data_wrappers)是 PostgreSQL 中的一项扩展，允许你像操作本地表一样访问和查询存储在远程数据库中的数据。FDW 提供了一种与不同数据源集成和交互的标准方式。

@@ -6,6 +6,7 @@ weight: 50
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/kubernetes.md"
 aliases:
   - "/admin/kubernetes/"
+icon: fa-solid fa-dharmachakra
 ---
 
 If you want to use `pgvecto.rs` in PostgreSQL which is running in Kubernetes, we provide a tutorial to help you. In this tutorial, we will use [CloudNative-PG](https://cloudnative-pg.io/) to deploy PostgreSQL cluster in Kubernetes.
@@ -18,6 +19,7 @@ If you want to use `pgvecto.rs` in PostgreSQL which is running in Kubernetes, we
 | [helm](https://helm.sh/) | >= 2.4.1 |
 | [kubectl](https://kubernetes.io/docs/tasks/tools/) | >= 1.14 |
 | [Kubernetes](https://kubernetes.io/) | >= 1.24.0 |
+{.wide .expand}
 
 ## Install CloudNative-PG
 

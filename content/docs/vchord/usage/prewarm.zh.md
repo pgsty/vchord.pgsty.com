@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/usage/prewarm/"
   - "/vectorchord/usage/prewarm/"
+icon: fa-solid fa-fire
 ---
 
 PostgreSQL 启动后，表和索引只有在首次被访问时才会从存储加载到缓冲池（buffer pool）中。随着查询的不断执行，索引中被频繁访问的部分会自然地缓存在缓冲池里。然而，在执行最初的几批查询时，由于缓冲池为空，查询速度往往较慢。

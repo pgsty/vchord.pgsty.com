@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/use-case/sparse-vector/"
+icon: fa-solid fa-braille
 ---
 
 过去，混合搜索（Hybrid Search）通常将传统的基于关键词的搜索与基于向量的相似度搜索结合在一起。然而，稀疏向量（Sparse Vector）可以作为关键词搜索的替代方案，通过纯向量搜索充分释放数据流水线的全部潜力。
@@ -62,6 +63,7 @@ $$
 | 可解释性     | 困难                     | 容易                      |
 | 常见用途     | 计算向量距离             | 计算向量距离 / 可视化分析 |
 | 语义敏感度   | 高                       | 低                        |
+{.wide .expand}
 
 与稠密向量相比，稀疏向量在捕捉词与词之间的深层语义关系（尤其是同义词和相关概念）方面通常不如稠密向量有效。
 
@@ -107,6 +109,7 @@ sparse_weight_id = output['lexical_weights']
 | ------------------ | ---- | ---- | ---- | ---- | ---- | ---------- | ---- | ---- |
 | What is BM25?      | 0.08 | 0.08 | 0.13 | 0.25 | 0.04 | 0          | 0    | ...  |
 | Definition of BM25 | 0    | 0    | 0.25 | 0.33 | 0    | 0.14       | 0.06 | ...  |
+{.wide .expand}
 
 
 当包含整个词表时，该矩阵是高度稀疏的——大多数词只出现在少数几个句子中，只有这些位置会产生非零权重。

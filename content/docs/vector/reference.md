@@ -3,6 +3,7 @@ title: "Reference, Tuning & FAQ"
 linkTitle: "Reference, Tuning & FAQ"
 description: "Complete SQL function reference, GUC configuration parameters, performance tuning, monitoring, and FAQ for pgvector."
 weight: 50
+icon: fa-solid fa-book-open
 upstream_link: https://github.com/pgvector/pgvector#reference
 math: true
 ---
@@ -15,15 +16,16 @@ math: true
 | :--- | :--- | :--- |
 | `l2_distance(a, b)` | `float8` | Euclidean (L2) distance between `a` and `b` (`vector`, `halfvec`, `sparsevec`) |
 | `inner_product(a, b)` | `float8` | Inner (dot) product \(\sum a_i b_i\) (`vector`, `halfvec`, `sparsevec`) |
-| `cosine_distance(a, b)` | `float8` | Cosine distance \(1 - \frac{a \cdot b}{\|a\|\|b\|}\) (`vector`, `halfvec`, `sparsevec`) |
-| `l1_distance(a, b)` | `float8` | Manhattan (L1) distance \(\sum |a_i - b_i|\) (`vector`, `halfvec`, `sparsevec`) |
+| `cosine_distance(a, b)` | `float8` | Cosine distance \(1 - \frac{a \cdot b}{\lVert a \rVert \lVert b \rVert}\) (`vector`, `halfvec`, `sparsevec`) |
+| `l1_distance(a, b)` | `float8` | Manhattan (L1) distance \(\sum \lvert a_i - b_i \rvert\) (`vector`, `halfvec`, `sparsevec`) |
 | `hamming_distance(a, b)` | `float8` | Hamming distance between two `bit` vectors |
 | `jaccard_distance(a, b)` | `float8` | Jaccard distance between two `bit` vectors |
 | `vector_dims(a)` | `integer` | Number of dimensions in `a` (`vector`, `halfvec`, `sparsevec`) |
-| `vector_norm(a)` | `float8` | Euclidean norm \(\|a\|_2\) (`vector`, `halfvec`, `sparsevec`) |
+| `vector_norm(a)` | `float8` | Euclidean norm \(\lVert a \rVert_2\) (`vector`, `halfvec`, `sparsevec`) |
 | `l2_normalize(a)` | same as input | Normalize vector `a` to unit L2 length (`vector`, `halfvec`, `sparsevec`) |
 | `binary_quantize(a)` | `bit` | Quantize each element of `vector` or `halfvec` to `1` (\(> 0\)) or `0` (\(\le 0\)) |
 | `subvector(a, start, count)` | same as input | Extract `count` dimensions starting at 1-based index `start` (`vector`, `halfvec`) |
+{.wide .expand}
 
 ### Element-Wise Arithmetic Operators
 
@@ -45,6 +47,7 @@ math: true
 | `ivfflat.probes` | `integer` (`1`–`lists`) | `1` | Number of inverted lists probed during an IVFFlat query |
 | `ivfflat.iterative_scan` | `off`, `relaxed_order` | `off` | Automatically probe additional IVFFlat lists when `WHERE` filters reduce results below `LIMIT` |
 | `ivfflat.max_probes` | `integer` | `32768` | Maximum lists probed during an IVFFlat iterative scan |
+{.wide .expand}
 
 ---
 

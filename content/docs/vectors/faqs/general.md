@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/faqs/general.md"
 aliases:
   - "/faqs/general/"
+icon: fa-solid fa-circle-question
 ---
 
 > [!WARNING]

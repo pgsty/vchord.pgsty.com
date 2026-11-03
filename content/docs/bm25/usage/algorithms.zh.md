@@ -3,6 +3,7 @@ title: "BM25 与 Block-WeakAnd 内部原理"
 description: "vchord_bm25 中 Okapi BM25、单字节 Fieldnorm 量化、差分位打包与 Block-WeakAnd 的数学公式与索引架构详解。"
 weight: 50
 math: true
+icon: fa-solid fa-microchip
 ---
 
 本页详细介绍 `vchord_bm25`（位于 `crates/bm25/src/bm25.rs` 与 `src/algorithm/block_wand.rs`）中实现的精确评分公式与底层数据结构。

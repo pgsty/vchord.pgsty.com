@@ -174,6 +174,7 @@ Here are the average latencies and corresponding Precision@50 scores across the 
 | 200 / 1.0 | 331.2 | 24.9 | 0.9438 |
 | 400 / 1.5 | 970.9 | 51.6 | **0.9608** |
 | 800 / 1.9 | 2174.0 | 2174.0 | **0.9662** |
+{.wide .expand}
 
 The table clearly illustrates the trade-off:
 

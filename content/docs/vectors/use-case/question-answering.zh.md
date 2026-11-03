@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/use-case/question-answering/"
+icon: fa-solid fa-comments
 ---
 
 向量搜索还可以用于为生成式模型（例如 OpenAI 的 GPT 系列）提供上下文，从而提升模型输出的质量。

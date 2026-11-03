@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/developers/development.md"
 aliases:
   - "/developers/development/"
+icon: fa-solid fa-hammer
 ---
 
 ## Set up development environment

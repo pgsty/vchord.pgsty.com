@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/zh/docs/usage/partitioning-tuning/"
   - "/vectorchord/usage/partitioning-tuning/"
+icon: fa-solid fa-table-columns
 ---
 
 对于大表而言，分区阶段主导了整个索引构建的时间与内存消耗。

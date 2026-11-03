@@ -2,6 +2,7 @@
 title: "安装指南"
 description: "通过 Pigsty、Docker、Debian 软件包或源码编译安装 VectorChord-BM25 (vchord_bm25) 与 pg_tokenizer。"
 weight: 20
+icon: fa-solid fa-download
 ---
 
 > [!IMPORTANT]

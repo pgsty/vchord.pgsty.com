@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/benchmark/performance/"
   - "/vectorchord/benchmark/performance/"
+icon: fa-solid fa-gauge-high
 ---
 
 本文展示了我们将 VectorChord 实现与其他主流向量数据库进行全面对比的基准测试结果，重点考察 QPS（每秒查询数）与可扩展性。如果您对我们的技术实现细节感兴趣，请参阅我们的博文《[VectorChord：在 PostgreSQL 中仅需 1 美元存储 400k 向量](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)》。
@@ -38,6 +39,7 @@ aliases:
 | --- | --- | --- | --- |
 | LAION-5m | r7i.xlarge × 7 | 4 × 7 = 28 vcpu | $0.2646 × 7 × 720 = $1334 |
 | LAION-100m | r7i.16xlarge × 2 | 64 × 2 = 128 vcpu | $4.2336 × 2 × 720 = $6096 |
+{.wide .expand}
 
 <img src="/docs/images/scalability-laion5m-laion100m-qps.png" alt="QPS on LAION 100M and LAION 5M" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 

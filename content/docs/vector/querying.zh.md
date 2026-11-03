@@ -3,6 +3,7 @@ title: "查询与过滤检索"
 linkTitle: "查询与过滤检索"
 description: "pgvector 的最近邻操作符、距离与相似度计算、向量聚合、带 WHERE 条件的迭代式索引扫描与混合检索。"
 weight: 20
+icon: fa-solid fa-magnifying-glass
 upstream_link: https://github.com/pgvector/pgvector#querying
 math: true
 ---
@@ -15,10 +16,11 @@ math: true
 | :---: | :--- | :--- | :--- |
 | `<->` | **欧氏距离（L2）** | `vector`, `halfvec`, `sparsevec` | \(\sqrt{\sum (a_i - b_i)^2}\) |
 | `<#>` | **负内积（Negative Inner Product）** | `vector`, `halfvec`, `sparsevec` | 返回 \(-\sum a_i b_i\)（因为 PostgreSQL 索引扫描仅支持升序 `ASC` 排序） |
-| `<=>` | **余弦距离（Cosine Distance）** | `vector`, `halfvec`, `sparsevec` | \(1 - \frac{a \cdot b}{\|a\|\|b\|}\)（取值范围 `[0, 2]`） |
-| `<+>` | **曼哈顿距离（L1）** | `vector`, `halfvec`, `sparsevec` | \(\sum |a_i - b_i|\)（自 `0.7.0` 起引入） |
+| `<=>` | **余弦距离（Cosine Distance）** | `vector`, `halfvec`, `sparsevec` | \(1 - \frac{a \cdot b}{\lVert a \rVert \lVert b \rVert}\)（取值范围 `[0, 2]`） |
+| `<+>` | **曼哈顿距离（L1）** | `vector`, `halfvec`, `sparsevec` | \(\sum \lvert a_i - b_i \rvert\)（自 `0.7.0` 起引入） |
 | `<~>` | **汉明距离（Hamming Distance）** | `bit` | 两个位向量中不同比特位的数量（`XOR` 置位计数） |
-| `<%>` | **杰卡德距离（Jaccard Distance）** | `bit` | \(1 - \frac{|A \cap B|}{|A \cup B|}\) |
+| `<%>` | **杰卡德距离（Jaccard Distance）** | `bit` | \(1 - \frac{\lvert A \cap B \rvert}{\lvert A \cup B \rvert}\) |
+{.wide .expand}
 
 > [!TIP] 归一化向量建议
 > 如果您的嵌入向量已经归一化为单位长度（例如 OpenAI `text-embedding-3-*` 或 BGE 模型输出），建议优先使用内积（`<#>`）而非余弦距离（`<=>`），以获得更高的 CPU 计算吞吐量。

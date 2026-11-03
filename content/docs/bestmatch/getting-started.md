@@ -3,6 +3,7 @@ title: "Getting Started"
 linkTitle: "Getting Started"
 description: "How pg_bestmatch converts BM25 scoring into sparse vector inner products, and how to install and enable the extension."
 weight: 10
+icon: fa-solid fa-rocket
 math: true
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#how-does-it-work
 ---

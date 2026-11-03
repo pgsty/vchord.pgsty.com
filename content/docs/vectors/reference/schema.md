@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/reference/schema.md"
 aliases:
   - "/reference/schema/"
+icon: fa-solid fa-code
 ---
 
 Here is the schema provided by `pgvecto.rs`.
@@ -20,6 +21,7 @@ Here is the schema provided by `pgvecto.rs`.
 | svector           | sparse vector, scalar type of which is `binary32`  defined in IEEE 754-2008 |
 | bvector           | binary vector, a fixed-length bit string                                    |
 | vector_index_stat | a composite type representing vector index statistics                       |
+{.wide .expand}
 
 ## List of operators
 
@@ -82,6 +84,7 @@ Here is the schema provided by `pgvecto.rs`.
 | <=>  | svector       | svector        | real        | cosine distance             |
 | <=>  | bvector       | bvector        | real        | cosine distance             |
 | <~>  | bvector       | bvector        | real        | jaccard distance            |
+{.wide .expand}
 
 ## List of functions
 
@@ -92,6 +95,7 @@ Here is the schema provided by `pgvecto.rs`.
 | binarize           | vector vector                               | bvector     | Binarize a vector. All positive elements are set to 1, otherwise 0.                         |
 | text2vec_openai    | input text, model text                      | vector      | Embedding function for OpenAI embeddings API.                                               |
 | text2vec_openai_v3 | input text                                  | vector      | Embedding function for OpenAI embeddings API. The model is set to `text-embedding-3-small`. |
+{.wide .expand}
 
 ## List of casts
 
@@ -107,12 +111,14 @@ Here is the schema provided by `pgvecto.rs`.
 | svector     | vector      | no        |
 | vector      | bvector     | no        |
 | bvector     | vector      | no        |
+{.wide .expand}
 
 ## List of access methods
 
 | Name    | Type  | Description             |
 | ------- | ----- | ----------------------- |
 | vectors | Index | pgvecto.rs vector index |
+{.wide .expand}
 
 ## List of operator families
 
@@ -134,6 +140,7 @@ Here is the schema provided by `pgvecto.rs`.
 | vectors | bvector_dot_ops     | bvector          |
 | vectors | bvector_l2_ops      | bvector          |
 | vectors | bvector_jaccard_ops | bvector          |
+{.wide .expand}
 
 ## List of operator classes
 
@@ -155,9 +162,11 @@ Here is the schema provided by `pgvecto.rs`.
 | vectors | bvector    | bvector_dot_ops     | no       | negative dot product       |
 | vectors | bvector    | bvector_cos_ops     | no       | cosine distance            |
 | vectors | bvector    | bvector_jaccard_ops | no       | jaccard distance           |
+{.wide .expand}
 
 ## List of views
 
 | Name                 | Description                                 |
 | -------------------- | ------------------------------------------- |
 | pg_vector_index_stat | A view provided for vector index statistics |
+{.wide .expand}

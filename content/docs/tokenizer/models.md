@@ -2,6 +2,7 @@
 title: "Tokenization Models"
 description: "Pretrained models (llmlingua2, bert_base_uncased, wiki_tocken, gemma2b), custom corpus-trained models, HuggingFace tokenizers, and Lindera models."
 weight: 30
+icon: fa-solid fa-brain
 ---
 
 In `pg_tokenizer`, a **Model** maps string tokens (or raw text) to integer token IDs (`INT[]`). You can choose from four built-in pretrained models, train a custom vocabulary model directly on your PostgreSQL table, import any HuggingFace `tokenizer.json`, or use a Lindera morphological model.
@@ -14,6 +15,7 @@ In `pg_tokenizer`, a **Model** maps string tokens (or raw text) to integer token
 | **`bert_base_uncased`** | [`google-bert/bert-base-uncased`](https://huggingface.co/google-bert/bert-base-uncased) (WordPiece, 30,522 vocab) | No (forbidden) | ~15 MB | General English text; fast startup and compact vocabulary. |
 | **`wiki_tocken`** | [`Snowolf/wiki-tocken`](https://huggingface.co/Snowolf/wiki-tocken) (Built-in English Wikipedia token dictionary) | **Yes (required)** | ~30 MB | English full-text search combined with custom stemmers, stopwords, and synonyms. |
 | **`gemma2b`** | [`google/gemma-2b`](https://huggingface.co/google/gemma-2b) (SentencePiece BPE, 256k vocab) | No (forbidden) | ~100 MB | Code, technical identifiers, and multilingual LLM workloads. |
+{.wide .expand}
 
 ### Example: Using `bert_base_uncased` or `llmlingua2`
 

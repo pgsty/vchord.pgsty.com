@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/use-case/colqwen2-modal/"
   - "/vectorchord/use-case/colqwen2-modal/"
+icon: fa-solid fa-file-image
 ---
 
 Building effective Retrieval-Augmented Generation (RAG) systems for documents often feels like wrestling with messy, complex pipelines. Especially when dealing with PDFs or scanned images, traditional methods rely heavily on Optical Character Recognition (OCR) and layout analysis. These steps can be slow, error-prone, and often lose crucial visual context like tables, figures, and formatting. **But what if you could query documents based on *how they look*, not just the extracted text?**

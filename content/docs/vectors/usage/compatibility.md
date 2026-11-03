@@ -6,6 +6,7 @@ weight: 50
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/compatibility.md"
 aliases:
   - "/usage/compatibility/"
+icon: fa-solid fa-plug
 ---
 
 `pgvecto.rs` is natively compatible with `pgvector` at:
@@ -31,12 +32,14 @@ Index options for `ivfflat`:
 | Key   | Type    | Range            | Default | Description                            |
 | ----- | ------- | ---------------- | ------- | -------------------------------------- |
 | nlist | integer | `[1, 1_000_000]` | `100`  | Number of cluster units.               |
+{.wide .expand}
 
 Query options for `ivfflat`:
 
 | Option         | Type    | Range    nn      | Default | Description                               |
 | -------------- | ------- | ---------------- | ------- | ----------------------------------------- |
 | ivfflat.probes | integer | `[1, 1_000_000]` | `10`    | Number of lists to scan.                  |
+{.wide .expand}
 
 > [!WARNING]
 > Default value of `ivfflat.probes` is `10` instead of `1` from pgvector.
@@ -48,12 +51,14 @@ Index options for `hnsw`:
 | --------------- | ------- | ------------ | ------- | -------------------------------------- |
 | m               | integer | `[4, 128]`   | `16`    | Maximum degree of the node.            |
 | ef_construction | integer | `[10, 2000]` | `64`    | Search scope in building.              |
+{.wide .expand}
 
 Query options for `hnsw`:
 
 | Option         | Type    | Range          | Default | Description                               |
 | -------------- | ------- | -------------- | ------- | ----------------------------------------- |
 | hnsw.ef_search | integer | `[1, 65535]`   | `100`   | Search scope of HNSW.                     |
+{.wide .expand}
 
 > [!WARNING]
 > Default value for `hnsw.ef_search` is `100` instead of `40` from pgvector.

@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/zh/docs/usage/quantization-types/"
   - "/vectorchord/usage/quantization-types/"
+icon: fa-solid fa-compress
 ---
 
 {{< badge text="since v1.1.0" tone="info" >}}

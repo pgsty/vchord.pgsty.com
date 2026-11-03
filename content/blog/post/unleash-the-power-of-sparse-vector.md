@@ -61,6 +61,7 @@ Generally, words with higher weights indicate greater importance in the text. Sp
 | Interpretability | Hard | Easy |
 | Usage | Vector Distance | Vector Distance / Visualize |
 | Semantic sensitivity | High | Low |
+{.wide .expand}
 
 Sparse vectors are generally less effective at capturing the relationships between words, particularly for synonyms and related terms, compared to dense vectors.
 

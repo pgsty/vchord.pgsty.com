@@ -29,6 +29,7 @@ images: ["/blog/covers/how-we-made-100m-vector-indexing-in-20-minutes-possible-o
 | 优化前最低配置 | Amazon i7i.8xlarge | 🟨 $2174 / 月 | 135 GB / 256 GB |
 | 推荐快速建索引配置 | Amazon i7i.4xlarge | ✅ $**1087** / 月 | 12 GB / 128 GB |
 | 最低配置 | Amazon i7i.xlarge + 建索引时使用 GPU | ✅ $**272** / 月 + GPU 成本 | 6 GB / 32 GB |
+{.wide .expand}
 
 在接下来的章节中，我们将介绍如何优化各个阶段，使索引构建更快、更省内存。各项优化按阶段划分如下，每项优化分别针对一个阶段：
 
@@ -37,6 +38,7 @@ images: ["/blog/covers/how-we-made-100m-vector-indexing-in-20-minutes-possible-o
 | [层次化 K-means](#hierarchical-k-means) ➕ [降维](#dimensionality-reduction) | 1️⃣ 初始化（Initialization） | 🚀 30 分钟 (GPU) → 8 分钟 (CPU) 🧾 135 → 23 GB |
 | [减少锁竞争](#4-reducing-contention) | 2️⃣ 插入（Insertion） | 🚀 420 分钟 → 9 分钟 |
 | [并行化压缩](#5-parallelize-compaction) | 3️⃣ 压缩（Compaction） | 🚀 8 分钟 → 1 分钟 |
+{.wide .expand}
 
 ## 2\. 背景 {#2-background}
 

@@ -3,6 +3,7 @@ math: true
 title: "索引构建与维护"
 description: "在 PostgreSQL 中创建、配置、维护和检查 bm25 索引。"
 weight: 10
+icon: fa-solid fa-database
 ---
 
 `vchord_bm25` 提供了 `bm25` 索引访问方法以及需要显式指定的 `bm25_ops` 操作符类。0.4.0 的 SQL 处理器为 `bm25_amhandler`，0.3.x 为 `_bm25_amhandler`。
@@ -41,6 +42,7 @@ WITH (
 | `options` (`b`) | `float`（TOML 内） | `0.75` | `0.0` – `1.0` | 文档长度归一化参数 \(b\)。`0.0` 禁用长度归一化；`1.0` 完全按相对于 \(\text{avgdl}\) 的文档长度进行归一化。 |
 | `limit` | `int` | `0` | `0` – `65535` | 存储在索引上的默认 Top-K 检索上限（当会话 GUC `bm25.limit` 保持默认来源或执行 `RESET` 后使用）。 |
 | `prefilter` | `bool` | `false` | `true` / `false` | 存储在索引上的默认预过滤行为（可在会话级通过 `bm25.prefilter` 覆盖）。 |
+{.wide .expand}
 
 你可以使用 `ALTER INDEX` 动态更新现有索引上的 `limit` 或 `prefilter` 参数：
 

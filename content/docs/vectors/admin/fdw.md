@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/fdw.md"
 aliases:
   - "/admin/fdw/"
+icon: fa-solid fa-network-wired
 ---
 
 [Foreign data wrapper(FDW)](https://wiki.postgresql.org/wiki/Foreign_data_wrappers) is an extension in PostgreSQL that allows you to access and query data stored in remote databases as if they were local tables. FDW provides a way to integrate and interact with different data sources.

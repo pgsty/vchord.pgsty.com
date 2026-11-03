@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/getting-started/vectorchord-suite/"
   - "/vectorchord/getting-started/vectorchord-suite/"
+icon: fa-solid fa-boxes-stacked
 ---
 
 Retrieval-Augmented Generation (RAG) is revolutionizing our interaction with vast datasets and language models. RAG systems offer more precise, contextually aware, and current answers by retrieving pertinent information before generating responses. Nonetheless, constructing robust, scalable, and efficient RAG pipelines poses considerable challenges, particularly for production use.
@@ -65,7 +66,7 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
 \dx
-pg_tokenizer | 0.1.1   | tokenizer_catalog | pg_tokenizer
+pg_tokenizer | 0.2.0   | tokenizer_catalog | pg_tokenizer
 vchord       | 1.1.1   | public            | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
 vchord_bm25  | 0.3.0   | bm25_catalog      | vchord_bm25: A postgresql extension for bm25 ranking algorithm
 vector       | 0.8.1   | public            | vector data type and ivfflat and hnsw access methods

@@ -19,6 +19,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.drop_stopwords(name TEXT)` | `VOID` | 删除自定义停用词词典。 |
 | `tokenizer_catalog.create_synonym(name TEXT, config TEXT)` | `VOID` | 创建自定义同义词词典（每行一组以空格分隔的同义词，统一映射为首词）。 |
 | `tokenizer_catalog.drop_synonym(name TEXT)` | `VOID` | 删除自定义同义词词典。 |
+{.wide .expand}
 
 ### 分词模型与预加载管理 {#tokenization-models--preloading}
 
@@ -34,6 +35,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | 将模型加入共享内存预加载列表（重启 PostgreSQL 后生效）。 |
 | `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | 将模型移出预加载列表。 |
 | `tokenizer_catalog.list_preload_models()` | `TEXT[]` | 列出当前已注册预加载的所有模型名称。 |
+{.wide .expand}
 
 ### 分词器执行函数 {#tokenizer-execution}
 
@@ -42,6 +44,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.create_tokenizer(name TEXT, config TEXT)` | `VOID` | 创建分词器（组合可选的 `text_analyzer` 与必选的 `model`）。 |
 | `tokenizer_catalog.drop_tokenizer(name TEXT)` | `VOID` | 按名称删除分词器。 |
 | `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | 将 `text` 分词为整数词元 ID 数组（可隐式转换为 `bm25vector`）。 |
+{.wide .expand}
 
 ### 原生全文检索接口（0.2.0） {#native-full-text-search-020}
 
@@ -49,6 +52,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | :--- | :--- | :--- |
 | `tokenizer_catalog.analyze_to_tsvector(text TEXT, text_analyzer_name TEXT)` | `TSVECTOR` | 将分析器输出的字符串词元转换为带位置的原生词素。 |
 | `tokenizer_catalog.tokenize_to_tsvector(text TEXT, tokenizer_name TEXT)` | `TSVECTOR` | 将模型输出的词元 ID 转为十进制词素，并按最终输出序列编号。 |
+{.wide .expand}
 
 这两个函数均为 `STABLE`，因为会读取目录中的定义。空词元会被忽略，剩余输出从位置 1 开始连续编号；位置表示最终分析器/模型输出，不是源文本偏移。应先将结果存入列，再创建 GIN/GiST 或兼容 BM25 索引，并用相同的词素表示生成查询。
 
@@ -63,6 +67,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `character_filters` | 表数组 / 字符串数组 | 字符级过滤转换（`to_lowercase`、`unicode_normalization = "nfc" \| "nfd" \| "nfkc" \| "nfkd"`）。 |
 | `pre_tokenizer` | 表 / 字符串 | 初始分词切分器（`unicode_segmentation`、`regex = "..."` 或 `jieba`）。 |
 | `token_filters` | 表数组 / 字符串数组 | 词元级过滤器（`skip_non_alphanumeric`、`stemmer`、`stopwords`、`synonym`、`pg_dict`、`ngram`）。 |
+{.wide .expand}
 
 ### `tokenizer` 配置项
 
@@ -70,6 +75,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | :--- | :--- | :--- |
 | `text_analyzer` | 字符串 | 已创建的 `text_analyzer` 名称（或内联 `[text_analyzer]` 表）。使用独立子词模型时无需配置。 |
 | `model` | 字符串 | 内置预训练模型（`llmlingua2`、`bert_base_uncased`、`wiki_tocken`、`gemma2b`）或自定义/HuggingFace/Lindera 模型名称。 |
+{.wide .expand}
 
 ### `custom_model` 配置项
 
@@ -79,6 +85,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `column` | 字符串 | 存放原始文本的 `TEXT` 列名称。 |
 | `text_analyzer` | 字符串 | 用于提取词表词元的 `text_analyzer` 名称。 |
 | `filter` | 字符串 | 可选的可信 SQL 布尔表达式，不包含 `WHERE` 或 `NEW.`。只有结果为 TRUE 的行参与训练和 embedding 更新；FALSE/NULL 会跳过，词表只增不减。 |
+{.wide .expand}
 
 ## 0.2.0 的并发、过滤与缓存语义 {#api-020}
 

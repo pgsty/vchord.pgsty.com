@@ -3,6 +3,7 @@ title: "SQL Reference & Comparison"
 linkTitle: "SQL Reference"
 description: "Complete SQL function reference for pg_bestmatch (bm25_catalog) and architectural comparison with vchord_bm25."
 weight: 30
+icon: fa-solid fa-book
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#references
 math: true
 ---
@@ -112,3 +113,4 @@ Both `pg_bestmatch` and [`vchord_bm25`](/docs/bm25/) were created by the TensorC
 | **Search Accuracy** | Approximate (HNSW graph traversal over sparse vectors) | **100% Exact** Top-K BM25 scoring |
 | **Tokenization** | Fixed `bert-base-uncased` WordPiece (`30,522` dims) | Pluggable [`pg_tokenizer`](/docs/tokenizer/) (Unicode, Jieba, Lindera, HuggingFace, Snowball, custom corpus-trained models) |
 | **Recommended Use** | Lightweight experiments when you already only have `pgvector` HNSW | **Production full-text and hybrid search** |
+{.wide .expand}

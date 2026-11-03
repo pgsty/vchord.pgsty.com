@@ -3,12 +3,14 @@ math: true
 title: "Release History & API Evolution"
 description: "Version changelog and SQL schema evolution of VectorChord-BM25 (vchord_bm25) from v0.1.0 to v0.3.0 and main."
 weight: 40
+icon: fa-solid fa-clock-rotate-left
 ---
 
 > [!IMPORTANT]
 > Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
 
 `pg_tokenizer 0.2.0` is an independent tokenizer release. Use it with the historical `vchord_bm25` 0.3.x `bm25vector` workflow, or use its native `tsvector` helpers with the 0.4.0/main API when custom tokenization is required. It is not a dependency of the native `vchord_bm25` path.
+
 
 This page tracks the release history and SQL schema evolution of `vchord_bm25` ([`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) / [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)).
 
@@ -23,6 +25,7 @@ This page tracks the release history and SQL schema evolution of `vchord_bm25` (
 | **`v0.2.0`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | Added `=` and `<>` equality operators on `bm25vector` and implicit cast `CREATE CAST (int[] AS bm25vector) AS IMPLICIT`. |
 | **`v0.1.1`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | Decoupled tokenization into standalone `pg_tokenizer` extension; changed `to_bm25query(regclass, bm25vector)` signature. |
 | **`v0.1.0`** | `bm25_catalog` | `bm25vector` | Built-in `unicode` | Initial release with `bm25vector`, `bm25query`, `USING bm25`, and Block-WeakAnd Top-K scan. |
+{.wide .expand}
 
 ---
 

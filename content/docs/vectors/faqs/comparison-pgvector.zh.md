@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/faqs/comparison-pgvector/"
+icon: fa-solid fa-scale-balanced
 ---
 
 原文：[pgvector vs. pgvecto.rs in 2024: A Comprehensive Comparison for Vector Search in PostgreSQL](/zh/blog/post/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/)
@@ -147,3 +148,4 @@ SELECT * FROM items ORDER BY embedding <-> '[1,0,1]' LIMIT 5;
 | 数据类型 | 提供丰富的数据类型支持：稠密向量、稀疏向量、二值向量、FP16（16 位浮点数）以及 INT8 量化。 | \- |
 | 索引存储架构 | 独立于 PostgreSQL 管理索引的磁盘存储与内存映射。 | 依赖 PostgreSQL 原生页面存储引擎。 |
 | WAL 支持 | 表数据支持预写式日志（WAL），索引的 WAL 支持尚在开发中。 | 表数据和索引均支持预写式日志（WAL）。 |
+{.wide .expand}

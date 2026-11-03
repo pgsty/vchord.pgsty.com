@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/reference/vector-types/svector/"
+icon: fa-solid fa-braille
 ---
 
 {{< badge text="since v0.3.0" tone="info" >}}

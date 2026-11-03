@@ -2,6 +2,7 @@
 title: "文本分析器与过滤器"
 description: "pg_tokenizer 中字符过滤器、预分词器与词元过滤器的完整配置参考手册。"
 weight: 20
+icon: fa-solid fa-sliders
 ---
 
 **文本分析器（Text Analyzer）** 通过三个顺序阶段处理原始文本：
@@ -90,6 +91,7 @@ regex = '''\w+'''
 | :--- | :--- | :--- | :--- |
 | `mode` | `string` | `"search"` | `"full"`（调用标准 `jieba.cut` 分词）、`"precise"`（调用 `jieba.cut_all` 扫描句中所有可成词的词语）或 `"search"`（搜索引擎模式，调用 `jieba.cut_for_search` 对长词再次切分以提高检索召回率）。 |
 | `enable_hmm` | `bool` | `true` | 是否启用 HMM 新词发现能力（仅在 `"full"` 和 `"search"` 模式下生效）。 |
+{.wide .expand}
 
 ```toml
 [pre_tokenizer.jieba]
@@ -146,6 +148,7 @@ stemmer = "english_porter2"
 | 印度尼西亚语 (Indonesian) | `indonesian` | | |
 | 爱尔兰语 (Irish) | `irish` | | |
 | 意大利语 (Italian) | `italian` | | |
+{.wide .expand}
 
 ### `stopwords`（停用词过滤） {#stopwords}
 
@@ -215,6 +218,7 @@ pg_dict = "english_stem"
 | `min_gram` | `int` | `1` | `1..=255` (`<= max_gram`) | 生成 N-gram 的最小字符长度。 |
 | `max_gram` | `int` | `2` | `1..=255` (`>= min_gram`) | 生成 N-gram 的最大字符长度。 |
 | `preserve_original` | `bool` | `false` | `true` / `false` | 当原始词元长度不在 `[min_gram, max_gram]` 范围内时，是否同时保留未切分的原始词元。 |
+{.wide .expand}
 
 ```toml
 [[token_filters.ngram]]

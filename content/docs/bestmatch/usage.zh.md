@@ -3,6 +3,7 @@ title: "使用指南"
 linkTitle: "使用指南"
 description: "结合 pg_bestmatch 与 pgvector（sparsevec）或 pgvecto.rs（svector）构建 BM25 稀疏向量索引并执行全文检索的完整步骤。"
 weight: 20
+icon: fa-solid fa-code
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#usage
 ---
 

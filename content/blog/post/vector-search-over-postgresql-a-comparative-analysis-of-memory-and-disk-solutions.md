@@ -73,6 +73,7 @@ Here we present information about the hardware and datasets used in all of the f
 | Inserted rows | 5,000,000 | 5,000,000 | 5,000,000 | 100 after the index is created |
 | Distance metric | L2 distance | L2 distance | / | / |
 | Test queries | 10,000 | 10,000 | / | / |
+{.wide .expand}
 
 In this table, we show the version of all the extensions we use in these experiments:
 
@@ -81,6 +82,7 @@ In this table, we show the version of all the extensions we use in these experim
 | VectorChord | v0.2.2 | tensorchord/vchord-postgres:pg17-v0.2.2 |
 | pgvector | v0.8.0 | tensorchord/vchord-postgres:pg17-v0.2.2 (`with a pgvector v0.8.0 installed`) |
 | pgvectorscale | v0.6.0 | timescale/timescaledb-ha:pg17.4-ts2.18.2-oss |
+{.wide .expand}
 
 ## Vectors in memory: for small scale data
 
@@ -189,6 +191,7 @@ If you want to see more detailed differences, this table shows them between the 
 | Speed of index building | Mid-tier, support multiple cores | Bottom-tier, does not support multiple cores | **Top-tier, support multiple cores** |
 | Peak Index Build Memory Usage | **2.1 GB** | 15.2 GB | **1.1 GB** (external), 9.8 GB (internal) |
 | Total Disk Usage | Nearly largest | **Smallest** | Largest |
+{.wide .expand}
 
 Want to know more about how VectorChord compares to other extensions? In future blogs, we will explore the differences of PostgreSQL vector extensions in more scenarios, such as [**bm25 hybrid search**](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/) (combining traditional keyword search with vector similarity search) and **filtered vector search**. Ready to try VectorChord for your vector search needs? Download the [extension](/docs/vchord/) and feel free to join our [Discord community](https://discord.gg/KqswhpVgdU) or contact us at [support@tensorchord.ai](mailto:support@tensorchord.ai).
 

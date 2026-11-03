@@ -2,6 +2,7 @@
 title: "分词词表模型"
 description: "预训练模型（llmlingua2、bert_base_uncased、wiki_tocken、gemma2b）、自定义语料训练模型、HuggingFace 分词器与 Lindera 模型。"
 weight: 30
+icon: fa-solid fa-brain
 ---
 
 在 `pg_tokenizer` 中，**模型（Model）** 负责将字符串词元（或原始文本）映射为整数词元 ID（`INT[]`）。你可以直接选用四个内置预训练模型、在 PostgreSQL 表上训练自定义词表模型、导入任意 HuggingFace `tokenizer.json`，或者使用 Lindera 形态学分析模型。
@@ -14,6 +15,7 @@ weight: 30
 | **`bert_base_uncased`** | [`google-bert/bert-base-uncased`](https://huggingface.co/google-bert/bert-base-uncased)（WordPiece，30,522 词表） | 否（禁止） | ~15 MB | 通用英文文本；启动极快且词表紧凑。 |
 | **`wiki_tocken`** | [`Snowolf/wiki-tocken`](https://huggingface.co/Snowolf/wiki-tocken)（内置英文维基百科词元词典） | **是（必需）** | ~30 MB | 配合自定义词干提取器、停用词与同义词使用的英文全文检索。 |
 | **`gemma2b`** | [`google/gemma-2b`](https://huggingface.co/google/gemma-2b)（SentencePiece BPE，256k 词表） | 否（禁止） | ~100 MB | 代码、技术标识符以及多语言大语言模型工作负载。 |
+{.wide .expand}
 
 ### 示例：使用 `bert_base_uncased` 或 `llmlingua2` {#example-using-bert_base_uncased-or-llmlingua2}
 

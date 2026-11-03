@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/getting-started/overview/"
+icon: fa-solid fa-compass
 ---
 
 > [!WARNING]
@@ -32,6 +33,7 @@ aliases:
 | 数据类型 | 引入额外的数据类型：二值向量（binary vector）、FP16（16 位浮点数）和 INT8（8 位整数）。 | \- |
 | 索引机制 | 独立于 PostgreSQL 管理索引的存储和内存 | 依赖 PostgreSQL 的原生存储引擎 |
 | WAL 支持 | 为数据提供预写式日志（WAL）支持，索引的 WAL 支持正在开发中。 | 为索引和数据均提供预写式日志（WAL）支持。 |
+{.wide .expand}
 
 ## 快速开始 {#quick-start}
 

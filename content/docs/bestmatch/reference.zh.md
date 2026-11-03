@@ -3,6 +3,7 @@ title: "SQL 参考与方案对比"
 linkTitle: "SQL 参考"
 description: "pg_bestmatch（bm25_catalog）的完整 SQL 函数参考手册，以及与 vchord_bm25 的架构对比。"
 weight: 30
+icon: fa-solid fa-book
 math: true
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#references
 ---
@@ -112,3 +113,4 @@ tokenize(
 | **检索精度** | 近似检索（基于稀疏向量 HNSW 图遍历） | **100% 精确** Top-K BM25 计分 |
 | **分词能力** | 固定内置 `bert-base-uncased` 词表（`30,522` 维） | 可插拔 [`pg_tokenizer`](/zh/docs/tokenizer/)（支持 Unicode、Jieba、Lindera、HuggingFace、Snowball 及自定义语料词表） |
 | **适用场景** | 仅安装了 `pgvector` 环境下的轻量级实验与基准对比 | **生产级全文检索与多路混合检索首选** |
+{.wide .expand}

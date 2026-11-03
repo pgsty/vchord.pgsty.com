@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/benchmark/price/"
   - "/vectorchord/benchmark/price/"
+icon: fa-solid fa-coins
 ---
 
 使用 VectorChord，您可以在单台机器上对 1 亿条 768 维向量执行 Top-10 查询，在保持 0.95 召回率（Precision/Recall）的同时实现 131 的 QPS，而整套配置的月度成本仅为 250 美元。如果您对我们的技术实现细节感兴趣，请参阅我们的博文《[VectorChord：在 PostgreSQL 中仅需 1 美元存储 400k 向量](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)》。

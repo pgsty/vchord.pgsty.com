@@ -3,6 +3,7 @@ title: "Querying & Filtering"
 linkTitle: "Querying & Filtering"
 description: "Nearest-neighbor operators, distance calculations, aggregates, WHERE filtering with iterative index scans, and hybrid search in pgvector."
 weight: 20
+icon: fa-solid fa-magnifying-glass
 upstream_link: https://github.com/pgvector/pgvector#querying
 math: true
 ---
@@ -15,10 +16,11 @@ math: true
 | :---: | :--- | :--- | :--- |
 | `<->` | **L2 (Euclidean) distance** | `vector`, `halfvec`, `sparsevec` | \(\sqrt{\sum (a_i - b_i)^2}\) |
 | `<#>` | **Negative inner product** | `vector`, `halfvec`, `sparsevec` | Returns \(-\sum a_i b_i\) because PostgreSQL index scans only support `ASC` order |
-| `<=>` | **Cosine distance** | `vector`, `halfvec`, `sparsevec` | \(1 - \frac{a \cdot b}{\|a\|\|b\|}\) (range `[0, 2]`) |
-| `<+>` | **L1 (Taxicab / Manhattan) distance** | `vector`, `halfvec`, `sparsevec` | \(\sum |a_i - b_i|\) (added in `0.7.0`) |
+| `<=>` | **Cosine distance** | `vector`, `halfvec`, `sparsevec` | \(1 - \frac{a \cdot b}{\lVert a \rVert \lVert b \rVert}\) (range `[0, 2]`) |
+| `<+>` | **L1 (Taxicab / Manhattan) distance** | `vector`, `halfvec`, `sparsevec` | \(\sum \lvert a_i - b_i \rvert\) (added in `0.7.0`) |
 | `<~>` | **Hamming distance** | `bit` | Number of differing bits (`XOR` popcount) |
-| `<%>` | **Jaccard distance** | `bit` | \(1 - \frac{|A \cap B|}{|A \cup B|}\) |
+| `<%>` | **Jaccard distance** | `bit` | \(1 - \frac{\lvert A \cap B \rvert}{\lvert A \cup B \rvert}\) |
+{.wide .expand}
 
 > [!TIP] Normalized Vectors
 > If your vectors are already normalized to unit length (such as OpenAI `text-embedding-3-*` or BGE embeddings), prefer inner product (`<#>`) over cosine distance (`<=>`) for the best CPU throughput.

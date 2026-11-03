@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/benchmark/elasticsearch/"
   - "/vectorchord/benchmark/elasticsearch/"
+icon: fa-solid fa-magnifying-glass-chart
 ---
 
 本文展示了我们将 VectorChord-BM25 实现与 Elasticsearch 进行全面对比的基准测试结果，重点考察两个核心指标：QPS（每秒查询数）与 NDCG@10（前 10 位结果的归一化折损累计增益）。如果您对我们的技术实现细节感兴趣，请参阅我们的博文《[VectorChord-BM25：以比 Elasticsearch 快 3 倍的 BM25 排序彻底革新 PostgreSQL 搜索](/zh/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)》。

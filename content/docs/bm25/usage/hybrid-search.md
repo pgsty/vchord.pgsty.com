@@ -3,6 +3,7 @@ title: "Hybrid Search (BM25 + VectorChord)"
 description: "Combine sparse lexical BM25 search (vchord_bm25) and dense vector search (vchord) with Reciprocal Rank Fusion (RRF) and ColBERT reranking."
 weight: 40
 math: true
+icon: fa-solid fa-code-merge
 ---
 
 Modern retrieval pipelines combine **dense vector search** ([`vchord`](/docs/), which captures semantic similarity) with **sparse lexical BM25 search** (`vchord_bm25`, which captures exact keyword, identifier, and rare-term matches). Because both extensions run natively inside PostgreSQL, you can execute **end-to-end hybrid search in a single SQL query** with zero external orchestration.

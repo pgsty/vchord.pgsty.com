@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/community/adopters.md"
 aliases:
   - "/community/adopters/"
+icon: fa-solid fa-building
 ---
 
 - [immich](https://github.com/immich-app/immich) is a self-hosted photo and video backup solution directly from your mobile phone. it is [using pgvecto.rs to search](https://immich.app/docs/features/search).

@@ -3,6 +3,7 @@ math: true
 title: "Filtered Search & Prefiltering"
 description: "Combine SQL WHERE clauses with BM25 Top-K ranking using post-filtering, pre-filtering, and partial indexes."
 weight: 30
+icon: fa-solid fa-filter
 ---
 
 Real-world applications frequently combine full-text BM25 ranking with structured relational filters (such as `category_id = 5`, `tenant_id = 'acme'`, or date ranges). `vchord_bm25` supports three strategies for filtered BM25 search.
@@ -81,3 +82,4 @@ LIMIT 10;
 | **High selectivity (50%–100% rows match)** | Post-filtering (`enable_prefilter = false`) with slightly higher `bm25_limit` | Avoids heap fetches during the inner WAND loop; global Top-100 easily contains 10+ matching rows. |
 | **Medium selectivity (5%–50% rows match)** | Pre-filtering (`enable_prefilter = true` / `bm25.prefilter = true`) | Guarantees exact Top-K recall over filtered rows without scanning irrelevant postings. |
 | **Fixed tenant / status subset** | Partial `bm25` index (`CREATE INDEX ... WHERE ...`) or table partitioning | Smaller index size, dedicated corpus IDF statistics, and zero wasted checks on other partitions. |
+{.wide .expand}

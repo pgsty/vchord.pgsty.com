@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/benchmark/price/"
   - "/vectorchord/benchmark/price/"
+icon: fa-solid fa-coins
 ---
 
 Using VectorChord, you can achieve a QPS of 131 with 0.95 precision on 100 million 768-dimensional vectors for the top 10 queries. This setup costs only $250 monthly and can be hosted on a single machine. If you are interested in the details of our implementation, please refer to our blog [VectorChord: Store 400k Vectors for $1 in PostgreSQL](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).

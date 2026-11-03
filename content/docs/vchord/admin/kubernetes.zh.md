@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/admin/kubernetes/"
   - "/vectorchord/admin/kubernetes/"
+icon: fa-solid fa-dharmachakra
 ---
 
 如果您希望在运行于 Kubernetes 上的 PostgreSQL 中使用 `vectorchord`，本教程将为您提供完整的操作指引。在本教程中，我们将使用 [CloudNative-PG](https://cloudnative-pg.io/) 在 Kubernetes 中部署 PostgreSQL 集群。
@@ -20,6 +21,7 @@ aliases:
 | [kubectl](https://kubernetes.io/docs/tasks/tools/) | >= 1.14 |
 | [Kubernetes](https://kubernetes.io/) | >= 1.24.0 |
 | [Kubernetes（使用镜像卷扩展 Image Volume Extensions）](https://kubernetes.io/) | >= 1.31.0 |
+{.wide .expand}
 
 ## 安装 CloudNative-PG {#install-cloudnative-pg}
 

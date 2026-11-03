@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/getting-started/overview/"
   - "/vectorchord/getting-started/overview/"
+icon: fa-solid fa-compass
 ---
 
 `vchord` 是一款专为可扩展、高性能且磁盘高效的向量相似性检索而设计的 PostgreSQL 扩展。

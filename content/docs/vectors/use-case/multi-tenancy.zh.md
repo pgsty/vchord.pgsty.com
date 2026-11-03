@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/multi-tenancy.md"
 aliases:
   - "/use-case/multi-tenancy/"
+icon: fa-solid fa-users
 ---
 
 多租户（Multi-tenancy）对于 SaaS 应用至关重要，它允许单个数据库实例同时服务多个用户或团队，同时确保数据隐私与隔离安全。本文将介绍如何使用 `pgvecto.rs` 设计并实现一个简洁的多租户向量搜索系统。

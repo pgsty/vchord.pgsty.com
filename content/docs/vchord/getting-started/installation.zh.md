@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/getting-started/installation/"
   - "/vectorchord/getting-started/installation/"
+icon: fa-solid fa-download
 ---
 
 VectorChord 已在以下操作系统上通过测试：

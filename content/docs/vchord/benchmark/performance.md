@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/benchmark/performance/"
   - "/vectorchord/benchmark/performance/"
+icon: fa-solid fa-gauge-high
 ---
 
 Here we present a comprehensive benchmark comparing our implementation of VectorChord with other vector databases, focusing on QPS and scalability.  If you are interested in the details of our implementation, please refer to our blog [VectorChord: Store 400k Vectors for $1 in PostgreSQL](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).
@@ -38,6 +39,7 @@ If you are interested VectorChord scalable capability, you can refer our blog [V
 | --- | --- | --- | --- |
 | LAION-5m | r7i.xlarge × 7 | 4 × 7 = 28 vcpu | $0.2646 × 7 × 720 = $1334 |
 | LAION-100m | r7i.16xlarge × 2 | 64 × 2 = 128 vcpu | $4.2336 × 2 × 720 = $6096 |
+{.wide .expand}
 
 <img src="/docs/images/scalability-laion5m-laion100m-qps.png" alt="QPS on LAION 100M and LAION 5M" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 

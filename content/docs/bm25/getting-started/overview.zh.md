@@ -3,6 +3,7 @@ title: "架构概览"
 description: "了解 VectorChord-BM25 如何为 PostgreSQL 带来原生 Okapi BM25 评分与 Block-WeakAnd Top-K 检索。"
 weight: 10
 math: true
+icon: fa-solid fa-compass
 ---
 
 PostgreSQL 通过 `tsvector`、`tsquery`、`ts_rank` 和 `GIN` 索引提供了内置的全文检索能力。虽然它在布尔关键词匹配（`@@`）方面表现良好，但在现代搜索与检索增强生成（RAG）工作负载下，PostgreSQL 内置的相关性排序存在两个结构性局限：
@@ -22,6 +23,7 @@ PostgreSQL 通过 `tsvector`、`tsquery`、`ts_rank` 和 `GIN` 索引提供了�
 | **文档长度归一化** | 可选的粗粒度位掩码标志 | 单字节 **Fieldnorm 量化**（256 项查找表） |
 | **查询语义** | 要求布尔 `AND`/`OR` 精确匹配 | 跨所有查询词的非合取（Non-conjunctive）Top-K 相关性排序 |
 | **分词能力** | 内置 `ts_debug` / Snowball | `pg_tokenizer`（LLM 分词器、`jieba`、`lindera`、自定义词表）或原生 `tsvector` |
+{.wide .expand}
 
 ## 架构概览 {#architecture-overview}
 

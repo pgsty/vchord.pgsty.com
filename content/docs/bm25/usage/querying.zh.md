@@ -3,6 +3,7 @@ math: true
 title: "查询与相关性评分"
 description: "执行 Top-K BM25 查询、理解负值 BM25 得分并调优检索上限参数。"
 weight: 20
+icon: fa-solid fa-ranking-star
 ---
 
 ## 基础 Top-K 查询语法 {#basic-top-k-query-syntax}
@@ -77,6 +78,7 @@ LIMIT 500;
 | `1` – `65535` | 使用 Block-WeakAnd 计算并返回最多 `bm25_limit` 条高分文档（默认 `100`）。 |
 | `0` | 立即返回 `0` 行。 |
 | `-1` | 禁用 Block-WeakAnd Top-K 剪枝，对索引中所有匹配的倒排项执行全量暴力扫描。 |
+{.wide .expand}
 
 ### 在 `main` 分支中：`bm25.limit` 与索引 `limit` 存储参数 {#in-main-bm25limit-and-index-limit-reloption}
 

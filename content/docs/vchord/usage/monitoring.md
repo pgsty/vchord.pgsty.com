@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/usage/monitoring/"
   - "/vectorchord/usage/monitoring/"
+icon: fa-solid fa-heart-pulse
 ---
 
 You can monitor the progress of building a PostgreSQL index by querying the [`pg_stat_progress_create_index`](https://www.postgresql.org/docs/current/progress-reporting.html#CREATE-INDEX-PROGRESS-REPORTING) view.
@@ -35,6 +36,7 @@ There are 5 steps in the index construction process of `vchordrq`. The phase nam
 | 3    | `initializing index`                    | Initialize the data structure and storage of the index                                                                 | Short        |
 | 4    | `inserting tuples from table to index`  | Assign all vectors to their corresponding lists                                                                        | Long         |
 | 5    | `compacting tuples in index`            | Optimize the structure of the vector index to enhance performance                                                      | Medium       |
+{.wide .expand}
 
 The 4th step, `inserting tuples from table to index`, takes up the majority of the time during index construction. The `tuples_done`, `blocks_done` and `blocks_total` columns indicate the progress of this step.
 
@@ -50,5 +52,6 @@ There are 2 steps in the index construction process of `vchordg`. The phase name
 | ---- | -------------------------------------- | --------------------------------- | ------------ |
 | 1    | `initializing`                         | Start building index              | Short        |
 | 2    | `inserting tuples from table to index` | Insert all vectors into the graph | Long         |
+{.wide .expand}
 
 The 2nd step, `inserting tuples from table to index`, takes up the majority of the time during index construction. The `tuples_done`, `blocks_done` and `blocks_total` columns indicate the progress of this step.

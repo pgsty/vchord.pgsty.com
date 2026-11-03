@@ -2,6 +2,7 @@
 title: "Installation"
 description: "Install VectorChord-BM25 (vchord_bm25) and pg_tokenizer via Pigsty, Docker, Debian packages, or source."
 weight: 20
+icon: fa-solid fa-download
 ---
 
 > [!IMPORTANT]

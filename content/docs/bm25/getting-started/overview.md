@@ -3,6 +3,7 @@ title: "Overview"
 description: "Why VectorChord-BM25 brings native Okapi BM25 and Block-WeakAnd Top-K search to PostgreSQL."
 weight: 10
 math: true
+icon: fa-solid fa-compass
 ---
 
 PostgreSQL includes built-in full-text search via `tsvector`, `tsquery`, `ts_rank`, and `GIN` indexes. While effective for boolean keyword matching (`@@`), PostgreSQL's built-in ranking has two structural limitations for modern search and Retrieval-Augmented Generation (RAG) workloads:
@@ -22,6 +23,7 @@ PostgreSQL includes built-in full-text search via `tsvector`, `tsquery`, `ts_ran
 | **Document Length Norm** | Optional crude bitmask flags | 1-byte **Fieldnorm Quantization** (256-entry lookup table) |
 | **Query Semantics** | Boolean `AND`/`OR` match required | Non-conjunctive Top-K ranking across all query terms |
 | **Tokenization** | Built-in `ts_debug` / Snowball | `pg_tokenizer` (LLM tokenizers, `jieba`, `lindera`, custom vocab) or native `tsvector` |
+{.wide .expand}
 
 ## Architecture Overview
 

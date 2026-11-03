@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/zh/docs/usage/graph-index/"
   - "/vectorchord/usage/graph-index/"
+icon: fa-solid fa-diagram-project
 ---
 
 {{< badge text="since v0.5.0" tone="info" >}}
@@ -79,6 +80,7 @@ $$);
 | `rabitq4_l2_ops`     | 适用于 `rabitq4` 类型与欧氏距离       | `<->(rabitq4,rabitq4)` | `<<->>(rabitq4,rabitq4)` |
 | `rabitq4_ip_ops`     | 适用于 `rabitq4` 类型与负内积         | `<#>(rabitq4,rabitq4)` | `<<#>>(rabitq4,rabitq4)` |
 | `rabitq4_cosine_ops` | 适用于 `rabitq4` 类型与余弦距离       | `<=>(rabitq4,rabitq4)` | `<<=>>(rabitq4,rabitq4)` |
+{.wide .expand}
 
 `<<->>`、`<<#>>`、`<<=>>` 是由 VectorChord 定义的操作符。有关 `<<->>`、`<<#>>`、`<<=>>` 的更多信息，请参阅[相似度过滤](/zh/docs/vchord/usage/similarity-filter/)。
 

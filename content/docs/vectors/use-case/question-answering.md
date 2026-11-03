@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/use-case/question-answering/"
+icon: fa-solid fa-comments
 ---
 
 Vector search can also be used to provide context to generative models such as OpenAI's GPT series, improving the quality of the outputs. 

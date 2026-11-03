@@ -3,6 +3,7 @@ title: "BM25 & Block-WeakAnd Internals"
 description: "Mathematical formulation and index architecture of Okapi BM25, 1-byte fieldnorm quantization, delta-bitpacking, and Block-WeakAnd in vchord_bm25."
 weight: 50
 math: true
+icon: fa-solid fa-microchip
 ---
 
 This page details the exact scoring equations and data structures implemented in `vchord_bm25` (`crates/bm25/src/bm25.rs` and `src/algorithm/block_wand.rs`).

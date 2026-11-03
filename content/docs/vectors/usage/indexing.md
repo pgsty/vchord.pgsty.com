@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/indexing.md"
 aliases:
   - "/usage/indexing/"
+icon: fa-solid fa-sitemap
 ---
 
 Indexing is the process of building a data structure that allows for efficient search. `pgvecto.rs` supports three indexing algorithms: brute force (flat), IVF, and HNSW. The default algorithm is HNSW.

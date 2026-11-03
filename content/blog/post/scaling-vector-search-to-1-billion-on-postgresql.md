@@ -32,6 +32,7 @@ These tradeoffs are visible in existing public benchmarks. For example, [ScyllaD
 | ScyllaDB | 13ms / 98% | 3×`AWS r7i.48xlarge` + 3×`AWS i4i.16xlarge` | 24.4 h |
 | YugabyteDB | 319 ms / 96% | Not reported | Not reported |
 | VectorChord | 40 ms / 95% | `AWS i7ie.6xlarge` | 1.8 h |
+{.wide .expand}
 
 For single-node deployments, previous work from [Scalable Vector Search (SVS)](https://intel.github.io/ScalableVectorSearch/benchs/static/previous/large_scale_benchs.html#search-with-reduced-memory-footprint) shows that indexing DEEP-1B with [HNSWlib](https://github.com/nmslib/hnswlib) typically requires 800 GiB of memory, though SVS or [FAISS-IVFPQs](https://github.com/facebookresearch/faiss) can reduce it to around 300 GiB, which is still a substantial hardware requirement.
 
@@ -65,6 +66,7 @@ Based on these requirements, an `AWS i7i.4xlarge` is the minimum configuration f
 | Memory (GiB) | 128 | 192 |
 | Disk Space (GiB) | 3750 GB NVMe SSD | 2×7500 GB NVMe SSD |
 | Price | **$1088** monthly | **$2246** monthly |
+{.wide .expand}
 
 All experiments were run with VectorChord 1.0.0 on PostgreSQL 17. The SQL below is the exact command we used to build the index:
 
@@ -109,12 +111,14 @@ The table below lists the exact search parameters behind each data point, varyin
 | 40,120 / 1.9 | 0.9132 | 117.45 | 12.33 |
 | 40,160 / 1.9 | 0.9305 | 97.32 | 14.61 |
 | 40,250 / 1.9 | 0.9511 | 68.87 | 20.53 |
+{.wide .expand}
 
 | [probes](/docs/vchord/usage/indexing/#vchordrq-probes) / [epsilon](/docs/vchord/usage/indexing/#vchordrq-epsilon) | Recall@Top 100 | QPS | P99 latency / ms |
 | --- | --- | --- | --- |
 | 40,180 / 1.9 | 0.9051 | 66.12 | 22.60 |
 | 40,270 / 1.9 | 0.9318 | 49.55 | 30.40 |
 | 40,390 / 1.9 | 0.9509 | 37.53 | 39.70 |
+{.wide .expand}
 
 These results demonstrate that vector query performance can be practical and predictable on a single machine, even at the billion scale.
 

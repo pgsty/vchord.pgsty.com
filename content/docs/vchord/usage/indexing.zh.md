@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/zh/docs/usage/indexing/"
   - "/vectorchord/usage/indexing/"
+icon: fa-solid fa-sitemap
 ---
 
 VectorChord 的索引类型 `vchordrq` 会将向量划分为多个列表（list），并仅搜索距离查询向量最近的一部分列表。它兼具极快的构建速度与低内存占用，同时在性能上[显著优于](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/#ivf-vs-hnsw) `hnsw` 和 `ivfflat`。
@@ -68,6 +69,7 @@ SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 10;
 | \(N \in [10^5, 2 \times 10^6)\)          | \(L = \frac{N}{500}\)                  | `[2000]`     |
 | \(N \in [2 \times 10^6, 5 \times 10^7)\) | \(L \in [4 \sqrt{N}, 8 \sqrt{N}]\)     | `[10000]`    |
 | \(N \in [5 \times 10^7, \infty)\)        | \(L \in [8 \sqrt{N}, 16\sqrt{N}]\)     | `[80000]`    |
+{.wide .expand}
 
 构建索引的过程包含两个步骤：首先对向量空间进行分区，然后将行插入到索引中。第一步（划分向量空间）可以使用多线程进行加速。
 
@@ -143,6 +145,7 @@ $$);
 | `halfvec_maxsim_ops` | 适用于 `halfvec[]` 类型与可扩展的多向量相似度  | `@#(halfvec[],halfvec[])` | N/A                      |
 | `rabitq8_maxsim_ops` | 适用于 `rabitq8[]` 类型与可扩展的多向量相似度  | `@#(rabitq8[],rabitq8[])` | N/A                      |
 | `rabitq4_maxsim_ops` | 适用于 `rabitq4[]` 类型与可扩展的多向量相似度  | `@#(rabitq4[],rabitq4[])` | N/A                      |
+{.wide .expand}
 
 `<->`、`<#>` 和 `<=>` 是由 pgvector 定义的操作符。
 
@@ -334,7 +337,7 @@ $$);
     - `SET vchordrq.probes = 1` 表示仅使用 1 个探测分区。
     - `SET vchordrq.probes = 10` 表示使用 10 个探测分区。
 - 注意：默认值为空列表。该选项的长度必须与 `lists` 的长度相匹配。
-    - 每项必须是 `0..=4294967295` 范围内的无符号十进制整数，空格会被忽略。空项（如 `,5`、`1,,2`、`10,`）和溢出值会在规划或执行扫描时报错。索引的 `probes` 回退参数也遵循相同规则。
+    - 每项必须是 `1..=4294967295` 范围内的无符号十进制整数，空格会被忽略。空项（如 `,5`、`1,,2`、`10,`）、零值和溢出值会在设置参数或索引选项时直接拒绝。索引的 `probes` 回退参数也遵循相同规则。
     - 如果 `lists = []`，则 probes 必须为 ` `。
     - 如果 `lists = [11, 22]`，则 probes 可以是 `2,4` 或 `4,8`。其形状不能不匹配，例如不能是 ` `、`3`、`7,8,9` 或 `5,5,5,5`。
 

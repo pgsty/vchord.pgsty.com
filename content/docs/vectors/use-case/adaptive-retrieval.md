@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/adaptive-retrieval.md"
 aliases:
   - "/use-case/adaptive-retrieval/"
+icon: fa-solid fa-wand-magic-sparkles
 ---
 
 OpenAI [latest embedding models](https://openai.com/blog/new-embedding-models-and-api-updates) support shortening embeddings, where developers could simply “remove some numbers from the end of a sequence” and still maintain a valid representation for text.

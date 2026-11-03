@@ -3,6 +3,7 @@ title: "Quantization & Sparse Vectors"
 linkTitle: "Quantization & Sparse Vectors"
 description: "Half-precision vectors (halfvec), binary quantization (bit), sparse vectors (sparsevec), and Matryoshka sub-vector indexing in pgvector."
 weight: 40
+icon: fa-solid fa-compress
 upstream_link: https://github.com/pgvector/pgvector#half-precision-vectors
 math: true
 ---
@@ -15,6 +16,7 @@ math: true
 | `halfvec(n)` | 16-bit float (`float16`) | 4,000 | \(2n + 8\) bytes |
 | `bit(n)` | 1-bit binary (`0` / `1`) | 64,000 | \(\lceil n / 8 \rceil + 8\) bytes |
 | `sparsevec(n)` | Non-zero `index:float32` pairs | 1,000 non-zero elements (up to 1,000,000 dims) | \(8 \times \text{nnz} + 16\) bytes |
+{.wide .expand}
 
 > [!TIP] RaBitQ Quantization in `vchord`
 > In addition to `pgvector`'s built-in quantization types, [`vchord`](/docs/vchord/) provides `rabitq8` (8-bit) and `rabitq4` (4-bit) quantized vector types and supports indexing up to **60,000 dimensions** in `vchordrq`. See [`vchord` Quantization Types](/docs/vchord/usage/quantization-types/).

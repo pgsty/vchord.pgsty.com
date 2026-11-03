@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/admin/scalability/"
   - "/vectorchord/admin/scalability/"
+icon: fa-solid fa-up-right-and-down-left-from-center
 ---
 
 <a id="Background"></a>
@@ -51,6 +52,7 @@ aliases:
 | --- | --- | --- |
 | LAION-5m | 768 / 5,000,000 | r7i.xlarge / 32GB |
 | LAION-100m | 768 / 100,000,000 | r7i.16xlarge / 512GB |
+{.wide .expand}
 
 ## **测试结果** {#results}
 
@@ -66,6 +68,7 @@ aliases:
 | --- | --- | --- |
 | LAION-5m | 20 / 1.0 | 0.9324 |
 | LAION-100m | 20 / 1.0 | 0.9042 |
+{.wide .expand}
 
 我们在同一个可用区内部署了一台 **r7i.4xlarge** 实例作为客户端，用于向 VectorChord 集群发起压测查询。测试使用了从 **16 到 128** 不等的并发工作线程数（Workers），以模拟真实生产场景下数据库通常承受的并发压力。这一设置使我们能够全面评估 VectorChord 在不同工作负载与并发条件下的表现。
 
@@ -87,6 +90,7 @@ aliases:
 | --- | --- | --- | --- |
 | LAION-5m | r7i.xlarge × 7 | 4 × 7 = 28 vcpu | $0.2646 × 7 × 720 = $1334 |
 | LAION-100m | r7i.16xlarge × 2 | 64 × 2 = 128 vcpu | $4.2336 × 2 × 720 = $6096 |
+{.wide .expand}
 
 > [!TIP]
 > 上述成本计算未包含主实例（Primary）的开销，因为主实例可以与其他 PostgreSQL 连接池共享复用，从而进一步优化资源配置并降低整体开支。

@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/use-case/colqwen2-modal/"
   - "/vectorchord/use-case/colqwen2-modal/"
+icon: fa-solid fa-file-image
 ---
 
 为复杂文档构建高效的检索增强生成（RAG）系统，往往让人感觉像是在与混乱而繁琐的数据流水线搏斗。尤其是在处理 PDF 或扫描图像时，传统方法高度依赖光学字符识别（OCR）和版面分析。这些步骤不仅速度缓慢、容易出错，而且常常会丢失表格、图表和排版格式等至关重要的视觉上下文信息。**但是，如果您可以直接根据文档的*视觉外观*（而不仅仅是提取出的纯文本）来检索文档，会怎样呢？**

@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/usage/monitoring/"
   - "/vectorchord/usage/monitoring/"
+icon: fa-solid fa-heart-pulse
 ---
 
 您可以通过查询 [`pg_stat_progress_create_index`](https://www.postgresql.org/docs/current/progress-reporting.html#CREATE-INDEX-PROGRESS-REPORTING) 视图来监控 PostgreSQL 索引的构建进度。
@@ -35,6 +36,7 @@ SELECT command, phase, round(100.0 * blocks_done / nullif(blocks_total, 0), 1) A
 | 3    | `initializing index`                    | 初始化索引的数据结构与存储空间                         | 短   |
 | 4    | `inserting tuples from table to index`  | 将所有向量分配并插入到各自对应的列表中                 | 长   |
 | 5    | `compacting tuples in index`            | 紧缩优化向量索引结构以提升查询性能                     | 中等 |
+{.wide .expand}
 
 第 4 步 `inserting tuples from table to index` 占据了索引构建过程中的大部分时间。`tuples_done`、`blocks_done` 和 `blocks_total` 列可用于指示该步骤的当前进度。
 
@@ -50,5 +52,6 @@ SELECT command, phase, round(100.0 * blocks_done / nullif(blocks_total, 0), 1) A
 | ---- | -------------------------------------- | ------------------------ | ---- |
 | 1    | `initializing`                         | 开始构建索引             | 短   |
 | 2    | `inserting tuples from table to index` | 将所有向量插入到图结构中 | 长   |
+{.wide .expand}
 
 第 2 步 `inserting tuples from table to index` 占据了索引构建过程中的大部分时间。`tuples_done`、`blocks_done` 和 `blocks_total` 列可用于指示该步骤的当前进度。

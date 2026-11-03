@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/usage/fallback-parameters/"
   - "/vectorchord/usage/fallback-parameters/"
+icon: fa-solid fa-sliders
 ---
 
 {{< badge text="since v1.1.0" tone="info" >}}
@@ -68,6 +69,7 @@ Not all parameters support this feature. See [Reference](#reference) for all sup
 - Description: Fallback value of [`vchordrq.probes`](/docs/vchord/usage/indexing/#search-parameters-vchordrq-probes).
 - Type: list of integers
 - Default: ` `
+- Domain: each entry is `1..=4294967295`; an empty list is valid for an unpartitioned index.
 
 #### `epsilon`
 

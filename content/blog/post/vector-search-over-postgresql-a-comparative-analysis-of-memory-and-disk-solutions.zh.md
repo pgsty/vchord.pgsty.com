@@ -73,6 +73,7 @@ images: ["/blog/covers/vector-search-over-postgresql-a-comparative-analysis-of-m
 | 插入行数 | 5,000,000 | 5,000,000 | 5,000,000 | 索引创建后插入 100k 行 |
 | 距离度量 | L2 距离 | L2 距离 | / | / |
 | 测试查询数 | 10,000 | 10,000 | / | / |
+{.wide .expand}
 
 下表列出了我们在实验中使用的各个扩展的版本信息：
 
@@ -81,6 +82,7 @@ images: ["/blog/covers/vector-search-over-postgresql-a-comparative-analysis-of-m
 | VectorChord | v0.2.2 | tensorchord/vchord-postgres:pg17-v0.2.2 |
 | pgvector | v0.8.0 | tensorchord/vchord-postgres:pg17-v0.2.2 (`已安装 pgvector v0.8.0`) |
 | pgvectorscale | v0.6.0 | timescale/timescaledb-ha:pg17.4-ts2.18.2-oss |
+{.wide .expand}
 
 ## 内存中的向量：面向小规模数据 {#vectors-in-memory-for-small-scale-data}
 
@@ -189,6 +191,7 @@ images: ["/blog/covers/vector-search-over-postgresql-a-comparative-analysis-of-m
 | 索引构建速度 | 中等梯队，支持多核并行 | 较低梯队，不支持多核并行 | **第一梯队，支持多核并行** |
 | 索引构建峰值内存占用 | **2.1 GB** | 15.2 GB | **1.1 GB**（外部构建），9.8 GB（内部构建） |
 | 总磁盘占用 | 接近最大 | **最小** | 最大 |
+{.wide .expand}
 
 想了解更多关于 VectorChord 与其他扩展的对比吗？在未来的博客中，我们将探索 PostgreSQL 向量扩展在更多场景下的差异，例如 [**BM25 混合搜索**](/zh/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)（将传统关键词搜索与向量相似度搜索相结合）以及**带过滤条件的向量搜索（filtered vector search）**。准备好在您的向量搜索场景中试用 VectorChord 了吗？欢迎下载[扩展](/zh/docs/vchord/)，加入我们的 [Discord 社区](https://discord.gg/KqswhpVgdU)，或通过 [support@tensorchord.ai](mailto:support@tensorchord.ai) 联系我们。
 

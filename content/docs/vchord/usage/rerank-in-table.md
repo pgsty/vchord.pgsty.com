@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/usage/rerank-in-table/"
   - "/vectorchord/usage/rerank-in-table/"
+icon: fa-solid fa-arrow-up-wide-short
 ---
 
 {{< badge text="since v0.2.1" tone="info" >}}

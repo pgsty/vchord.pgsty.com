@@ -2,6 +2,7 @@
 title: "分词器架构与基本用法"
 description: "理解 pg_tokenizer 的两阶段流水线：文本分析器（Text Analyzer）与分词模型（Tokenization Model）。"
 weight: 10
+icon: fa-solid fa-sitemap
 ---
 
 ## 两阶段分词流水线 {#two-stage-tokenization-pipeline}

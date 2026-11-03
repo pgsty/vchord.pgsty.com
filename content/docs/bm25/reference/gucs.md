@@ -3,6 +3,7 @@ math: true
 title: "GUC & Index Parameters"
 description: "Complete reference of session GUC parameters and index storage options for vchord_bm25."
 weight: 20
+icon: fa-solid fa-sliders
 ---
 
 > [!IMPORTANT]
@@ -19,6 +20,7 @@ In versions `v0.1.0` through `v0.3.0`, all session GUC parameters use the `bm25_
 | `bm25_catalog.enable_index` | `boolean` | `true` | `true` / `false` | Enables or disables the `bm25` index scan in the PostgreSQL query planner. Set to `false` to force a sequential scan with exact `search_bm25query` evaluation. |
 | `bm25_catalog.enable_prefilter` | `boolean` | `true` | `true` / `false` | Introduced in `v0.2.2`. When `true`, filters out documents that do not satisfy the query/visibility check before inserting them into the Block-WeakAnd Top-K heap. |
 | `bm25_catalog.segment_growing_max_page_size` | `integer` | `4096` | `1` .. `1000000` | Maximum size (in 8 KB pages, default `4096` = 32 MB) of the append-only growing segment before it is sealed into a compressed, delta-bitpacked read-only segment. |
+{.wide .expand}
 
 ### Examples (`v0.1` – `v0.3`)
 
@@ -49,6 +51,7 @@ In the `main` branch rewrite, session GUCs use the `bm25.` prefix and work toget
 | `bm25.enable_scan` | `boolean` | `true` | `true` / `false` | Enables or disables `bm25` index scans in the planner. |
 | `bm25.limit` | `integer` | `0` | `0` .. `65535` | Maximum candidates. Any explicitly set value overrides the index; explicit zero makes index scans error. `RESET` restores the index fallback. |
 | `bm25.prefilter` | `boolean` | `false` | `true` / `false` | Enables pre-filtering during `bm25` index scans (overrides the index's `prefilter` storage parameter even when explicitly set to `false`). |
+{.wide .expand}
 
 Settings from `postgresql.conf`, `ALTER DATABASE`, `ALTER ROLE`, or client startup options also override index reloptions. `RESET` restores that configured default; it falls back to the index only when the GUC source returns to the built-in default.
 
@@ -59,3 +62,4 @@ Settings from `postgresql.conf`, `ALTER DATABASE`, `ALTER ROLE`, or client start
 | `options` | `string` (TOML) | `k1 = 1.2, b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | TOML string configuring the Okapi BM25 parameters \(k_1\) and \(b\) for the index. |
 | `limit` | `integer` | `0` | `0` .. `65535` | Per-index fallback search limit used when `bm25.limit` has its default source (`RESET`), not when explicitly set to zero. |
 | `prefilter` | `boolean` | `false` | `true` / `false` | Per-index default prefilter setting. |
+{.wide .expand}

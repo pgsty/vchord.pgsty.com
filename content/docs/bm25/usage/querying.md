@@ -3,6 +3,7 @@ math: true
 title: "Querying & Scoring"
 description: "Execute Top-K BM25 queries, interpret negative BM25 scores, and tune search limits."
 weight: 20
+icon: fa-solid fa-ranking-star
 ---
 
 ## Basic Top-K Query Syntax
@@ -77,6 +78,7 @@ Special values of `bm25_catalog.bm25_limit`:
 | `1` – `65535` | Uses Block-WeakAnd to compute and return up to `bm25_limit` top-scoring documents (default `100`). |
 | `0` | Immediately returns `0` rows. |
 | `-1` | Disables Block-WeakAnd Top-K pruning and performs a full brute-force scan over all matching postings in the index. |
+{.wide .expand}
 
 ### In `main`: `bm25.limit` and Index `limit` Reloption
 

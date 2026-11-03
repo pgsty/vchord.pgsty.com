@@ -3,12 +3,14 @@ math: true
 title: "版本历史与 API 演进"
 description: "VectorChord-BM25 (vchord_bm25) 从 v0.1.0 到 v0.3.0 再到 main 分支的版本变更日志与 SQL 模式演进。"
 weight: 40
+icon: fa-solid fa-clock-rotate-left
 ---
 
 > [!IMPORTANT]
 > 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
 
 `pg_tokenizer 0.2.0` 是独立发布的分词扩展。它可以与历史 `vchord_bm25 0.3.x` 的 `bm25vector` 工作流配合使用；如果需要自定义分词，也可以在 0.4.0/main 接口中使用它提供的原生 `tsvector` 辅助函数。原生 `vchord_bm25` 路径不依赖 `pg_tokenizer`。
+
 
 本页记录 `vchord_bm25`（[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) / [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)）的版本发布历史与 SQL 模式演进。
 
@@ -23,6 +25,7 @@ weight: 40
 | **`v0.2.0`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | 为 `bm25vector` 新增 `=` 与 `<>` 相等性操作符，以及隐式类型转换 `CREATE CAST (int[] AS bm25vector) AS IMPLICIT`。 |
 | **`v0.1.1`** | `bm25_catalog` | `bm25vector` | `pg_tokenizer` | 将分词能力解耦为独立的 `pg_tokenizer` 扩展；调整 `to_bm25query(regclass, bm25vector)` 函数签名。 |
 | **`v0.1.0`** | `bm25_catalog` | `bm25vector` | 内置 `unicode` | 首个发布版本，提供 `bm25vector`、`bm25query`、`USING bm25` 及 Block-WeakAnd Top-K 扫描。 |
+{.wide .expand}
 
 ---
 

@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/zh/docs/usage/measure-recall/"
   - "/vectorchord/usage/measure-recall/"
+icon: fa-solid fa-bullseye
 ---
 
 {{< badge text="since v0.5.0" tone="info" >}}

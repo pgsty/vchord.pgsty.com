@@ -2,6 +2,7 @@
 title: "性能与精度基准测试"
 description: "VectorChord-BM25 与 Elasticsearch、Lucene、ParadeDB 及 PostgreSQL GIN 的 QPS 吞吐量与 NDCG@10 检索精度对比基准测试。"
 weight: 30
+icon: fa-solid fa-chart-bar
 ---
 
 ## 吞吐量基准测试（QPS 对比 Elasticsearch、Lucene、ParadeDB、PG GIN） {#throughput-benchmark-qps-vs-elasticsearch-lucene-paradedb-pg-gin}
@@ -39,6 +40,7 @@ weight: 30
 | **LoTTE-recreation (search)** | 休闲娱乐问答 | 0.642 | 0.564 | **0.708** |
 | **LoTTE-technology (search)** | 技术问答 | 0.562 | 0.483 | **0.647** |
 | **LoTTE-writing (search)** | 写作问答 | 0.726 | 0.674 | **0.793** |
+{.wide .expand}
 
 > [!TIP]
 > 在所有评测数据集上，将 **`vchord_bm25`** 与 **`vchord`** 结合使用均稳定超越单独使用稠密向量检索或单独使用词法 BM25 检索。如需获取开箱即用的 SQL 查询模板，请参阅[混合检索 (BM25 + VectorChord)](/zh/docs/bm25/usage/hybrid-search/)。

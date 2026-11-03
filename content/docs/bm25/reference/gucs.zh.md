@@ -3,6 +3,7 @@ math: true
 title: "GUC 与索引参数"
 description: "vchord_bm25 会话级 GUC 参数与索引存储选项的完整参考手册。"
 weight: 20
+icon: fa-solid fa-sliders
 ---
 
 > [!IMPORTANT]
@@ -19,6 +20,7 @@ weight: 20
 | `bm25_catalog.enable_index` | `boolean` | `true` | `true` / `false` | 在 PostgreSQL 查询规划器中启用或禁用 `bm25` 索引扫描。设为 `false` 可强制执行顺序扫描并调用 `search_bm25query` 精确求值。 |
 | `bm25_catalog.enable_prefilter` | `boolean` | `true` | `true` / `false` | 自 `v0.2.2` 引入。设为 `true` 时，会在将候选文档推入 Block-WeakAnd Top-K 最小堆之前，先行过滤掉不满足查询过滤条件或 MVCC 可见性检查的文档。 |
 | `bm25_catalog.segment_growing_max_page_size` | `integer` | `4096` | `1` .. `1000000` | 仅追加的增长段（Growing Segment）在被封存为差分位打包压缩的只读封闭段（Sealed Segment）之前的最大尺寸（以 8 KB 页面为单位，默认值 `4096` 即 32 MB）。 |
+{.wide .expand}
 
 ### 配置示例（`v0.1` – `v0.3`） {#examples-v01--v03}
 
@@ -49,6 +51,7 @@ SET bm25_catalog.enable_index = false;
 | `bm25.enable_scan` | `boolean` | `true` | `true` / `false` | 在查询规划器中启用或禁用 `bm25` 索引扫描。 |
 | `bm25.limit` | `integer` | `0` | `0` .. `65535` | 最大候选数。显式设置的值覆盖索引参数，显式零值会使索引扫描报错。`RESET` 才恢复索引回退值。 |
 | `bm25.prefilter` | `boolean` | `false` | `true` / `false` | 在 `bm25` 索引扫描期间启用预过滤（显式设置时覆盖索引自身的 `prefilter` 存储参数，包括 `false`）。 |
+{.wide .expand}
 
 `postgresql.conf`、`ALTER DATABASE`、`ALTER ROLE` 或客户端启动选项中的设置也会覆盖索引参数。`RESET` 会恢复这些配置默认值；只有 GUC 来源恢复为内置默认值时，才会回退到索引参数。
 
@@ -59,3 +62,4 @@ SET bm25_catalog.enable_index = false;
 | `options` | `string` (TOML) | `k1 = 1.2, b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | 用于配置该索引 Okapi BM25 超参数 \(k_1\) 与 \(b\) 的 TOML 字符串。 |
 | `limit` | `integer` | `0` | `0` .. `65535` | 当 `bm25.limit` 保持默认来源（`RESET`）时使用的索引级回退检索上限，显式零值不触发回退。 |
 | `prefilter` | `boolean` | `false` | `true` / `false` | 索引级的默认预过滤设置。 |
+{.wide .expand}

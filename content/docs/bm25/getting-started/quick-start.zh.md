@@ -2,6 +2,7 @@
 title: "快速开始"
 description: "使用 vchord_bm25 在 PostgreSQL 中运行你的第一条 BM25 全文排序检索查询。"
 weight: 30
+icon: fa-solid fa-bolt
 ---
 
 > [!IMPORTANT]

@@ -3,6 +3,7 @@ title: "安装与快速上手"
 linkTitle: "安装与快速上手"
 description: "在 PostgreSQL 14–18 上安装 pgvector 并运行第一个向量相似性查询。"
 weight: 10
+icon: fa-solid fa-rocket
 upstream_link: https://github.com/pgvector/pgvector#installation
 ---
 

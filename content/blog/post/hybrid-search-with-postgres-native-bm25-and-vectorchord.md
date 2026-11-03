@@ -281,6 +281,7 @@ We have tested the **NDCG@10** with those methods on several BEIR datasets. Here
 | Quora | 0.88433 | 0.78687 | **0.89069** | 0.87014 |
 | SCIDOCS | 0.16055 | 0.15584 | **0.17942** | 0.17299 |
 | SciFact | 0.57631 | 0.68495 | **0.74635** | 0.67855 |
+{.wide .expand}
 
 The table above demonstrates several conclusions:
 

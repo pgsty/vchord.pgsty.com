@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/image-search.md"
 aliases:
   - "/use-case/image-search/"
+icon: fa-solid fa-image
 ---
 
 智能图像搜索，又称基于内容的图像检索（Content-Based Image Retrieval），超越了传统的基于关键词的搜索方式，使用户能够根据图像的**视觉内容**搜索图像。例如，您可以直接搜索**包含**红蘑菇的图片（图片来自 [immich](https://immich.app)）：

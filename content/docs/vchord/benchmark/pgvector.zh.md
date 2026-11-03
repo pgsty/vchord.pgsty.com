@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/benchmark/pgvector/"
   - "/vectorchord/benchmark/pgvector/"
+icon: fa-solid fa-scale-balanced
 ---
 
 在本节中，我们将 VectorChord 与提供向量相似性检索能力的 PostgreSQL 扩展 pgvector 进行对比。我们将重点关注四个核心指标：QPS（每秒查询数）、Recall@100（Top-100 召回率）、索引构建时间（Index Building Time）以及数据插入时间（Insertion Time）。如果您对我们的实现细节感兴趣，请参阅我们的博文《[PostgreSQL 上的向量检索：内存与磁盘方案的对比分析](/zh/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/)》。

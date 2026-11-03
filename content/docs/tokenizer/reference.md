@@ -19,6 +19,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.drop_stopwords(name TEXT)` | `VOID` | Drops a custom stopword dictionary. |
 | `tokenizer_catalog.create_synonym(name TEXT, config TEXT)` | `VOID` | Creates a custom synonym dictionary (space-separated synonyms per line). |
 | `tokenizer_catalog.drop_synonym(name TEXT)` | `VOID` | Drops a custom synonym dictionary. |
+{.wide .expand}
 
 ### Tokenization Models & Preloading
 
@@ -34,6 +35,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | Adds a model to the shared memory preload list (takes effect on PostgreSQL restart). |
 | `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | Removes a model from the preload list. |
 | `tokenizer_catalog.list_preload_models()` | `TEXT[]` | Lists all models currently registered for preloading. |
+{.wide .expand}
 
 ### Tokenizer Execution
 
@@ -42,6 +44,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.create_tokenizer(name TEXT, config TEXT)` | `VOID` | Creates a tokenizer combining an optional `text_analyzer` and a `model`. |
 | `tokenizer_catalog.drop_tokenizer(name TEXT)` | `VOID` | Drops a tokenizer by name. |
 | `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | Tokenizes `text` into an array of integer token IDs (implicitly castable to `bm25vector`). |
+{.wide .expand}
 
 ### Native full-text search in 0.2.0
 
@@ -49,6 +52,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | :--- | :--- | :--- |
 | `tokenizer_catalog.analyze_to_tsvector(text TEXT, text_analyzer_name TEXT)` | `TSVECTOR` | Analyzer string tokens as native lexemes, with output positions. |
 | `tokenizer_catalog.tokenize_to_tsvector(text TEXT, tokenizer_name TEXT)` | `TSVECTOR` | Model IDs as decimal lexemes, with output positions. |
+{.wide .expand}
 
 These functions are `STABLE` because they read tokenizer definitions from the catalog. Store the result in a column before creating a GIN/GiST or compatible BM25 index; use the same lexeme representation for documents and queries. Positions are assigned consecutively after empty output tokens are omitted, and positions describe the final analyzer/model output rather than source-text offsets. See [positions and native limits](/docs/tokenizer/overview/#native-postgresql-full-text-search).
 
@@ -63,6 +67,7 @@ These functions are `STABLE` because they read tokenizer definitions from the ca
 | `character_filters` | Array of Table / String | Character-level transformations (`to_lowercase`, `unicode_normalization = "nfc" \| "nfd" \| "nfkc" \| "nfkd"`). |
 | `pre_tokenizer` | Table / String | Initial token splitter (`unicode_segmentation`, `regex = "..."`, or `jieba`). |
 | `token_filters` | Array of Table / String | Token-level filters (`skip_non_alphanumeric`, `stemmer`, `stopwords`, `synonym`, `pg_dict`, `ngram`). |
+{.wide .expand}
 
 ### `tokenizer` Options
 
@@ -70,6 +75,7 @@ These functions are `STABLE` because they read tokenizer definitions from the ca
 | :--- | :--- | :--- |
 | `text_analyzer` | String | Name of a pre-created `text_analyzer` (or inline `[text_analyzer]` table). Omit for standalone subword models. |
 | `model` | String | Built-in model (`llmlingua2`, `bert_base_uncased`, `wiki_tocken`, `gemma2b`) or custom/HuggingFace/Lindera model name. |
+{.wide .expand}
 
 ### `custom_model` Options
 
@@ -79,3 +85,4 @@ These functions are `STABLE` because they read tokenizer definitions from the ca
 | `column` | String | Source `TEXT` column name. |
 | `text_analyzer` | String | Name of the `text_analyzer` used to extract vocabulary tokens. |
 | `filter` | String | Optional trusted SQL Boolean expression over source columns, without `WHERE` or `NEW.` (0.2.0). Only `TRUE` rows are used for training and embedding updates; `FALSE` and `NULL` rows are skipped. The vocabulary is append-only. |
+{.wide .expand}

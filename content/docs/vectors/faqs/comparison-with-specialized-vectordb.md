@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/faqs/comparison-with-specialized-vectordb.md"
 aliases:
   - "/faqs/comparison-with-specialized-vectordb/"
+icon: fa-solid fa-server
 ---
 
 Read our complete blog at [Do we really need a specialized vector database? (2023) | vchord.pgsty.com](/blog/post/do-we-really-need-a-specialized-vector-database-2023/).

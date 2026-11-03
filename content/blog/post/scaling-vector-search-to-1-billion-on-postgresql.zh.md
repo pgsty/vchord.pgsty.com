@@ -32,6 +32,7 @@ images: ["/blog/covers/scaling-vector-search-to-1-billion-on-postgresql.png"]
 | ScyllaDB | 13ms / 98% | 3×`AWS r7i.48xlarge` + 3×`AWS i4i.16xlarge` | 24.4 小时 |
 | YugabyteDB | 319 ms / 96% | 未报告 | 未报告 |
 | VectorChord | 40 ms / 95% | `AWS i7ie.6xlarge` | 1.8 小时 |
+{.wide .expand}
 
 在单节点部署方面，[Scalable Vector Search (SVS)](https://intel.github.io/ScalableVectorSearch/benchs/static/previous/large_scale_benchs.html#search-with-reduced-memory-footprint) 此前的研究表明，使用 [HNSWlib](https://github.com/nmslib/hnswlib) 为 DEEP-1B 构建索引通常需要 800 GiB 内存；尽管 SVS 或 [FAISS-IVFPQs](https://github.com/facebookresearch/faiss) 可以将其降低至约 300 GiB，但这依然是一笔可观的硬件开销。
 
@@ -65,6 +66,7 @@ images: ["/blog/covers/scaling-vector-search-to-1-billion-on-postgresql.png"]
 | 内存 (GiB) | 128 | 192 |
 | 磁盘空间 (GiB) | 3750 GB NVMe SSD | 2×7500 GB NVMe SSD |
 | 价格 | **$1088** / 月 | **$2246** / 月 |
+{.wide .expand}
 
 所有实验均在 PostgreSQL 17 上使用 VectorChord 1.0.0 运行。下方 SQL 是我们用于构建索引的完整命令：
 
@@ -109,12 +111,14 @@ $$);
 | 40,120 / 1.9 | 0.9132 | 117.45 | 12.33 |
 | 40,160 / 1.9 | 0.9305 | 97.32 | 14.61 |
 | 40,250 / 1.9 | 0.9511 | 68.87 | 20.53 |
+{.wide .expand}
 
 | [probes](/zh/docs/vchord/usage/indexing/#vchordrq-probes) / [epsilon](/zh/docs/vchord/usage/indexing/#vchordrq-epsilon) | Recall@Top 100 | QPS | P99 延迟 / ms |
 | --- | --- | --- | --- |
 | 40,180 / 1.9 | 0.9051 | 66.12 | 22.60 |
 | 40,270 / 1.9 | 0.9318 | 49.55 | 30.40 |
 | 40,390 / 1.9 | 0.9509 | 37.53 | 39.70 |
+{.wide .expand}
 
 这些结果表明，即便在十亿级规模下，单机上的向量查询性能依然可以做到实用且可预测。
 

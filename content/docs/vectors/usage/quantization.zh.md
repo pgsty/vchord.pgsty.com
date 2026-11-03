@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/quantization.md"
 aliases:
   - "/usage/quantization/"
+icon: fa-solid fa-compress
 ---
 
 量化（Quantization）是一种在可接受的精度损失范围内，降低内存消耗和计算复杂度的技术。在向量搜索中，主要有两种量化方式：乘积量化（Product Quantization）和标量量化（Scalar Quantization）。

@@ -2,6 +2,7 @@
 title: "Benchmarks"
 description: "QPS throughput and NDCG@10 retrieval accuracy benchmarks for VectorChord-BM25 against Elasticsearch, Lucene, ParadeDB, and PostgreSQL GIN."
 weight: 30
+icon: fa-solid fa-chart-bar
 ---
 
 ## Throughput Benchmark (QPS vs. Elasticsearch, Lucene, ParadeDB, PG GIN)
@@ -39,6 +40,7 @@ The table below (from our [BEIR / LoTTE Hybrid Search & ColBERT Reranking evalua
 | **LoTTE-recreation (search)** | Recreation QA | 0.642 | 0.564 | **0.708** |
 | **LoTTE-technology (search)** | Technology QA | 0.562 | 0.483 | **0.647** |
 | **LoTTE-writing (search)** | Writing QA | 0.726 | 0.674 | **0.793** |
+{.wide .expand}
 
 > [!TIP]
 > Combining **`vchord_bm25`** with **`vchord`** consistently outperforms either dense vector search or lexical BM25 alone across every evaluated dataset. See [Hybrid Search (BM25 + VectorChord)](/docs/bm25/usage/hybrid-search/) for SQL query templates.

@@ -67,6 +67,7 @@ In the following table, we provide the appropriate machine which can hold everyt
 | --- | --- | --- |
 | LAION-5m | 768 / 5,000,000 | r7i.xlarge / 32GB |
 | LAION-100m | 768 / 100,000,000 | r7i.16xlarge / 512GB |
+{.wide .expand}
 
 ## **Results**
 
@@ -83,6 +84,7 @@ If these parameters are fixed, the precision of each experiment will remain cons
 | --- | --- | --- |
 | LAION-5m | 20 / 1.0 | 0.9324 |
 | LAION-100m | 20 / 1.0 | 0.9042 |
+{.wide .expand}
 
 We deployed an **r7i.4xlarge** instance as the client within the same Availability Zone to query the VectorChord clusters. The clusters were tested with multiple workers ranging from **16 to 128**, simulating the concurrency levels typically applied to the database in real-world scenarios. This setup allows us to evaluate how VectorChord performs under varying workloads and concurrency conditions.
 
@@ -103,6 +105,7 @@ In summary, this is the minimum hardware cost if you need 10000 QPS on such data
 | --- | --- | --- | --- |
 | LAION-5m | r7i.xlarge × 7 | 4 × 7 = 28 vcpu | $0.2646 × 7 × 720 = $1334 |
 | LAION-100m | r7i.16xlarge × 2 | 64 × 2 = 128 vcpu | $4.2336 × 2 × 720 = $6096 |
+{.wide .expand}
 
 > [!TIP]
 > The cost of the primary instance is excluded from this calculation, as it can be shared and utilized with other PostgreSQL connection poolers, further optimizing resource allocation and reducing overall expenses.

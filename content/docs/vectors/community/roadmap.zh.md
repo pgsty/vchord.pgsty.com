@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/community/roadmap.md"
 aliases:
   - "/community/roadmap/"
+icon: fa-solid fa-map
 ---
 
 > [!WARNING]

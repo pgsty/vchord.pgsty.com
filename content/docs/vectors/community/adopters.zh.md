@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/community/adopters.md"
 aliases:
   - "/community/adopters/"
+icon: fa-solid fa-building
 ---
 
 - [immich](https://github.com/immich-app/immich) 是一款支持直接从手机备份照片和视频的自托管解决方案，它[使用 pgvecto.rs 实现智能搜索](https://immich.app/docs/features/search)。

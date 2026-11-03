@@ -3,6 +3,7 @@ title: "Usage Guide"
 linkTitle: "Usage Guide"
 description: "Step-by-step workflow for BM25 sparse vector indexing and retrieval with pg_bestmatch and pgvector or pgvecto.rs."
 weight: 20
+icon: fa-solid fa-code
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#usage
 ---
 

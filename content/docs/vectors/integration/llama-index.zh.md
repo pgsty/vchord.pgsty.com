@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/integration/llama-index.md"
 aliases:
   - "/integration/llama-index/"
+icon: fa-solid fa-puzzle-piece
 ---
 
 LlamaIndex 是一个简单、灵活的数据框架，用于将自定义数据源连接到大语言模型（LLM）。

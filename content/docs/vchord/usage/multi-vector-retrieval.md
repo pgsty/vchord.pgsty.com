@@ -10,6 +10,7 @@ aliases:
   - "/vectorchord/usage/multi-vector-retrieval/"
   - "/docs/vchord/usage/indexing-with-maxsim-operators/"
   - "/vectorchord/usage/indexing-with-maxsim-operators/"
+icon: fa-solid fa-cubes
 ---
 
 {{< badge text="since v0.3.0" tone="info" >}}

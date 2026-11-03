@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/zh/docs/usage/prefilter/"
   - "/vectorchord/usage/prefilter/"
+icon: fa-solid fa-filter
 ---
 
 {{< badge text="since v0.4.0" tone="info" >}}

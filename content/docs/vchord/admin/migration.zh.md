@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/admin/migration/"
   - "/vectorchord/admin/migration/"
+icon: fa-solid fa-right-left
 ---
 
 ---

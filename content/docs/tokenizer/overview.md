@@ -2,6 +2,7 @@
 title: "Tokenizer Architecture & Usage"
 description: "Understand the two-stage pipeline of pg_tokenizer: Text Analyzer and Tokenization Model."
 weight: 10
+icon: fa-solid fa-sitemap
 ---
 
 ## Two-Stage Tokenization Pipeline

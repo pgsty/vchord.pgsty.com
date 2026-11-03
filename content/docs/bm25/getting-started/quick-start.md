@@ -2,6 +2,7 @@
 title: "Quick Start"
 description: "Run your first BM25 ranked full-text search query in PostgreSQL with vchord_bm25."
 weight: 30
+icon: fa-solid fa-bolt
 ---
 
 > [!IMPORTANT]

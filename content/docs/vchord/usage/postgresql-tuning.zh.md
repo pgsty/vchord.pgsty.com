@@ -9,6 +9,7 @@ aliases:
   - "/vectorchord/usage/postgresql-tuning/"
   - "/docs/vchord/usage/performance-tuning/"
   - "/vectorchord/usage/performance-tuning/"
+icon: fa-solid fa-gauge-high
 ---
 
 索引构建可以并行化执行。由于并行化会增加服务器负载，PostgreSQL 默认并未启用。如需启用并行构建，请参考以下 SQL 配置：

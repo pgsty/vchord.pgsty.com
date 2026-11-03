@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/docs/use-case/hybrid-search/"
   - "/vectorchord/use-case/hybrid-search/"
+icon: fa-solid fa-code-merge
 ---
 
 In the era of RAG (Retrieval-Augmented Generation), efficiently retrieving relevant data from vast datasets is crucial for businesses and developers. Traditional keyword-based retrieval methods, such as those utilizing **BM25** as a scoring mechanism, excel in ranking documents based on term frequency and exact keyword matches. This makes them highly effective for structured queries and keyword-heavy content. However, they struggle with understanding synonyms, contextual nuances, and semantic intent. Conversely, vector-based retrieval captures deep semantic meaning, enabling better generalization across varied queries but sometimes sacrificing precision in exact keyword matches. Hybrid Search bridges this gap by combining BM25’s precision with vector search’s contextual understanding, delivering faster, more accurate, and semantically aware results.
@@ -269,6 +270,7 @@ We have tested the **NDCG@10** with those methods on several BEIR datasets. Here
 | Quora | 0.88433 | 0.78687 | **0.89069** | 0.87014 |
 | SCIDOCS | 0.16055 | 0.15584 | **0.17942** | 0.17299 |
 | SciFact | 0.57631 | 0.68495 | **0.74635** | 0.67855 |
+{.wide .expand}
 
 The table above demonstrates several conclusions:
 

@@ -3,6 +3,7 @@ title: "安装与工作原理"
 linkTitle: "安装与工作原理"
 description: "了解 pg_bestmatch 如何将 BM25 评分转化为稀疏向量内积运算，以及如何安装与启用扩展。"
 weight: 10
+icon: fa-solid fa-rocket
 math: true
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#how-does-it-work
 ---

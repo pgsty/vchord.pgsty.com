@@ -188,6 +188,7 @@ We have tested this method on several [BEIR](https://github.com/beir-cellar/beir
 | --- | --- | --- |
 | fiqa | 0.23211 | 0.3033 |
 | quora | 0.31599 | 0.3934 |
+{.wide .expand}
 
 This shows that ColBERT reranking can significantly enhance the results of vector searches.
 

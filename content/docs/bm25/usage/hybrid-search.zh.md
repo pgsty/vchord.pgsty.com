@@ -3,6 +3,7 @@ title: "混合检索 (BM25 + VectorChord)"
 description: "结合稀疏词法 BM25 检索 (vchord_bm25) 与稠密向量检索 (vchord)，通过倒数排序融合 (RRF) 与 ColBERT 重排序提升检索精度。"
 weight: 40
 math: true
+icon: fa-solid fa-code-merge
 ---
 
 现代检索增强生成（RAG）与搜索流水线通常将**稠密向量检索**（[`vchord`](/zh/docs/)，擅长捕捉语义相似性）与**稀疏词法 BM25 检索**（`vchord_bm25`，擅长捕捉精确关键词、标识符与罕见词匹配）结合使用。由于这两个扩展均原生运行在 PostgreSQL 内部，你可以在**单条 SQL 查询中端到端执行混合检索**，无需任何外部编排服务。

@@ -6,6 +6,7 @@ weight: 60
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/migration.md"
 aliases:
   - "/admin/migration/"
+icon: fa-solid fa-right-left
 ---
 
 ---

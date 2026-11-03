@@ -8,6 +8,7 @@ math: true
 aliases:
   - "/docs/usage/graph-index/"
   - "/vectorchord/usage/graph-index/"
+icon: fa-solid fa-diagram-project
 ---
 
 {{< badge text="since v0.5.0" tone="info" >}}
@@ -79,6 +80,7 @@ The following table lists all available operator classes supported by `vchordg`.
 | `rabitq4_l2_ops`     | index works for `rabitq4` type and Euclidean distance     | `<->(rabitq4,rabitq4)` | `<<->>(rabitq4,rabitq4)` |
 | `rabitq4_ip_ops`     | index works for `rabitq4` type and negative inner product | `<#>(rabitq4,rabitq4)` | `<<#>>(rabitq4,rabitq4)` |
 | `rabitq4_cosine_ops` | index works for `rabitq4` type and cosine distance        | `<=>(rabitq4,rabitq4)` | `<<=>>(rabitq4,rabitq4)` |
+{.wide .expand}
 
 `<<->>`, `<<#>>`, `<<=>>` are operators defined by VectorChord. For more information about `<<->>`, `<<#>>`, `<<=>>`, refer to [Similarity Filter](/docs/vchord/usage/similarity-filter/).
 

@@ -9,6 +9,7 @@ aliases:
   - "/vectorchord/usage/external-build/"
   - "/docs/vchord/usage/external-index-precomputation/"
   - "/vectorchord/usage/external-index-precomputation/"
+icon: fa-solid fa-server
 ---
 
 除了使用[分区调优](/zh/docs/vchord/usage/partitioning-tuning/)中的方法（以牺牲一定 QPS 和召回率为代价来缩短构建时间并降低内存消耗）之外，您还可以选择在其他机器或 GPU 上离线运行分区阶段。由于 `vchordg` 没有分区阶段，因此该特性不支持 `vchordg`。

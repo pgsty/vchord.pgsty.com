@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/logical_replication.md"
 aliases:
   - "/admin/logical_replication/"
+icon: fa-solid fa-clone
 ---
 
 Logical replication is a feature in PostgreSQL that enables the replication of individual database objects or a subset of data from one PostgreSQL database to another.

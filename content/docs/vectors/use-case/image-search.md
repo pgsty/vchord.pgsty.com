@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/image-search.md"
 aliases:
   - "/use-case/image-search/"
+icon: fa-solid fa-image
 ---
 
 Image intelligent search, also known as content-based image retrieval, goes beyond traditional keyword-based search and enables users to search for images based on their **visual content**. For example, you could search images that **contain** a red mushroom (image from [immich](https://immich.app)):

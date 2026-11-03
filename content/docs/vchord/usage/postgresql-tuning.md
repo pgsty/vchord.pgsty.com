@@ -9,6 +9,7 @@ aliases:
   - "/vectorchord/usage/postgresql-tuning/"
   - "/docs/vchord/usage/performance-tuning/"
   - "/vectorchord/usage/performance-tuning/"
+icon: fa-solid fa-gauge-high
 ---
 
 Indexing may be parallelized. Parallelism increases server load and is therefore not enabled by default in PostgreSQL. To enable it, refer to the following SQL.

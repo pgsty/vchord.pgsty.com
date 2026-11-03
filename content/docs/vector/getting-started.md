@@ -3,6 +3,7 @@ title: "Getting Started"
 linkTitle: "Getting Started"
 description: "Install pgvector on PostgreSQL 14–18 and run your first vector similarity queries."
 weight: 10
+icon: fa-solid fa-rocket
 upstream_link: https://github.com/pgvector/pgvector#installation
 ---
 

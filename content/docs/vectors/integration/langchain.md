@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/integration/langchain.md"
 aliases:
   - "/integration/langchain/"
+icon: fa-solid fa-link
 ---
 
 This document describes the LangChain integration.

@@ -2,6 +2,7 @@
 title: "Text Analyzers & Filters"
 description: "Complete configuration reference for character filters, pre-tokenizers, and token filters in pg_tokenizer."
 weight: 20
+icon: fa-solid fa-sliders
 ---
 
 A **Text Analyzer** processes raw text through three sequential stages:
@@ -90,6 +91,7 @@ Segments Chinese text into words using the [`jieba-rs`](https://docs.rs/jieba-rs
 | :--- | :--- | :--- | :--- |
 | `mode` | `string` | `"search"` | `"full"` (standard `jieba.cut`), `"precise"` (`jieba.cut_all` scanning all dictionary matches), or `"search"` (`jieba.cut_for_search` finer-grained segmentation for search recall). |
 | `enable_hmm` | `bool` | `true` | Enables HMM recognition for out-of-vocabulary words (`"full"` and `"search"` modes only). |
+{.wide .expand}
 
 ```toml
 [pre_tokenizer.jieba]
@@ -146,6 +148,7 @@ Supported `stemmer` values:
 | Indonesian | `indonesian` | | |
 | Irish | `irish` | | |
 | Italian | `italian` | | |
+{.wide .expand}
 
 ### `stopwords`
 
@@ -215,6 +218,7 @@ Splits each token into character n-grams (useful for substring, prefix, CJK with
 | `min_gram` | `int` | `1` | `1..=255` (`<= max_gram`) | Minimum character length of generated n-grams. |
 | `max_gram` | `int` | `2` | `1..=255` (`>= min_gram`) | Maximum character length of generated n-grams. |
 | `preserve_original` | `bool` | `false` | `true` / `false` | Whether to also emit the original unsplit token if its length falls outside `[min_gram, max_gram]`. |
+{.wide .expand}
 
 ```toml
 [[token_filters.ngram]]

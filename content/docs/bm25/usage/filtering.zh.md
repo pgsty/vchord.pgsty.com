@@ -3,6 +3,7 @@ math: true
 title: "过滤检索与预过滤"
 description: "通过后过滤、预过滤和部分索引，将 SQL WHERE 子句与 BM25 Top-K 相关性排序相结合。"
 weight: 30
+icon: fa-solid fa-filter
 ---
 
 在实际业务场景中，全文 BM25 排序通常需要与结构化关系过滤条件（例如 `category_id = 5`、`tenant_id = 'acme'` 或时间范围）结合使用。`vchord_bm25` 支持三种带过滤条件的 BM25 检索策略。
@@ -81,3 +82,4 @@ LIMIT 10;
 | **高匹配率（50%–100% 的行匹配）** | 后过滤（`enable_prefilter = false`）并适当调大 `bm25_limit` | 避免在 WAND 内层循环中频繁回表读取堆页；全局 Top-100 中即可轻松包含 10 条以上匹配行。 |
 | **中等匹配率（5%–50% 的行匹配）** | 预过滤（`enable_prefilter = true` / `bm25.prefilter = true`） | 确保在过滤后的子集上实现精确的 Top-K 召回，同时不扫描无关倒排项。 |
 | **固定租户 / 状态子集** | 部分 `bm25` 索引（`CREATE INDEX ... WHERE ...`）或表分区 | 索引体积更小，拥有针对该子集独立的 IDF 统计信息，且对其他分区零无效检查开销。 |
+{.wide .expand}

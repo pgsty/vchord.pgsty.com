@@ -33,6 +33,7 @@ We ran benchmarks on three AWS EC2 instances to evaluate VectorChord's performan
 | CPU Architecture | x86\_64 | **arm64** | x86\_64 |
 | Storage | 937 GB NVME SSD | 937 GB NVME SSD | 2500 GB NVME SSD |
 | cost | $0.1158 hourly | **$0.1162 hourly** | $0.1723 hourly |
+{.wide .expand}
 
 The **i8g.xlarge** (ARM-based) is priced almost identically to the **i4i.xlarge** but offers a noticeable boost in CPU performance. When compared to the **i7ie.xlarge**, which has comparable CPU capabilities, the **i8g.xlarge** comes in at nearly half the cost, making it a much more budget-friendly option.
 

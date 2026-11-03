@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/faqs/benchmark.md"
 aliases:
   - "/faqs/benchmark/"
+icon: fa-solid fa-chart-line
 ---
 
 `pgvecto.rs` 从诞生之初就高度专注于性能。我们持续监控 `pgvecto.rs` 的性能表现，并与其他向量检索库进行对比测试。以下基准测试结果来自 2024 年 1 月。

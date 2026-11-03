@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/use-case/adaptive-retrieval.md"
 aliases:
   - "/use-case/adaptive-retrieval/"
+icon: fa-solid fa-wand-magic-sparkles
 ---
 
 OpenAI [最新的嵌入模型](https://openai.com/blog/new-embedding-models-and-api-updates)支持缩短嵌入向量（Shortening embeddings，即套娃嵌入 Matryoshka Embeddings），开发者只需简单地“移除序列末尾的部分数值”，依然能够保持有效的文本语义表示。

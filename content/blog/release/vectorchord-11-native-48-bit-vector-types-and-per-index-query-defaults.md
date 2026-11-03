@@ -64,6 +64,7 @@ In VectorChord, the `vchordrq.probes` GUC controls how much of the vector space 
 | No partition | `[]` | `''` |
 | 1-layer partition | `[2000]` | `'40'` |
 | 2-layer partition | `[800, 640000]` | `'40,200'` |
+{.wide .expand}
 
 For simple vector search on a single table with a single index, setting the GUC once before running a query is a natural choice.
 

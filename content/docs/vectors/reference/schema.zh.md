@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/reference/schema.md"
 aliases:
   - "/reference/schema/"
+icon: fa-solid fa-code
 ---
 
 以下是 `pgvecto.rs` 提供的数据库对象定义（Schema）。
@@ -20,6 +21,7 @@ aliases:
 | svector           | 稀疏向量，标量元素类型为 IEEE 754-2008 定义的 `binary32`（32 位浮点数） |
 | bvector           | 二值向量，定长位串（bit string）                                       |
 | vector_index_stat | 表示向量索引统计信息的复合类型                                         |
+{.wide .expand}
 
 ## 操作符列表 {#list-of-operators}
 
@@ -82,6 +84,7 @@ aliases:
 | <=>  | svector      | svector      | real     | 余弦距离                   |
 | <=>  | bvector      | bvector      | real     | 余弦距离                   |
 | <~>  | bvector      | bvector      | real     | 杰卡德距离（Jaccard 距离） |
+{.wide .expand}
 
 ## 函数列表 {#list-of-functions}
 
@@ -92,6 +95,7 @@ aliases:
 | binarize           | vector vector                               | bvector  | 将向量二值化：所有正数元素设为 1，其余元素设为 0。                         |
 | text2vec_openai    | input text, model text                      | vector   | 调用 OpenAI Embeddings API 的嵌入生成函数。                                |
 | text2vec_openai_v3 | input text                                  | vector   | 调用 OpenAI Embeddings API 的嵌入生成函数，默认模型设为 `text-embedding-3-small`。 |
+{.wide .expand}
 
 ## 类型转换列表 {#list-of-casts}
 
@@ -107,12 +111,14 @@ aliases:
 | svector | vector   | no             |
 | vector  | bvector  | no             |
 | bvector | vector   | no             |
+{.wide .expand}
 
 ## 访问方法（Access Methods）列表 {#list-of-access-methods}
 
 | 名称    | 类型  | 说明                    |
 | ------- | ----- | ----------------------- |
 | vectors | Index | pgvecto.rs 向量索引方法 |
+{.wide .expand}
 
 ## 操作符族（Operator Families）列表 {#list-of-operator-families}
 
@@ -134,6 +140,7 @@ aliases:
 | vectors  | bvector_dot_ops     | bvector  |
 | vectors  | bvector_l2_ops      | bvector  |
 | vectors  | bvector_jaccard_ops | bvector  |
+{.wide .expand}
 
 ## 操作符类（Operator Classes）列表 {#list-of-operator-classes}
 
@@ -155,9 +162,11 @@ aliases:
 | vectors  | bvector  | bvector_dot_ops     | no         | 负点积                     |
 | vectors  | bvector  | bvector_cos_ops     | no         | 余弦距离                   |
 | vectors  | bvector  | bvector_jaccard_ops | no         | 杰卡德距离（Jaccard 距离） |
+{.wide .expand}
 
 ## 视图列表 {#list-of-views}
 
 | 名称                 | 说明                           |
 | -------------------- | ------------------------------ |
 | pg_vector_index_stat | 提供向量索引统计信息的监控视图 |
+{.wide .expand}

@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/getting-started/installation.md"
 aliases:
   - "/getting-started/installation/"
+icon: fa-solid fa-download
 ---
 
 > [!WARNING]

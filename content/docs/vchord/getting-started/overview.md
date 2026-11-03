@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/getting-started/overview/"
   - "/vectorchord/getting-started/overview/"
+icon: fa-solid fa-compass
 ---
 
 `vchord` is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search.

@@ -10,6 +10,7 @@ aliases:
   - "/vectorchord/usage/similarity-filter/"
   - "/docs/vchord/usage/range-query/"
   - "/vectorchord/usage/range-query/"
+icon: fa-solid fa-circle-dot
 ---
 
 Usually, `ORDER BY` and `LIMIT` clauses are used to perform vector search. In some cases, you may want to use a `WHERE` clause to filter out vectors that are far from the query. Naturally, you might write the following SQL.

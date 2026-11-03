@@ -2,6 +2,7 @@
 title: "多语言分词配方与限制"
 description: "面向英文、中文（结巴 Jieba）、日文（Lindera）的完整生产级分词配置方案及已知使用限制。"
 weight: 40
+icon: fa-solid fa-language
 ---
 
 本页提供可直接用于生产环境的英文、中文和日文全文 BM25 检索分词配置配方，并列出在实际运维中需要注意的关键限制事项。

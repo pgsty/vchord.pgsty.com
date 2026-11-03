@@ -6,6 +6,7 @@ weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/logical_replication.md"
 aliases:
   - "/admin/logical_replication/"
+icon: fa-solid fa-clone
 ---
 
 逻辑复制（Logical Replication）是 PostgreSQL 的一项特性，支持将单个数据库对象或数据子集从一个 PostgreSQL 数据库复制到另一个数据库。

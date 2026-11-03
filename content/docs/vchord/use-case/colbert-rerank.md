@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/use-case/colbert-rerank/"
   - "/vectorchord/use-case/colbert-rerank/"
+icon: fa-solid fa-ranking-star
 ---
 
 Traditional vector search methods typically employ sentence embeddings to locate similar content. However, generating sentence embeddings through pooling token embeddings can potentially sacrifice fine-grained details present at the token level. [ColBERT](https://github.com/stanford-futuredata/ColBERT) overcomes this by representing text as token-level multi-vectors rather than a single, aggregated vector. This approach, leveraging contextual late interaction at the token level, allows ColBERT to retain more nuanced information and improve search accuracy compared to methods relying solely on sentence embeddings.
@@ -183,6 +184,7 @@ We have tested this method on several [BEIR](https://github.com/beir-cellar/beir
 | --- | --- | --- |
 | fiqa | 0.23211 | 0.3033 |
 | quora | 0.31599 | 0.3934 |
+{.wide .expand}
 
 This shows that ColBERT reranking can significantly enhance the results of vector searches.
 

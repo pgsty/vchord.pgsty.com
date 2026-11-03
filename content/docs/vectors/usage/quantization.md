@@ -6,6 +6,7 @@ weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/quantization.md"
 aliases:
   - "/usage/quantization/"
+icon: fa-solid fa-compress
 ---
 
 Quantization is a technique to reduce the memory consumption and computation complexity with the affordable decrease in precision. In the context of vector search, there are mainly two types of quantization: production quantization and scalar quantization.

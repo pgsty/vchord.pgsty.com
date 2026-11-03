@@ -3,6 +3,7 @@ title: "HNSW 与 IVFFlat 索引"
 linkTitle: "HNSW 与 IVFFlat 索引"
 description: "在 pgvector 中创建、调优与维护 HNSW 和 IVFFlat 近似最近邻索引，并与 vchord 进行对比。"
 weight: 30
+icon: fa-solid fa-sitemap
 upstream_link: https://github.com/pgvector/pgvector#indexing
 math: true
 ---

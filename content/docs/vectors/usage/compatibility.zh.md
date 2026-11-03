@@ -6,6 +6,7 @@ weight: 50
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/compatibility.md"
 aliases:
   - "/usage/compatibility/"
+icon: fa-solid fa-plug
 ---
 
 `pgvecto.rs` 在以下方面原生兼容 `pgvector`：
@@ -30,12 +31,14 @@ aliases:
 | 键名  | 类型    | 取值范围         | 默认值 | 说明                     |
 | ----- | ------- | ---------------- | ------ | ------------------------ |
 | nlist | integer | `[1, 1_000_000]` | `100`  | 聚类单元（列表）的数量。 |
+{.wide .expand}
 
 `ivfflat` 的查询选项：
 
 | 选项           | 类型    | 取值范围         | 默认值 | 说明               |
 | -------------- | ------- | ---------------- | ------ | ------------------ |
 | ivfflat.probes | integer | `[1, 1_000_000]` | `10`   | 扫描的列表数量。   |
+{.wide .expand}
 
 > [!WARNING]
 > `ivfflat.probes` 的默认值为 `10`，而非 `pgvector` 中的 `1`。
@@ -47,12 +50,14 @@ aliases:
 | --------------- | ------- | ------------ | ------ | -------------------- |
 | m               | integer | `[4, 128]`   | `16`   | 节点的最大出度。     |
 | ef_construction | integer | `[10, 2000]` | `64`   | 构建索引时的搜索范围。 |
+{.wide .expand}
 
 `hnsw` 的查询选项：
 
 | 选项           | 类型    | 取值范围     | 默认值 | 说明               |
 | -------------- | ------- | ------------ | ------ | ------------------ |
 | hnsw.ef_search | integer | `[1, 65535]` | `100`  | HNSW 的搜索范围。  |
+{.wide .expand}
 
 > [!WARNING]
 > `hnsw.ef_search` 的默认值为 `100`，而非 `pgvector` 中的 `40`。

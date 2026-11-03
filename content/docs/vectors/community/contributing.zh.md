@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/community/contributing.md"
 aliases:
   - "/community/contributing/"
+icon: fa-solid fa-handshake-angle
 ---
 
 我们欢迎来自开源社区、个人开发者及合作伙伴的各种形式的贡献。如果你有兴趣参与贡献，希望本文档能帮助你清晰了解贡献流程。

@@ -160,3 +160,4 @@ SELECT * FROM items ORDER BY embedding <-> '[1,0,1]' LIMIT 5;
 | 数据类型 | 额外引入二值向量（bvector）、FP16（16 位浮点数）和 INT8（8 位整数）数据类型。 | \- |
 | 索引架构 | 独立于 PostgreSQL 管理索引的存储与内存。 | 依赖 PostgreSQL 的原生存储引擎。 |
 | WAL 支持 | 已支持数据级的预写式日志（WAL），索引级 WAL 支持正在开发中。 | 对索引和数据均提供原生 WAL 支持。 |
+{.wide .expand}

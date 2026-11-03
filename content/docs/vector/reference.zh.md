@@ -3,6 +3,7 @@ title: "参考手册、调优与 FAQ"
 linkTitle: "参考手册、调优与 FAQ"
 description: "pgvector 的完整 SQL 函数参考、GUC 配置参数、性能调优、监控方法与常见问题解答。"
 weight: 50
+icon: fa-solid fa-book-open
 upstream_link: https://github.com/pgvector/pgvector#reference
 math: true
 ---
@@ -15,15 +16,16 @@ math: true
 | :--- | :--- | :--- |
 | `l2_distance(a, b)` | `float8` | 计算 `a` 与 `b` 之间的欧氏（L2）距离（支持 `vector`, `halfvec`, `sparsevec`） |
 | `inner_product(a, b)` | `float8` | 计算内积 \(\sum a_i b_i\)（支持 `vector`, `halfvec`, `sparsevec`） |
-| `cosine_distance(a, b)` | `float8` | 计算余弦距离 \(1 - \frac{a \cdot b}{\|a\|\|b\|}\)（支持 `vector`, `halfvec`, `sparsevec`） |
-| `l1_distance(a, b)` | `float8` | 计算曼哈顿（L1）距离 \(\sum |a_i - b_i|\)（支持 `vector`, `halfvec`, `sparsevec`） |
+| `cosine_distance(a, b)` | `float8` | 计算余弦距离 \(1 - \frac{a \cdot b}{\lVert a \rVert \lVert b \rVert}\)（支持 `vector`, `halfvec`, `sparsevec`） |
+| `l1_distance(a, b)` | `float8` | 计算曼哈顿（L1）距离 \(\sum \lvert a_i - b_i \rvert\)（支持 `vector`, `halfvec`, `sparsevec`） |
 | `hamming_distance(a, b)` | `float8` | 计算两个 `bit` 位向量之间的汉明距离 |
 | `jaccard_distance(a, b)` | `float8` | 计算两个 `bit` 位向量之间的杰卡德距离 |
 | `vector_dims(a)` | `integer` | 返回向量的维度数（支持 `vector`, `halfvec`, `sparsevec`） |
-| `vector_norm(a)` | `float8` | 返回向量的欧氏范数 \(\|a\|_2\)（支持 `vector`, `halfvec`, `sparsevec`） |
+| `vector_norm(a)` | `float8` | 返回向量的欧氏范数 \(\lVert a \rVert_2\)（支持 `vector`, `halfvec`, `sparsevec`） |
 | `l2_normalize(a)` | 与输入相同 | 将向量归一化为单位 L2 长度（支持 `vector`, `halfvec`, `sparsevec`） |
 | `binary_quantize(a)` | `bit` | 将 `vector` 或 `halfvec` 的每个元素二值化为 `1`（\(> 0\)）或 `0`（\(\le 0\)） |
 | `subvector(a, start, count)` | 与输入相同 | 从 1 起始下标 `start` 处截取长度为 `count` 的子向量（支持 `vector`, `halfvec`） |
+{.wide .expand}
 
 ### 逐元素算术操作符
 
@@ -45,6 +47,7 @@ math: true
 | `ivfflat.probes` | `integer`（`1`–`lists`） | `1` | IVFFlat 查询时探测的倒排列表数量 |
 | `ivfflat.iterative_scan` | `off`, `relaxed_order` | `off` | 当 `WHERE` 条件过滤导致结果少于 `LIMIT` 时，自动探测更多 IVFFlat 分桶 |
 | `ivfflat.max_probes` | `integer` | `32768` | IVFFlat 迭代扫描期间最多探测的倒排列表数量 |
+{.wide .expand}
 
 ---
 

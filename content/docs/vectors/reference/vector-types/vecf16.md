@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/reference/vector-types/vecf16/"
+icon: fa-solid fa-compress
 ---
 
 Stored as a half-precision number format, `vecf16` takes advantage of the 16-bit float, which uses half the memory and bandwidth compared to `vector`.

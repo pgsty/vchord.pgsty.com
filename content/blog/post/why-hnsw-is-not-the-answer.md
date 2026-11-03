@@ -104,6 +104,7 @@ Ultimately, the performance difference between quantized IVF and HNSW is likely 
 | Insertion/Deletion | Simple (updates posting lists) | Simple (updates posting lists) | Complex (cascading graph changes) |
 | Search Speed | Slow | Extremely Fast with Quantization | Fast with sufficient memory |
 | Overall Complexity | Low | Low | High |
+{.wide .expand}
 
 ---
 

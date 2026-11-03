@@ -64,6 +64,7 @@ SELECT id FROM items ORDER BY embedding <-> quantize_to_rabitq8('[1,2,3]') LIMIT
 | 无分区 | `[]` | `''` |
 | 1 层分区 | `[2000]` | `'40'` |
 | 2 层分区 | `[800, 640000]` | `'40,200'` |
+{.wide .expand}
 
 对于单表、单索引上的简单向量搜索，在运行查询前设置一次 GUC 是一个很自然的选择：
 

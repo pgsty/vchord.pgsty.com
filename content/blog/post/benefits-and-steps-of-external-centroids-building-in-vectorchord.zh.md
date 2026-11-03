@@ -47,6 +47,7 @@ $$
 | `n_cluster` | 16384 | 65536 |
 | GPU K-means 耗时 | 80s | 960s |
 | CPU K-means 耗时 | 5850s | 68420s |
+{.wide .expand}
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1733711341914/feb175a8-7c40-446e-91ac-ebb5c2ef9fb0.png)
 

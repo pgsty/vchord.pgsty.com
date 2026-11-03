@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/use-case/sparse-vector/"
+icon: fa-solid fa-braille
 ---
 
 In the past, hybrid search combined two search methods: traditional keyword-based search and vector-based similarity search. However, sparse vector can act as a substitute for keyword search, unlocking the full potential of the data pipeline with pure vector search.
@@ -63,6 +64,7 @@ Generally, words with higher weights indicate greater importance in the text. Sp
 | Interpretability     | Hard                  | Easy                        |
 | Usage                | Vector Distance       | Vector Distance / Visualize |
 | Semantic sensitivity | High                  | Low                         |
+{.wide .expand}
 
 Sparse vectors are generally less effective at capturing the relationships between words, particularly for synonyms and related terms, compared to dense vectors.
 
@@ -108,6 +110,7 @@ For all sentences and words, a text-word matrix was created:
 | ------------------ | ---- | ---- | ---- | ---- | ---- | ---------- | ---- | ---- |
 | What is BM25?      | 0.08 | 0.08 | 0.13 | 0.25 | 0.04 | 0          | 0    | ...  |
 | Definition of BM25 | 0    | 0    | 0.25 | 0.33 | 0    | 0.14       | 0.06 | ...  |
+{.wide .expand}
 
 
 The matrix is highly sparse, especially when all vocabularies are included. Most words only appear in a few sentences, resulting in non-zero weights.

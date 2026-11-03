@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/reference/vector-types/vecf16/"
+icon: fa-solid fa-compress
 ---
 
 `vecf16` 以半精度数值格式存储，充分利用了 16 位浮点数（FP16）的优势，与标准 32 位浮点数的 `vector` 相比，仅使用一半的内存和内存带宽。

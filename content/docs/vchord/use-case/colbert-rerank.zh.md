@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/zh/docs/use-case/colbert-rerank/"
   - "/vectorchord/use-case/colbert-rerank/"
+icon: fa-solid fa-ranking-star
 ---
 
 传统的向量检索方法通常采用句级别嵌入（Sentence Embeddings）来查找相似内容。然而，通过对词元嵌入（Token Embeddings）进行池化（Pooling）来生成句嵌入，可能会损失词元层级中蕴含的细粒度信息。[ColBERT](https://github.com/stanford-futuredata/ColBERT) 通过将文本表示为词元级的多向量（Multi-vectors）而非单个聚合向量，有效克服了这一缺陷。这种方法利用词元级的上下文晚期交互（Contextual Late Interaction），使 ColBERT 能够比仅依赖句嵌入的方法保留更丰富的细微语义信息，从而显著提高检索精度。
@@ -183,6 +184,7 @@ class PgClient:
 | --- | --- | --- |
 | fiqa | 0.23211 | 0.3033 |
 | quora | 0.31599 | 0.3934 |
+{.wide .expand}
 
 结果表明，ColBERT 重排序能够显著提升向量检索的结果质量。
 

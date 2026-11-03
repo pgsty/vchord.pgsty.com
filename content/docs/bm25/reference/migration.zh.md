@@ -2,6 +2,7 @@
 title: "迁移到 0.4.0"
 description: "vchord_bm25 0.4.0 的原生 tsvector API、安装模式、访问权限与迁移边界。"
 weight: 35
+icon: fa-solid fa-right-left
 ---
 
 当前 `pgsty/vchord_bm25` 源码面向 **0.4.0（尚未发布）**，使用 PostgreSQL 原生 `tsvector` 和新的索引存储引擎。历史 0.3.x 软件包与套件镜像使用 `bm25vector`，两者的 API 与索引格式均不兼容。
@@ -15,6 +16,7 @@ weight: 35
 | 模式 | 固定为 `bm25_catalog` | 安装时选择的扩展模式，可迁移 |
 | 候选数上限 | `bm25_catalog.bm25_limit`，默认 100 | `bm25.limit` 或索引 `limit`，两层默认均为零 |
 | 文本分析 | `pg_tokenizer` 整数数组 | `to_tsvector`，或输出带位置向量的兼容分词器 |
+{.wide .expand}
 
 当前构建使用从 Rust 动态库生成的 `vchord_bm25--0.4.0.sql`。打包时会比对检入的 SQL 与编译后的接口，遇到不一致即报错。Git 中保留的旧版安装 SQL 对应旧版动态库；把控制文件版本改成 0.3.0 并不能让新引擎兼容旧接口。
 

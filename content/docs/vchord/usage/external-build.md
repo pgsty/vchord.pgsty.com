@@ -9,6 +9,7 @@ aliases:
   - "/vectorchord/usage/external-build/"
   - "/docs/vchord/usage/external-index-precomputation/"
   - "/vectorchord/usage/external-index-precomputation/"
+icon: fa-solid fa-server
 ---
 
 In addition to using the methods in [Partitioning Tuning](/docs/vchord/usage/partitioning-tuning/) to achieve shorter build time and lower memory consumption at the cost of QPS and recall, you can also choose to run the partitioning phase offline on other machines or on GPUs. This feature is not supported by `vchordg`, since it does not have a partitioning phase.

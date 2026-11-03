@@ -6,6 +6,7 @@ weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/upgrading.md"
 aliases:
   - "/admin/upgrading/"
+icon: fa-solid fa-arrow-up
 ---
 
 ## General Steps

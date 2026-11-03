@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vec
 aliases:
   - "/docs/benchmark/pgvectorscale/"
   - "/vectorchord/benchmark/pgvectorscale/"
+icon: fa-solid fa-chart-column
 ---
 
 In this section, we compare VectorChord with pgvectorscale, a PostgreSQL extension that provides vector similarity search capabilities. We will focus on four key metrics: QPS (Queries Per Second), Recall@10/100, Index Building Time, and Insertion Time. Memory and disk performance will also be discussed. If you are interested in the details of our implementation, please refer to our blog [Vector Search Over PostgreSQL: A Comparative Analysis of Memory and Disk Solutions](/blog/post/vector-search-over-postgresql-a-comparative-analysis-of-memory-and-disk-solutions/).

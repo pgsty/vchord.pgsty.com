@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/usage/indexing.md"
 aliases:
   - "/usage/indexing/"
+icon: fa-solid fa-sitemap
 ---
 
 索引是构建支持高效搜索的数据结构的过程。`pgvecto.rs` 支持三种索引算法：暴力搜索（flat）、IVF 和 HNSW。默认算法为 HNSW。

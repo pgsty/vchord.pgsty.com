@@ -7,6 +7,7 @@ upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgv
 math: true
 aliases:
   - "/getting-started/overview/"
+icon: fa-solid fa-compass
 ---
 
 > [!WARNING]
@@ -32,6 +33,7 @@ Checkout [pgvecto.rs vs pgvector](/docs/vectors/faqs/comparison-pgvector/) for m
 | Data Types | Introduces additional data types: binary vectors, FP16 (16-bit floating point), and INT8 (8-bit integer). | \- |
 | Indexing | Handles the storage and memory of indexes separately from PostgreSQL | Relies on the native storage engine of PostgreSQL |
 | WAL Support | Provides Write-Ahead Logging (WAL) support for data, index support is working in progress. | Provides Write-Ahead Logging (WAL) support for index and data. |      
+{.wide .expand}
 
 ## Quick start
 

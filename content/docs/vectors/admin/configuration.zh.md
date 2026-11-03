@@ -6,6 +6,7 @@ weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/configuration.md"
 aliases:
   - "/admin/configuration/"
+icon: fa-solid fa-sliders
 ---
 
 <a id="Logging"></a>

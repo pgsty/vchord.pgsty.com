@@ -10,12 +10,12 @@ Get started with **`vchord_bm25`** in PostgreSQL:
 
 {{< cards >}}
   {{< card link="/docs/bm25/getting-started/overview/" title="Overview" icon="fa-solid fa-compass" >}}
-Why BM25 + Block-WeakAnd outperforms native PostgreSQL ts_rank and GIN indexes.
+Understand why Okapi BM25 and Block-WeakAnd index pruning significantly outperform native PostgreSQL `ts_rank` and GIN indexes for Top-K search.
 {{< /card >}}
   {{< card link="/docs/bm25/getting-started/installation/" title="Installation" icon="fa-solid fa-download" >}}
-Install vchord_bm25 and pg_tokenizer via Pigsty, Docker, Debian packages, or source.
+Install and preload `vchord_bm25` and `pg_tokenizer` via Pigsty native Linux packages, Docker containers, Debian/ZIP archives, or source builds.
 {{< /card >}}
   {{< card link="/docs/bm25/getting-started/quick-start/" title="Quick Start" icon="fa-solid fa-bolt" >}}
-Tokenize text, build a bm25 index, and run Top-K ranked full-text queries in minutes.
+Walk through a complete hands-on SQL tutorial to tokenize text, build a `bm25` inverted index, and run Top-K ranked full-text queries in minutes.
 {{< /card >}}
 {{< /cards >}}

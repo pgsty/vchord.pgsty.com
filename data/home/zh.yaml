@@ -15,7 +15,6 @@ hero:
     - 为 PostgreSQL 而生
   title_size: 3.6rem
   lead: >-
-    每 1 美元即可存储 40 万条向量，20 分钟完成 1 亿条向量索引构建。
     基于 RaBitQ 4-bit/8-bit 量化、磁盘友好型倒排索引（`vchordrq`）、
     高吞吐图索引（`vchordg`）、MaxSim 多向量检索，原生兼容 `pgvector` 生态。
   note: 'Fork 自 [VectorChord](https://github.com/tensorchord/VectorChord) · 原由 [TensorChord](https://github.com/tensorchord) 开发 · 现由 [PGSTY](https://pigsty.cc/) 社区维护 · [AGPL-3.0](/zh/docs/about/license/) 许可证'
@@ -26,7 +25,7 @@ hero:
       Vchord 架构图：PostgreSQL 的 vector、vector[] 与 bm25vector 类型经由
       RaBitQ 4-bit/8-bit 量化流入 vchordrq、vchordg 与 bm25 原生索引引擎。
   media:
-    ratio: 1.18fr 0.82fr
+    ratio: 1.24fr 0.76fr
     max_width: 440px
     hide_below: lg
   actions:
@@ -178,39 +177,45 @@ capabilities:
 suite:
   eyebrow: 文档导航
   title: 探索完整的 Vchord 技术文档
-  desc: 涵盖 Vchord 检索生态中全部六个 PostgreSQL 向量相似性检索、BM25 全文排序与多语言分词扩展的完整技术文档。
+  desc: 涵盖 PGSTY 社区维护的三大核心检索扩展（vchord、vchord_bm25、pg_tokenizer），以及前代产品归档与上游 pgvector 基础扩展参考手册。
   columns: 3
   items:
     - title: vchord 文档
       meta: 核心向量引擎 · v1.1.1
       icon: fa-solid fa-layer-group
-      desc: 涵盖安装部署、vchordrq 与 vchordg 索引构建、MaxSim 多向量检索、范围过滤、性能调优、外部索引构建与完整 SQL 参考手册。
+      class: td-landing-card--core
+      desc: 新一代可扩展、磁盘友好型 PostgreSQL 向量检索核心扩展，提供 RaBitQ 量化的 vchordrq 倒排索引、vchordg 高吞吐图索引与 MaxSim 多向量检索。
       url: /docs/vchord/
     - title: vchord_bm25 文档
       meta: 原生 BM25 排序索引
       icon: fa-solid fa-magnifying-glass
-      desc: 涵盖 Okapi BM25 相关性排序、Block-WeakAnd Top-K 索引扫描、预过滤检索、RRF 与 ColBERT 混合检索融合及 BEIR 基准测试。
+      class: td-landing-card--core
+      desc: PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-WeakAnd 块级剪枝索引加速 Top-K 查询，可与 vchord 无缝构建混合检索。
       url: /docs/bm25/
     - title: pg_tokenizer 文档
       meta: 多语言与预训练词表
       icon: fa-solid fa-language
-      desc: 涵盖文本分析流水线、多语言预分词器（结巴中文、Lindera 日文）、词干提取、停用词、同义词过滤与自定义语料词表模型训练。
+      class: td-landing-card--core
+      desc: 独立运行的数据库内多语言文本分析与分词核心扩展，支持结巴中文、Lindera 日文、Snowball 词干提取、预训练词表与自定义语料模型训练。
       url: /docs/tokenizer/
-    - title: pgvector 文档
-      meta: 基础向量检索扩展
-      icon: fa-solid fa-circle-nodes
-      desc: 涵盖 vector、halfvec、bit 与 sparsevec 数据类型、距离度量操作符、HNSW 与 IVFFlat 索引构建及迭代式过滤索引扫描。
-      url: /docs/vector/
     - title: pgvecto.rs 文档
       meta: 前代产品参考手册
       icon: fa-solid fa-cube
-      desc: 提供 pgvecto.rs（v0.1–v0.4）完整历史技术文档与配置参考，以及将现有生产部署平滑迁移至 vchord 的分步实操指南。
+      class: td-landing-card--deprecated
+      desc: vchord 的前代向量检索扩展（v0.1–v0.4），现已停止功能演进。此处提供完整历史归档文档，以及将现有部署平滑迁移至 vchord 的实操指南。
       url: /docs/vectors/
     - title: pg_bestmatch 文档
-      meta: BM25 稀疏向量生成器
+      meta: 前代产品参考手册
       icon: fa-solid fa-ranking-star
-      desc: 在 PostgreSQL 数据库内直接计算语料库 TF/IDF 统计并生成兼容 pgvector 与 pgvecto.rs 的 BM25 加权稀疏向量。
+      class: td-landing-card--deprecated
+      desc: 早期基于稀疏向量内积的 BM25 全文检索扩展，现已由 vchord_bm25 与 pg_tokenizer 组合方案取代。此处提供历史功能参考与迁移说明。
       url: /docs/bestmatch/
+    - title: pgvector 文档
+      meta: 依赖的上游基础扩展
+      icon: fa-solid fa-circle-nodes
+      class: td-landing-card--upstream
+      desc: vchord 直接依赖的 PostgreSQL 上游开源向量基础扩展，提供标准 vector、halfvec、bit 与 sparsevec 数据类型、距离操作符及 HNSW 索引。
+      url: /docs/vector/
 
 steps:
   eyebrow: 快速上手
@@ -245,14 +250,14 @@ faq:
         与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)——以确保 PostgreSQL 开源生态中这一优秀的检索套件能够长期存续。
     - question: PGSTY 社区的维护承诺、路线图与安全策略是什么？
       answer: >-
-        PGSTY 社区将确保开源软件供应链的持续可用，继续维护并适配更新版本的 **PostgreSQL**（`PG 14–18+`）与 **`pgrx`**（`0.17+`）框架，
-        并持续提供主流 Linux 发行版的原生 RPM/DEB 软件包。需要说明的是，我们**不承诺任何新功能的开发**，相关功能需求与演进路线图将视维护团队的精力余量来响应；
+        PGSTY 社区维护开源软件供应链，目前针对 **PostgreSQL**（`PG 14–18`）测试并打包扩展套件，各扩展按仓库维护 **`pgrx`** 基线（其中 `pg_tokenizer 0.2.0` 使用 `pgrx 0.19.3`），
+        并为支持矩阵提供预构建原生 RPM/DEB 软件包。包的可复现构建与 SBOM 发布仍属于后续发布工程工作，目前不作现成承诺。需要说明的是，我们**不承诺任何新功能的开发**，相关功能需求与演进路线图将视维护团队的精力余量来响应；
         但如果您发现任何**安全漏洞或严重缺陷**，欢迎随时通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 提交给我们。
     - question: 这三个扩展采用什么开源许可证？现有用户如何无缝切换？
       answer: >-
         [`vchord`](https://github.com/pgsty/vchord) 与 [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) 均遵循
-        [**GNU AGPL v3.0**](/zh/docs/about/license/) 开源许可证发布，[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 采用 **Apache-2.0 / MIT** 双重许可。
-        PGSTY 维护版本与原上游版本在 SQL 接口与磁盘格式上 100% 兼容，现有生产环境无需修改任何表结构或查询语句。详见[署名与来源说明](/zh/docs/about/attribution/)。
+        [**GNU AGPL v3.0**](/zh/docs/about/license/) 开源许可证发布，[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 采用 **Apache-2.0** 许可证。
+        兼容性取决于具体版本：`pg_tokenizer 0.2.0` 提供从 0.1.0、0.1.1 与 0.1.2 的升级脚本；`vchord_bm25 0.4.0` 则需要按照迁移指南从历史 0.3.x 格式迁移。详见[署名与来源说明](/zh/docs/about/attribution/)。
     - question: vchord 与 pgvector、pgvecto.rs 是什么关系？
       answer: >-
         **`vchord`** 是 [`pgvecto.rs`](/zh/docs/vectors/) 的下一代架构继任者，围绕 SIGMOD'24 **RaBitQ** 量化算法以及
@@ -266,7 +271,7 @@ faq:
         同时希望避免 HNSW 多层图结构的内存膨胀时，请选择 **`vchordg`**（RaBitQ 图索引）。两者详细对比请参阅[索引指南](/zh/docs/vchord/usage/indexing/)。
     - question: vchord、vchord_bm25 与 pg_tokenizer 如何协同实现混合检索？
       answer: >-
-        [`pg_tokenizer`](/zh/docs/tokenizer/) 负责将中英日等多语言文本切分为稀疏词频向量（`bm25vector`），[`vchord_bm25`](/zh/docs/bm25/)
+        [`pg_tokenizer`](/zh/docs/tokenizer/) 负责将中英日等多语言文本切分为 `INT[]` 词元 ID、历史 `bm25vector` 或原生 `tsvector`，[`vchord_bm25`](/zh/docs/bm25/)
         基于 Block-WeakAnd 算法执行高性能 Okapi BM25 全文相关性排序（`<&>`），而 [`vchord`](/zh/docs/) 提供稠密向量与 ColBERT 多向量（`@#` MaxSim）
         语义检索——三者可在单条 SQL 中通过倒数排名融合（RRF）无缝协同。
 

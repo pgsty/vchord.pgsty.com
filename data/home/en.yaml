@@ -15,9 +15,8 @@ hero:
     - Built for PostgreSQL
   title_size: 3.6rem
   lead: >-
-    Store 400,000 vectors per $1 and index 100 million vectors in 20 minutes.
-    Powered by RaBitQ 4-bit/8-bit quantization, disk-friendly IVF (`vchordrq`),
-    high-QPS graphs (`vchordg`), MaxSim multi-vector retrieval, and native `pgvector` compatibility.
+    Powered by RaBitQ 4/8-bit quantization, disk-friendly IVF (`vchordrq`),
+    high-QPS graphs (`vchordg`), MaxSim search, and `pgvector` compatibility.
   note: 'Forked from [VectorChord](https://github.com/tensorchord/VectorChord), created by [TensorChord](https://github.com/tensorchord), and now maintained by [PGSTY](https://pgsty.com/) · [AGPL-3.0](/docs/about/license/)'
   image:
     light: img/vchord-architecture-light.svg
@@ -26,7 +25,7 @@ hero:
       Vchord architecture: PostgreSQL vector, vector[], and bm25vector types flow through
       RaBitQ 4-bit/8-bit quantization into vchordrq, vchordg, and bm25 native index engines.
   media:
-    ratio: 1.18fr 0.82fr
+    ratio: 1.24fr 0.76fr
     max_width: 440px
     hide_below: lg
   actions:
@@ -178,39 +177,45 @@ capabilities:
 suite:
   eyebrow: Documentation Sections
   title: Explore the complete Vchord documentation
-  desc: Complete documentation for all six PostgreSQL vector search, BM25 ranking, and tokenization extensions in the Vchord ecosystem.
+  desc: Complete documentation for the three PGSTY-maintained core extensions (vchord, vchord_bm25, pg_tokenizer), predecessor archives, and the upstream pgvector foundation.
   columns: 3
   items:
     - title: vchord Documentation
       meta: Core Vector Engine · v1.1.1
       icon: fa-solid fa-layer-group
-      desc: Installation, vchordrq & vchordg indexing, MaxSim multi-vector search, range queries, performance tuning, external index builds, and SQL reference.
+      class: td-landing-card--core
+      desc: Core disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, featuring vchordrq IVF indexes, vchordg graph indexes, and MaxSim.
       url: /docs/vchord/
     - title: vchord_bm25 Documentation
       meta: Native BM25 Ranking Index
       icon: fa-solid fa-magnifying-glass
-      desc: Okapi BM25 ranking, Block-WeakAnd Top-K index scans, prefiltered search, hybrid RRF/ColBERT fusion, and BEIR full-text benchmarks.
+      class: td-landing-card--core
+      desc: Core native Okapi BM25 ranking extension for PostgreSQL using Block-WeakAnd Top-K index pruning, designed to pair with vchord for hybrid search in SQL.
       url: /docs/bm25/
     - title: pg_tokenizer Documentation
       meta: Multilingual & LLM Vocabularies
       icon: fa-solid fa-language
-      desc: Text analyzer pipelines, multilingual pre-tokenizers (Jieba, Lindera), Snowball stemmers, stopwords, synonyms, and custom models.
+      class: td-landing-card--core
+      desc: Core in-database multilingual text analyzer and tokenization pipeline supporting Jieba, Lindera, Snowball stemmers, LLM vocabularies, and custom models.
       url: /docs/tokenizer/
-    - title: pgvector Documentation
-      meta: Foundational Vector Extension
-      icon: fa-solid fa-circle-nodes
-      desc: Core vector, halfvec, bit, and sparsevec types, exact and approximate KNN search, HNSW and IVFFlat indexing, and iterative index scans.
-      url: /docs/vector/
     - title: pgvecto.rs Documentation
-      meta: Predecessor Reference
+      meta: Predecessor Reference Manual
       icon: fa-solid fa-cube
-      desc: Complete historical documentation for pgvecto.rs (v0.1–v0.4) plus step-by-step migration guides to move existing deployments to vchord.
+      class: td-landing-card--deprecated
+      desc: First-generation Rust vector search extension (v0.1–v0.4) succeeded by vchord. Preserved as a complete historical reference and step-by-step migration guide.
       url: /docs/vectors/
     - title: pg_bestmatch Documentation
-      meta: BM25 Sparse Vector Generator
+      meta: Predecessor Reference Manual
       icon: fa-solid fa-ranking-star
-      desc: In-database Okapi BM25 sparse vector generation, WordPiece tokenization, and lexical similarity search over pgvector and pgvecto.rs.
+      class: td-landing-card--deprecated
+      desc: Early BM25 sparse-vector generator succeeded by vchord_bm25 and pg_tokenizer. Preserved for existing sparsevec/svector users and historical reference.
       url: /docs/bestmatch/
+    - title: pgvector Documentation
+      meta: Required Upstream Extension
+      icon: fa-solid fa-circle-nodes
+      class: td-landing-card--upstream
+      desc: Foundational upstream PostgreSQL extension that vchord builds upon, providing standard vector, halfvec, bit, and sparsevec types, operators, and HNSW.
+      url: /docs/vector/
 
 steps:
   eyebrow: Quick Start
@@ -247,16 +252,17 @@ faq:
         and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)—so the PostgreSQL community can continue relying on them.
     - question: What is PGSTY's maintenance scope, roadmap, and security policy?
       answer: >-
-        PGSTY ensures open-source supply-chain continuity, ongoing adaptation to newer **PostgreSQL** (`PG 14–18+`)
-        and **`pgrx`** (`0.17+`) versions, and reproducible native RPM/DEB packaging across mainstream Linux distributions.
+        PGSTY maintains open-source supply-chain continuity, currently tests and packages the suite for **PostgreSQL** (`PG 14–18`),
+        with extension-specific **`pgrx`** baselines (`pg_tokenizer 0.2.0` uses `pgrx 0.19.3`). Pre-built native RPM/DEB packages are published for the supported matrix;
+        package reproducibility and SBOM publication remain release-engineering work items rather than current guarantees.
         We do **not** commit to developing new features—roadmap items will be handled on a best-effort basis as maintainer
         capacity allows—but **security vulnerabilities and critical bug reports are always welcome** via [GitHub Issues](https://github.com/pgsty/vchord/issues).
     - question: What license is the Vchord suite under, and is it drop-in compatible?
       answer: >-
         [`vchord`](https://github.com/pgsty/vchord) and [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) are distributed under the
-        [**GNU AGPL v3.0**](/docs/about/license/) license, while [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) is dual-licensed
-        under **Apache-2.0 / MIT**. The PGSTY-maintained releases are 100% SQL- and on-disk-compatible with existing upstream deployments,
-        requiring zero schema or query changes. See [Attribution & Provenance](/docs/about/attribution/).
+        [**GNU AGPL v3.0**](/docs/about/license/) license, while [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) is distributed under
+        **Apache-2.0**. Compatibility is version-specific: `pg_tokenizer 0.2.0` has migrations from 0.1.0, 0.1.1, and 0.1.2,
+        while `vchord_bm25` 0.4.0 requires its own migration path from the historical 0.3.x format. See [Attribution & Provenance](/docs/about/attribution/).
     - question: How does vchord relate to pgvector and pgvecto.rs?
       answer: >-
         **`vchord`** is the next-generation successor to [`pgvecto.rs`](/docs/vectors/), redesigned around SIGMOD'24 **RaBitQ**
@@ -271,7 +277,7 @@ faq:
         multi-layer memory overhead. Compare both in the [Indexing Guide](/docs/vchord/usage/indexing/).
     - question: How do vchord, vchord_bm25, and pg_tokenizer work together?
       answer: >-
-        [`pg_tokenizer`](/docs/tokenizer/) segments multilingual or English text into sparse `bm25vector` token-frequency representations,
+        [`pg_tokenizer`](/docs/tokenizer/) segments multilingual or English text into `INT[]` token IDs, legacy `bm25vector` values, or native `tsvector` values,
         [`vchord_bm25`](/docs/bm25/) executes fast Block-WeakAnd Okapi BM25 Top-K lexical ranking (`<&>`), and [`vchord`](/docs/)
         provides dense (`vchordrq`/`vchordg`) and multi-vector ColBERT (`@#` MaxSim) semantic search—fused inside a single SQL query via RRF.
 

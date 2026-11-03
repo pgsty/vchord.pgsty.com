@@ -2,7 +2,7 @@
 title: "pgvector 文档"
 linkTitle: "pgvector"
 description: "PostgreSQL 开源向量相似性检索基础扩展：涵盖 vector、halfvec、bit 与 sparsevec 数据类型，精确与近似最近邻搜索，以及 HNSW 与 IVFFlat 索引。"
-weight: 400
+weight: 600
 icon: fa-solid fa-circle-nodes
 type: docs
 sidebar_root_for: self
@@ -38,21 +38,21 @@ cascade:
 
 {{< cards >}}
 {{< card title="安装与快速上手" icon="fa-solid fa-rocket" link="/zh/docs/vector/getting-started/" >}}
-通过 Pigsty、Docker、Linux 软件源、Homebrew 或源码编译安装 `pgvector`，启用扩展并执行向量写入与批量导入。
+通过 Pigsty 原生包、Docker 镜像、Linux 官方软件源、Homebrew 或源码编译安装 `pgvector`，启用扩展并完成向量写入与 `COPY` 批量导入。
 {{< /card >}}
 {{< card title="查询与过滤检索" icon="fa-solid fa-magnifying-glass" link="/zh/docs/vector/querying/" >}}
-距离操作符、相似度计算、向量聚合函数、带 `WHERE` 条件的迭代索引扫描以及全文/BM25 混合检索。
+详解六种距离操作符、距离与相似度转换公式、向量聚合函数、带 `WHERE` 谓词的迭代式索引扫描以及全文/BM25 混合检索。
 {{< /card >}}
 {{< card title="HNSW 与 IVFFlat 索引" icon="fa-solid fa-sitemap" link="/zh/docs/vector/indexing/" >}}
-HNSW 与 IVFFlat 索引构建与参数调优、并行建索引、进度监控，以及使用 [`vchord`](/zh/docs/vchord/) 突破内存瓶颈。
+掌握 HNSW 多层图与 IVFFlat 倒排索引的构建与参数调优、并行建索引内存配置、进度监控，以及使用 [`vchord`](/zh/docs/vchord/) 突破内存瓶颈。
 {{< /card >}}
 {{< card title="向量量化与稀疏向量" icon="fa-solid fa-compress" link="/zh/docs/vector/quantization/" >}}
-半精度（`halfvec`）、二值量化（`bit` + 精确重排）、稀疏向量（`sparsevec`）以及套娃（Matryoshka）子向量索引。
+配置半精度（`halfvec`）、二值量化（`bit` + 精确重排）、稀疏向量（`sparsevec`）以及套娃（Matryoshka）子向量函数索引以降低存储开销。
 {{< /card >}}
 {{< card title="参考手册、调优与 FAQ" icon="fa-solid fa-book-open" link="/zh/docs/vector/reference/" >}}
-完整 SQL 函数与操作符速查表、GUC 参数、内存规划、执行计划排查与常见问题解答。
+查阅完整的数据类型、SQL 函数与操作符速查表、GUC 运行时参数、共享内存容量规划、执行计划排查与常见问题解答。
 {{< /card >}}
 {{< card title="使用 vchord 扩展亿级规模" icon="fa-solid fa-layer-group" link="/zh/docs/vchord/" >}}
-在现有的 `pgvector` 向量列上无缝添加 `vchordrq` 与 `vchordg` RaBitQ 索引，无需修改业务查询即可扩展至亿级规模。
+在现有的 `pgvector` 向量列上无缝添加 `vchordrq` 与 `vchordg` RaBitQ 索引，无需修改表结构或业务查询即可平滑扩展至亿级规模。
 {{< /card >}}
 {{< /cards >}}

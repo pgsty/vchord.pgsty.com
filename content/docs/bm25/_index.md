@@ -13,7 +13,7 @@ no_list: true
 cascade:
   type: docs
   upstream_source: "bm25"
-  upstream_link: "https://github.com/tensorchord/VectorChord-bm25"
+  upstream_link: "https://github.com/supervc-stack/VectorChord-bm25"
   upstream_modified: true
 ---
 
@@ -27,22 +27,22 @@ Paired with **[`pg_tokenizer`](/docs/tokenizer/)** (maintained by Pigsty at [`pg
 
 {{< cards >}}
   {{< card link="/docs/bm25/getting-started/" title="Getting Started" icon="fa-solid fa-rocket" >}}
-Understand why BM25 matters, install vchord_bm25 and pg_tokenizer, and run your first ranked full-text query.
+Understand why Okapi BM25 outperforms native `ts_rank`, install `vchord_bm25` and `pg_tokenizer` via Pigsty or Docker, and run your first ranked query.
 {{< /card >}}
   {{< card link="/docs/bm25/usage/" title="Usage & Indexing" icon="fa-solid fa-magnifying-glass" >}}
-Build bm25 indexes, run Top-K Block-WeakAnd queries, apply WHERE prefilters, and inspect index pages.
+Build and maintain `bm25` inverted indexes, run Top-K Block-WeakAnd queries, apply `WHERE` prefilters during ranking, and inspect internal index pages.
 {{< /card >}}
   {{< card link="/docs/bm25/usage/hybrid-search/" title="Hybrid Search" icon="fa-solid fa-code-merge" >}}
-Fuse sparse BM25 lexical search with [`vchord`](/docs/vchord/) dense and ColBERT multi-vector search via RRF in SQL.
+Fuse sparse BM25 lexical search with [`vchord`](/docs/vchord/) dense vector and ColBERT multi-vector retrieval using Reciprocal Rank Fusion (RRF) in SQL.
 {{< /card >}}
   {{< card link="/docs/bm25/reference/" title="Reference & Benchmarks" icon="fa-solid fa-book" >}}
-Complete SQL types, operators, functions, GUC parameters, version evolution, and BEIR benchmark results.
+Consult the complete reference for SQL types, operators, functions, session GUC parameters, API version history, and BEIR benchmark evaluations.
 {{< /card >}}
   {{< card link="/docs/bm25/reference/migration/" title="0.3.x to 0.4.0 Migration" icon="fa-solid fa-right-left" >}}
-Migrate from `bm25vector` + `pg_tokenizer` (0.3.x) to the native `tsvector` BM25 index format in 0.4.0.
+Follow the step-by-step migration guide from the historical `bm25vector` + `pg_tokenizer` (`0.3.x`) workflow to the native `tsvector` engine in `0.4.0`.
 {{< /card >}}
   {{< card link="/docs/tokenizer/" title="pg_tokenizer Documentation" icon="fa-solid fa-language" >}}
-Configure text analyzers, stemmers, stopwords, synonyms, HuggingFace models, Chinese Jieba, and Japanese Lindera.
+Configure modular text analyzers, Snowball stemmers, stopwords, synonyms, HuggingFace vocabularies, Chinese Jieba, and Japanese Lindera segmentation.
 {{< /card >}}
 {{< /cards >}}
 

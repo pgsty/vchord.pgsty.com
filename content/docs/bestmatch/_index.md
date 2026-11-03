@@ -2,7 +2,7 @@
 title: "pg_bestmatch Documentation"
 linkTitle: "pg_bestmatch"
 description: "Generate Okapi BM25 sparse vectors inside PostgreSQL and run lexical similarity search over pgvector (sparsevec) or pgvecto.rs (svector)."
-weight: 600
+weight: 500
 icon: fa-solid fa-ranking-star
 type: docs
 sidebar_root_for: self
@@ -33,12 +33,12 @@ cascade:
 
 {{< cards >}}
 {{< card title="Getting Started" icon="fa-solid fa-rocket" link="/docs/bestmatch/getting-started/" >}}
-How `pg_bestmatch` converts BM25 scoring into sparse vector inner products, installation from packages or source, and quickstart setup.
+Understand how `pg_bestmatch` converts Okapi BM25 scoring into sparse vector inner products, and install the extension from packages or source.
 {{< /card >}}
 {{< card title="Usage Guide" icon="fa-solid fa-code" link="/docs/bestmatch/usage/" >}}
-End-to-end BM25 retrieval workflow on the Stanford LoCo benchmark using [`pgvector`](/docs/vector/) `sparsevec` or [`pgvecto.rs`](/docs/vectors/) `svector`.
+Walk through an end-to-end BM25 retrieval pipeline on the Stanford LoCo benchmark using [`pgvector`](/docs/vector/) `sparsevec` or [`pgvecto.rs`](/docs/vectors/) `svector`.
 {{< /card >}}
 {{< card title="SQL Reference & Comparison" icon="fa-solid fa-book-open" link="/docs/bestmatch/reference/" >}}
-Complete reference for `bm25_create`, `bm25_refresh`, `bm25_drop`, `bm25_document_to_svector`, `bm25_query_to_svector`, and `tokenize`.
+Consult the complete reference for `bm25_create`, `bm25_refresh`, `bm25_drop`, `bm25_document_to_svector`, `bm25_query_to_svector`, and `tokenize`.
 {{< /card >}}
 {{< /cards >}}

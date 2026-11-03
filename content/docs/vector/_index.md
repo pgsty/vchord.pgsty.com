@@ -2,7 +2,7 @@
 title: "pgvector Documentation"
 linkTitle: "pgvector"
 description: "Open-source vector similarity search for PostgreSQL: vector, halfvec, bit, and sparsevec data types, exact and approximate KNN search, HNSW and IVFFlat indexing."
-weight: 400
+weight: 600
 icon: fa-solid fa-circle-nodes
 type: docs
 sidebar_root_for: self
@@ -38,21 +38,21 @@ cascade:
 
 {{< cards >}}
 {{< card title="Getting Started" icon="fa-solid fa-rocket" link="/docs/vector/getting-started/" >}}
-Install `pgvector` via Pigsty, Docker, Linux packages, Homebrew, or source; enable the extension; and insert or bulk-load vectors.
+Install `pgvector` via Pigsty packages, Docker, Linux repositories, Homebrew, or source; enable the extension; and insert or bulk-load vector data.
 {{< /card >}}
 {{< card title="Querying & Filtering" icon="fa-solid fa-magnifying-glass" link="/docs/vector/querying/" >}}
-Distance operators, similarity calculations, vector aggregates, `WHERE` filtering with iterative index scans, and hybrid search.
+Use the six distance operators, convert distances to similarity scores, compute aggregates, and run `WHERE` filters with iterative index scans.
 {{< /card >}}
 {{< card title="HNSW & IVFFlat Indexing" icon="fa-solid fa-sitemap" link="/docs/vector/indexing/" >}}
-Create and tune HNSW and IVFFlat indexes, parallel index build settings, progress monitoring, and scaling with [`vchord`](/docs/vchord/).
+Create and tune HNSW and IVFFlat indexes, configure parallel build memory, monitor build progress, and scale beyond RAM limits with [`vchord`](/docs/vchord/).
 {{< /card >}}
 {{< card title="Quantization & Sparse Vectors" icon="fa-solid fa-compress" link="/docs/vector/quantization/" >}}
-Half-precision (`halfvec`), binary quantization (`bit` + re-ranking), sparse vectors (`sparsevec`), and Matryoshka sub-vector indexing.
+Reduce memory footprint using half-precision (`halfvec`), binary quantization (`bit` with re-ranking), sparse vectors (`sparsevec`), and Matryoshka indexing.
 {{< /card >}}
 {{< card title="Reference, Tuning & FAQ" icon="fa-solid fa-book-open" link="/docs/vector/reference/" >}}
-Complete SQL function and operator reference, GUC parameters, memory sizing, query plan debugging, and frequently asked questions.
+Consult the complete SQL type, operator, and function reference, GUC runtime parameters, memory sizing guide, and query plan troubleshooting FAQ.
 {{< /card >}}
 {{< card title="Scale with vchord" icon="fa-solid fa-layer-group" link="/docs/vchord/" >}}
-Drop-in RaBitQ `vchordrq` and `vchordg` indexes on standard `pgvector` columns for 100M+ vectors without changing queries.
+Add drop-in RaBitQ `vchordrq` and `vchordg` indexes directly onto existing `pgvector` columns to scale to 100M+ vectors without changing SQL queries.
 {{< /card >}}
 {{< /cards >}}

@@ -2,7 +2,7 @@
 title: "pg_bestmatch 文档"
 linkTitle: "pg_bestmatch"
 description: "在 PostgreSQL 内部生成 Okapi BM25 稀疏向量，并基于 pgvector（sparsevec）或 pgvecto.rs（svector）执行高性能关键词相关性检索。"
-weight: 600
+weight: 500
 icon: fa-solid fa-ranking-star
 type: docs
 sidebar_root_for: self
@@ -33,12 +33,12 @@ cascade:
 
 {{< cards >}}
 {{< card title="安装与工作原理" icon="fa-solid fa-rocket" link="/zh/docs/bestmatch/getting-started/" >}}
-了解 `pg_bestmatch` 如何将 BM25 排序转化为稀疏向量内积，以及通过预编译包或源码安装并启用扩展。
+深入了解 `pg_bestmatch` 如何将 Okapi BM25 文本相关性排序转化为稀疏向量内积运算，并通过预编译包或源码编译方式安装启用扩展。
 {{< /card >}}
 {{< card title="使用指南" icon="fa-solid fa-code" link="/zh/docs/bestmatch/usage/" >}}
-基于斯坦福 LoCo 基准数据集的端到端实战教程，演示结合 [`pgvector`](/zh/docs/vector/) `sparsevec` 与 [`pgvecto.rs`](/zh/docs/vectors/) `svector` 的完整检索流程。
+基于斯坦福 LoCo 基准数据集的端到端实战教程，完整演示结合 [`pgvector`](/zh/docs/vector/) `sparsevec` 与 [`pgvecto.rs`](/zh/docs/vectors/) `svector` 的 HNSW 索引检索流程。
 {{< /card >}}
 {{< card title="SQL 参考与方案对比" icon="fa-solid fa-book-open" link="/zh/docs/bestmatch/reference/" >}}
-`bm25_create`、`bm25_refresh`、`bm25_drop`、`bm25_document_to_svector`、`bm25_query_to_svector` 与 `tokenize` 完整参考及方案对比。
+查阅 `bm25_create`、`bm25_refresh`、`bm25_drop`、`bm25_document_to_svector`、`bm25_query_to_svector` 与 `tokenize` 完整参考及架构对比。
 {{< /card >}}
 {{< /cards >}}

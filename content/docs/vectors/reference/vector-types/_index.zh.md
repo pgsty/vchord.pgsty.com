@@ -7,6 +7,7 @@ upstream_link: https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgve
 aliases:
   - "/reference/vector-types/"
   - "/usage/vector-types/"
+icon: fa-solid fa-shapes
 ---
 
 在前面的[索引](/zh/docs/vectors/usage/indexing/)和[搜索](/zh/docs/vectors/usage/search/)章节中，我们已经接触了标准的 `vector` 类型。本节将探讨更多向量数据类型及其在向量搜索领域的应用：

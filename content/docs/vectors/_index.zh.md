@@ -2,7 +2,7 @@
 title: "pgvecto.rs 文档"
 linkTitle: "pgvecto.rs"
 description: "vchord 的前身 pgvecto.rs（vectors 扩展）完整文档归档。"
-weight: 500
+weight: 400
 icon: fa-solid fa-cube
 type: docs
 sidebar_root_for: self

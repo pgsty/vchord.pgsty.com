@@ -13,7 +13,7 @@ no_list: true
 cascade:
   type: docs
   upstream_source: "bm25"
-  upstream_link: "https://github.com/tensorchord/VectorChord-bm25"
+  upstream_link: "https://github.com/supervc-stack/VectorChord-bm25"
   upstream_modified: true
 ---
 
@@ -27,22 +27,22 @@ cascade:
 
 {{< cards >}}
   {{< card link="/zh/docs/bm25/getting-started/" title="快速上手" icon="fa-solid fa-rocket" >}}
-了解为什么需要 BM25，安装 vchord_bm25 与 pg_tokenizer，并运行你的第一条全文排序查询。
+了解为什么 Okapi BM25 在相关性与性能上显著优于原生 `ts_rank`，通过 Pigsty 或 Docker 安装扩展并运行首条全文排序查询。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/usage/" title="使用与索引指南" icon="fa-solid fa-magnifying-glass" >}}
-构建 bm25 索引、执行 Top-K Block-WeakAnd 查询、使用 WHERE 预过滤与检查索引页。
+深入掌握 `bm25` 倒排索引构建、Top-K Block-WeakAnd 块级剪枝扫描、带 `WHERE` 条件的预过滤检索以及索引页面诊断工具。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/usage/hybrid-search/" title="混合检索" icon="fa-solid fa-code-merge" >}}
-在单条 SQL 中通过 RRF 或 ColBERT 重排序，融合稀疏 BM25 词法检索与 [`vchord`](/zh/docs/vchord/) 稠密向量检索。
+在单条标准 SQL 查询中通过倒数排序融合（RRF）或 ColBERT 重排序，无缝融合稀疏 BM25 词法检索与 [`vchord`](/zh/docs/vchord/) 稠密向量检索。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/reference/" title="参考手册与基准测试" icon="fa-solid fa-book" >}}
-完整的 SQL 类型、操作符、函数、GUC 参数、版本演进历史以及 BEIR 基准测试结果。
+查阅完整的 SQL 数据类型、操作符、内置函数、会话 GUC 运行时参数、版本演进历史以及 BEIR 标准数据集基准测试报告。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/reference/migration/" title="0.3.x 至 0.4.0 迁移指南" icon="fa-solid fa-right-left" >}}
-从 `bm25vector` + `pg_tokenizer`（0.3.x）架构迁移至 0.4.0 原生 `tsvector` 索引格式的分步指南。
+遵循分步实操指南，将现有 `bm25vector` + `pg_tokenizer`（`0.3.x`）生产部署平滑迁移至 `0.4.0` 原生 `tsvector` 索引架构。
 {{< /card >}}
   {{< card link="/zh/docs/tokenizer/" title="pg_tokenizer 文档" icon="fa-solid fa-language" >}}
-配置文本分析器、词干提取器、停用词、同义词、HuggingFace 模型、中文结巴（Jieba）与日文 Lindera 分词。
+配置模块化文本分析器、Snowball 词干提取、停用词、同义词、HuggingFace 词表模型、结巴中文（Jieba）与日文 Lindera 分词。
 {{< /card >}}
 {{< /cards >}}
 

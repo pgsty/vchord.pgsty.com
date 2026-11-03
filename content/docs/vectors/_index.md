@@ -2,7 +2,7 @@
 title: "pgvecto.rs Documentation"
 linkTitle: "pgvecto.rs"
 description: "Complete documentation archive for pgvecto.rs (vectors extension), predecessor to vchord."
-weight: 500
+weight: 400
 icon: fa-solid fa-cube
 type: docs
 sidebar_root_for: self

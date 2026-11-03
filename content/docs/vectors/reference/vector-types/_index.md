@@ -7,6 +7,7 @@ upstream_link: https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgve
 aliases:
   - "/reference/vector-types/"
   - "/usage/vector-types/"
+icon: fa-solid fa-shapes
 ---
 
 In the previous sections [Indexing](/docs/vectors/usage/indexing/) and [Search](/docs/vectors/usage/search/), we encountered the `vector` type. This section will explore additional vector types and their applications in the realm of vector search.

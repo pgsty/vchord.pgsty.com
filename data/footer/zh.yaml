@@ -16,9 +16,9 @@ columns:
       - { label: "vchord", url: "docs/vchord/" }
       - { label: "vchord_bm25", url: "docs/bm25/" }
       - { label: "pg_tokenizer", url: "docs/tokenizer/" }
-      - { label: "pgvector", url: "docs/vector/" }
       - { label: "pgvecto.rs", url: "docs/vectors/" }
       - { label: "pg_bestmatch", url: "docs/bestmatch/" }
+      - { label: "pgvector", url: "docs/vector/" }
   - title: "项目与博客"
     links:
       - { label: "工程技术博客", url: "blog/post/" }

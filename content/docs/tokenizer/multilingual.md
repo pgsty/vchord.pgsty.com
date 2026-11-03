@@ -247,21 +247,6 @@ LIMIT 10;
 ## Operational Notes & Known Limitations
 
 1. **Object Name Validation**: All names for tokenizers, text analyzers, models, stopword dictionaries, and synonym dictionaries must contain only alphanumeric characters and underscores (`[A-Za-z0-9_]`), and must not start with a digit.
-2. **Transaction Rollback & Per-Connection Object Cache**: Each PostgreSQL connection caches `tokenizer`, `text_analyzer`, `model`, `stopwords`, and `synonym` objects in backend memory (`DashMap`). Because this in-memory object pool is not tied to PostgreSQL's transaction rollback callbacks, rolling back a transaction (`ROLLBACK`) reverts the `tokenizer_catalog` tables on disk, but the current connection's in-memory cache still holds the created object. After a `ROLLBACK`, explicitly call the corresponding `drop_*` function (or reconnect) to clear the in-memory cache:
-   ```sql
-   BEGIN;
-   SELECT create_text_analyzer('text_analyzer1', $$
-   pre_tokenizer = "unicode_segmentation"
-   $$);
-   ROLLBACK;
-
-   -- Clear the stale in-memory cache entry in the current session (or reconnect)
-   SELECT drop_text_analyzer('text_analyzer1');
-
-   -- Now you can recreate it cleanly
-   SELECT create_text_analyzer('text_analyzer1', $$
-   pre_tokenizer = "unicode_segmentation"
-   $$);
-   ```
+2. **Transaction boundaries & object cache**: Each PostgreSQL backend caches `tokenizer`, `text_analyzer`, `model`, `stopwords`, and `synonym` objects in backend memory (`DashMap`). In 0.2.0, create/drop/rebuild operations clear the current backend and publish cache invalidation at transaction commit or abort. Other backends discard stale definitions before their next lookup, and a rollback does not leave a created object in the cache. Replacing an analyzer or model also invalidates dependent tokenizers. Persisted `INT[]`, `bm25vector`, and `tsvector` values are not rewritten automatically; recompute them after an intentional definition replacement.
 3. **Preload Models Across Replicas**: `add_preload_model` writes the preload model list to the local `$PGDATA/pg_tokenizer` directory on the primary node. Because filesystem files outside PostgreSQL relations are not replicated via WAL, you should run `add_preload_model` on read replicas independently if you preload models there.
 4. **Memory Consumption of Built-in LLM Models**: Models like `llmlingua2` (~200 MB), `gemma2b` (~100 MB), and `lindera` consume significant memory. Always use `add_preload_model` in production so the model is loaded once in the postmaster process rather than duplicated per connection, or prefer a custom corpus model (`create_custom_model`) which uses only a few megabytes.

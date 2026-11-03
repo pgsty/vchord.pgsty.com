@@ -51,11 +51,13 @@ ALTER INDEX documents_vector_bm25 RESET (limit, prefilter);
 
 ## Automatic Tokenization Triggers (`v0.1` – `v0.3`)
 
-When using `pg_tokenizer`, you can keep your `bm25vector` column automatically synchronized on `INSERT` and `UPDATE`:
+When using `pg_tokenizer 0.2.0` with the historical `bm25vector` API, you can keep a tokenized column automatically synchronized on `INSERT` and `UPDATE`:
 
 ### Using a Custom Model Trigger (One-Step Helper)
 
 `create_custom_model_tokenizer_and_trigger` creates a custom model, a tokenizer, backfills existing rows, and attaches an automatic `BEFORE INSERT OR UPDATE` trigger:
+
+The helper accepts an optional seventh `filter` argument. It limits vocabulary training and embedding updates to rows whose trusted source-column predicate evaluates to `TRUE`; omit it or pass SQL `NULL` to retain whole-table behavior. See the [pg_tokenizer model notes](/docs/tokenizer/models/#filtering-a-corpus).
 
 ```sql
 SELECT create_custom_model_tokenizer_and_trigger(

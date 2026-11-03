@@ -13,29 +13,29 @@ no_list: true
 cascade:
   type: docs
   upstream_source: "tokenizer"
-  upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs"
+  upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs"
   upstream_modified: true
 ---
 
-**`pg_tokenizer`** (maintained by Pigsty at [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)) is a standalone multilingual tokenization extension for PostgreSQL built in Rust (`pgrx`). It provides customizable text analyzers, character/token filters, and vocabulary models to convert raw text into integer token ID arrays (`INT[]`) and sparse `bm25vector` embeddings for [`vchord_bm25`](/docs/bm25/).
+**`pg_tokenizer` 0.2.0** (maintained by Pigsty at [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)) is a standalone multilingual tokenization extension for PostgreSQL built in Rust (`pgrx`). It provides customizable text analyzers, character/token filters, and vocabulary models that produce integer token ID arrays (`INT[]`) for the historical `bm25vector` workflow and native PostgreSQL `tsvector` values for GIN/GiST or compatible BM25 indexes.
 
 {{< cards >}}
   {{< card link="/docs/tokenizer/installation/" title="Installation" icon="fa-solid fa-download" >}}
-Install pg_tokenizer via Pigsty native Linux packages, Docker, Debian/ZIP archives, or cargo-pgrx.
+Install and preload `pg_tokenizer` via Pigsty native Linux packages, Docker containers, Debian/ZIP release archives, or `cargo-pgrx` source builds.
 {{< /card >}}
   {{< card link="/docs/tokenizer/overview/" title="Architecture & Usage" icon="fa-solid fa-sitemap" >}}
-How Text Analyzers and Models combine to turn raw text into token IDs.
+Understand how two-stage Text Analyzers and Vocabulary Models work together to transform raw text into integer token IDs or native `tsvector` values.
 {{< /card >}}
   {{< card link="/docs/tokenizer/text-analyzer/" title="Text Analyzers & Filters" icon="fa-solid fa-sliders" >}}
-Configure character filters, pre-tokenizers (Unicode, Regex, Jieba), stemmers (30 languages), stopwords, synonyms, and n-grams.
+Chain declarative character filters, pre-tokenizers (Unicode, Regex, Jieba), Snowball stemmers (30 languages), stopwords, synonyms, and n-gram filters.
 {{< /card >}}
   {{< card link="/docs/tokenizer/models/" title="Tokenization Models" icon="fa-solid fa-cubes" >}}
-Use built-in models (llmlingua2, bert_base_uncased, wiki_tocken, gemma2b), train custom corpus models, or import HuggingFace & Lindera models.
+Use built-in pretrained models (`llmlingua2`, `bert_base_uncased`, `wiki_tocken`, `gemma2b`), train custom corpus models, or import HuggingFace models.
 {{< /card >}}
   {{< card link="/docs/tokenizer/multilingual/" title="Multilingual Recipes & Limitations" icon="fa-solid fa-earth-asia" >}}
-Ready-to-use configurations for English, Chinese (Jieba), Japanese (Lindera), and custom domain corpora.
+Ready-to-use SQL configurations and operational guidelines for English, Chinese (`jieba`), Japanese (`lindera`), and custom domain-specific corpora.
 {{< /card >}}
   {{< card link="/docs/tokenizer/reference/" title="SQL & TOML Reference" icon="fa-solid fa-book" >}}
-Complete reference for all tokenizer_catalog SQL functions and TOML configuration options.
+Consult the complete reference for all `tokenizer_catalog` SQL functions, trigger helpers, built-in model specs, and TOML configuration parameters.
 {{< /card >}}
 {{< /cards >}}

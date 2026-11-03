@@ -51,11 +51,13 @@ ALTER INDEX documents_vector_bm25 RESET (limit, prefilter);
 
 ## 自动分词触发器（`v0.1` – `v0.3`） {#automatic-tokenization-triggers-v01--v03}
 
-使用 `pg_tokenizer` 时，可以通过触发器在执行 `INSERT` 和 `UPDATE` 时自动同步更新 `bm25vector` 列：
+使用 `pg_tokenizer 0.2.0` 的历史 `bm25vector` 接口时，可以通过触发器在执行 `INSERT` 和 `UPDATE` 时自动同步更新词元列：
 
 ### 使用自定义模型触发器（一步到位辅助函数） {#using-a-custom-model-trigger-one-step-helper}
 
 `create_custom_model_tokenizer_and_trigger` 会一步完成自定义模型创建、分词器创建、存量数据回填，并自动挂载 `BEFORE INSERT OR UPDATE` 触发器：
+
+该辅助函数支持可选的第七个 `filter` 参数。它只会将可信源列谓词结果为 `TRUE` 的行用于词表训练和 embedding 更新；省略或传入 SQL `NULL` 时仍处理整张表。详见 [pg_tokenizer 模型说明](/zh/docs/tokenizer/models/#corpus-filter)。
 
 ```sql
 SELECT create_custom_model_tokenizer_and_trigger(

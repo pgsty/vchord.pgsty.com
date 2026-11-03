@@ -8,6 +8,7 @@ weight: 40
 > [!IMPORTANT]
 > 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
 
+`pg_tokenizer 0.2.0` 是独立发布的分词扩展。它可以与历史 `vchord_bm25 0.3.x` 的 `bm25vector` 工作流配合使用；如果需要自定义分词，也可以在 0.4.0/main 接口中使用它提供的原生 `tsvector` 辅助函数。原生 `vchord_bm25` 路径不依赖 `pg_tokenizer`。
 
 本页记录 `vchord_bm25`（[`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) / [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)）的版本发布历史与 SQL 模式演进。
 

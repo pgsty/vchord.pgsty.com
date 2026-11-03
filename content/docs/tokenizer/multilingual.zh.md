@@ -247,21 +247,6 @@ LIMIT 10;
 ## 运维注意事项与已知限制 {#operational-notes--known-limitations}
 
 1. **对象名称命名规范**：所有分词器、文本分析器、模型、停用词典和同义词典的名称只能包含字母、数字和下划线（`[A-Za-z0-9_]`），且不能以数字开头。
-2. **事务回滚与会话级内存对象缓存**：每个 PostgreSQL 后端连接都会在进程内存（`DashMap`）中缓存 `tokenizer`、`text_analyzer`、`model`、`stopwords` 和 `synonym` 对象。由于该内存对象池未挂载到 PostgreSQL 事务回滚回调机制上，当事务执行 `ROLLBACK` 时，磁盘上的 `tokenizer_catalog` 元数据表会回滚，但当前连接的内存缓存中仍会残留刚才创建的对象。在 `ROLLBACK` 之后，请显式调用对应的 `drop_*` 函数（或重新建立数据库连接）以清理内存缓存：
-   ```sql
-   BEGIN;
-   SELECT create_text_analyzer('text_analyzer1', $$
-   pre_tokenizer = "unicode_segmentation"
-   $$);
-   ROLLBACK;
-
-   -- 清理当前会话内存中残留的缓存项（或者重新建立数据库连接）
-   SELECT drop_text_analyzer('text_analyzer1');
-
-   -- 现在可以正常重新创建同名对象
-   SELECT create_text_analyzer('text_analyzer1', $$
-   pre_tokenizer = "unicode_segmentation"
-   $$);
-   ```
+2. **事务边界与对象缓存**：每个 PostgreSQL 后端连接都会在进程内存（`DashMap`）中缓存 `tokenizer`、`text_analyzer`、`model`、`stopwords` 和 `synonym` 对象。0.2.0 中，创建、删除或重建对象会立即清理当前后端，并在事务提交或回滚时发布缓存失效通知；其他后端会在下次查找前丢弃旧定义，回滚也不会留下刚创建的缓存对象。重建分析器或模型时，依赖它们的分词器也会一并失效。已经存储在 `INT[]`、`bm25vector` 或 `tsvector` 列中的值不会自动重算，主动替换定义后应重新回填。
 3. **只读从库上的模型预加载**：`add_preload_model` 会将预加载模型列表写入主节点本地的 `$PGDATA/pg_tokenizer` 目录。由于 PostgreSQL 关系表以外的文件系统文件不会通过 WAL 日志复制到从库，如果你在只读从库上也需要预加载模型，请在从库上独立执行一次 `add_preload_model`。
 4. **内置大语言模型分词器的内存开销**：`llmlingua2`（~200 MB）、`gemma2b`（~100 MB）和 `lindera` 等模型会占用较多内存。在生产环境中，请务必使用 `add_preload_model` 让模型在 postmaster 主进程中仅加载一次，避免在每个连接中重复占用内存；或者优先选用仅占用几兆字节内存的自定义语料模型（`create_custom_model`）。

@@ -90,9 +90,9 @@ SELECT name FROM tokenizer_catalog.tokenizer;
 SELECT drop_tokenizer('wiki_eng');
 ```
 
-## 原生 PostgreSQL 全文检索（0.1.2，未发布） {#native-fts}
+## 0.2.0 原生 PostgreSQL 全文检索 {#native-fts}
 
-`analyze_to_tsvector` 将文本分析器输出的字符串词元转换为 PostgreSQL 原生 `tsvector`，适合 Jieba 及自定义词干、停用词流水线。`tokenize_to_tsvector` 将模型输出的整数 ID 转为十进制词素，适用于内置、自定义、Hugging Face 和 Lindera 模型。它们不解码模型 ID，也不会再次使用 PostgreSQL 分词器归一化文本。
+0.2.0 提供两个返回 PostgreSQL 原生 `tsvector` 的函数。`analyze_to_tsvector` 将文本分析器输出的字符串词元转换为词素，适合 Jieba 及自定义词干、停用词流水线；`tokenize_to_tsvector` 将模型输出的整数 ID 转为十进制词素，适用于内置、自定义、Hugging Face 和 Lindera 模型。它们不解码模型 ID，也不会再次使用 PostgreSQL 分词器归一化文本。
 
 ```sql
 SELECT create_text_analyzer('fts_words', $$

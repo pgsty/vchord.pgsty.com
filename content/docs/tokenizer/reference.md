@@ -3,7 +3,7 @@ title: "SQL & TOML Reference"
 description: "Complete reference for all tokenizer_catalog SQL functions and TOML configuration options in pg_tokenizer."
 weight: 50
 icon: fa-solid fa-book
-upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/00-reference.md"
+upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/00-reference.md"
 ---
 
 ## SQL Functions (`tokenizer_catalog`)
@@ -25,7 +25,7 @@ upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/00
 | Function Signature | Return Type | Description |
 | :--- | :--- | :--- |
 | `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)` | `VOID` | Builds a custom vocabulary model on an existing table column. |
-| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | Creates a custom model and tokenizer, backfills `target_column`, and installs triggers. Version 0.1.2 adds an optional SQL predicate; omit it or pass NULL to include all rows. |
+| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | Creates a custom model and tokenizer, backfills `target_column`, and installs triggers. Version 0.2.0 adds the optional SQL predicate; omit it or pass NULL to include all rows. The original six-argument signature remains available. |
 | `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | Drops a custom vocabulary model. |
 | `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)` | `VOID` | Imports a HuggingFace `tokenizer.json` model specification. |
 | `tokenizer_catalog.drop_huggingface_model(name TEXT)` | `VOID` | Drops an imported HuggingFace model. |
@@ -43,14 +43,14 @@ upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/00
 | `tokenizer_catalog.drop_tokenizer(name TEXT)` | `VOID` | Drops a tokenizer by name. |
 | `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | Tokenizes `text` into an array of integer token IDs (implicitly castable to `bm25vector`). |
 
-### Native full-text search (0.1.2, unreleased)
+### Native full-text search in 0.2.0
 
 | Function Signature | Return Type | Description |
 | :--- | :--- | :--- |
 | `tokenizer_catalog.analyze_to_tsvector(text TEXT, text_analyzer_name TEXT)` | `TSVECTOR` | Analyzer string tokens as native lexemes, with output positions. |
 | `tokenizer_catalog.tokenize_to_tsvector(text TEXT, tokenizer_name TEXT)` | `TSVECTOR` | Model IDs as decimal lexemes, with output positions. |
 
-These functions are STABLE. Store the result in a column for GIN/GiST indexing; use the same lexeme representation for documents and queries. See [positions and native limits](/docs/tokenizer/overview/#native-postgresql-full-text-search-012-unreleased).
+These functions are `STABLE` because they read tokenizer definitions from the catalog. Store the result in a column before creating a GIN/GiST or compatible BM25 index; use the same lexeme representation for documents and queries. Positions are assigned consecutively after empty output tokens are omitted, and positions describe the final analyzer/model output rather than source-text offsets. See [positions and native limits](/docs/tokenizer/overview/#native-postgresql-full-text-search).
 
 ---
 
@@ -75,7 +75,7 @@ These functions are STABLE. Store the result in a column for GIN/GiST indexing; 
 
 | Key | Type | Description |
 | :--- | :--- | :--- |
-| `table` | String | Source table name containing training documents; schema qualification is supported in 0.1.2. |
+| `table` | String | Source table name containing training documents; schema-qualified names and quoted identifiers are supported in 0.2.0. |
 | `column` | String | Source `TEXT` column name. |
 | `text_analyzer` | String | Name of the `text_analyzer` used to extract vocabulary tokens. |
-| `filter` | String | Optional trusted SQL Boolean expression over source columns, without WHERE (0.1.2). FALSE/NULL rows are skipped for training and embedding updates. |
+| `filter` | String | Optional trusted SQL Boolean expression over source columns, without `WHERE` or `NEW.` (0.2.0). Only `TRUE` rows are used for training and embedding updates; `FALSE` and `NULL` rows are skipped. The vocabulary is append-only. |

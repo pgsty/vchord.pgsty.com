@@ -235,15 +235,15 @@ SELECT remove_preload_model('llmlingua2');
 
 Restart PostgreSQL after calling `add_preload_model(...)` (with `shared_preload_libraries = 'pg_tokenizer.so'` set in `postgresql.conf`) for preloading to take effect across all backends.
 
-## Custom model updates in 0.1.2 (unreleased)
+## Custom model behavior in 0.2.0
 
-### Concurrent writes (0.1.2)
+### Concurrent writes
 
 Vocabulary triggers deduplicate and sort new tokens and take a transaction-level advisory lock per model before writing. This serializes writers to the same vocabulary across all rows and statements in a transaction, preventing the opposite token-lock order that caused concurrent batch inserts to deadlock. Ordinary tokenization reads and writes to different models can proceed independently. Keep transactions short; when writing multiple models or locking application rows, use a consistent order and retain normal deadlock/serialization retry handling.
 
 The embedding trigger refreshes its SPI snapshot after the vocabulary trigger, so at `READ COMMITTED` it can see token IDs committed by a writer it waited for. At `REPEATABLE READ` or `SERIALIZABLE`, a conflicting writer can receive SQLSTATE `40001` and must retry the whole transaction. Existing vocabulary IDs are preserved during upgrade; new IDs are internal mappings and are not guaranteed to match a separately created model.
 
-### Filtering a corpus (0.1.2)
+### Filtering a corpus
 
 Set `filter` in the custom model's TOML configuration, or pass a seventh `filter` argument to the convenience helper:
 
@@ -269,3 +269,9 @@ The predicate uses source column names without `NEW.` or `WHERE`, and is evaluat
 The filter applies to the initial vocabulary scan, embedding backfill, and future inserts/updates. Filtered models observe every UPDATE so changing only a predicate column can bring a row into the corpus. Nonmatching rows are left untouched, including existing embeddings; when a row leaves the corpus, its old embedding and vocabulary entries remain. Apply the same predicate when querying the corpus, or clear excluded embeddings in the application. Vocabulary is append-only and is not pruned on UPDATE/DELETE. A matching row with a NULL source has a NULL embedding.
 
 Omitting `filter` (or passing SQL `NULL` to the helper) retains the whole-table behavior. Existing models and six-argument helper calls remain supported. Schema-qualified table names and quoted column names are supported; the stored table name is qualified when the model is created. Qualified names take precedence over a literal name containing a dot; use SQL double quotes (for example, `'"corpus.docs"'`) to select the latter explicitly.
+
+### Catalog cache invalidation
+
+Definitions are cached in each PostgreSQL backend for fast tokenization. In 0.2.0, creating, dropping, or rebuilding an analyzer, tokenizer, model, stopword dictionary, or synonym dictionary clears the current backend immediately and publishes an invalidation at transaction commit or abort. Other backends discard their cached definitions before their next lookup, and a rollback does not leave a phantom object in the current backend. A tokenizer that depends on a rebuilt analyzer or model is invalidated with it.
+
+Cache invalidation does not rewrite values already stored in `INT[]`, `bm25vector`, or `tsvector` columns. After deliberately replacing a definition under the same name, recompute persisted search columns and rebuild any index whose lexeme or token-ID representation changed.

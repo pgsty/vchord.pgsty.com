@@ -12,7 +12,7 @@ weight: 20
 
 ## 方式一：Pigsty / 原生操作系统软件包（推荐） {#method-1-pigsty--native-os-packages-recommended}
 
-[**Pigsty**](https://pgsty.com) 为 EL 8/9/10、Debian 12/13 以及 Ubuntu 22.04/24.04 上的 PostgreSQL 14–18 提供了预构建的 `vchord`、`vchord_bm25` 和 `pg_tokenizer` 原生 RPM 与 DEB 软件包。
+[**Pigsty**](https://pgsty.com) 为 EL 8/9/10、Debian 12/13 以及 Ubuntu 22.04/24.04/26.04 上的 PostgreSQL 14–18 提供了预构建的 `vchord`、`vchord_bm25` 和 `pg_tokenizer` 原生 RPM 与 DEB 软件包。请选择与目标发行版、PostgreSQL 主版本和 CPU 架构匹配的软件包。
 
 ```bash
 # 通过 Pigsty CLI 安装（自动识别 PG 版本与操作系统发行版）
@@ -51,9 +51,9 @@ docker run \
 psql -h localhost -p 5432 -U postgres
 ```
 
-## 方式三：GitHub Release 软件包（`.deb` 与 RHEL `.zip`） {#method-3-github-release-deb-packages}
+## 方式三：GitHub Release 发行归档（`.deb` 与 `.zip`） {#method-3-github-release-deb-packages}
 
-从 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)（上游 [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)）与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)（上游 [`supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs)）的 GitHub Releases 页面下载对应 PostgreSQL 主版本（`14`–`18`）和 CPU 架构（`amd64` / `x86_64` 或 `arm64` / `aarch64`）的 `.deb` 或 RHEL 9+ `.zip` 软件包：
+从 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 的 GitHub Releases 页面下载与你的 PostgreSQL 主版本（`14`–`18`）和 CPU 架构（`amd64` / `x86_64` 或 `arm64` / `aarch64`）匹配的发行归档。`.deb` 必须匹配确切的 Debian/Ubuntu 发行版；ZIP 不包含软件包管理器依赖元数据，安装前必须验证目标主机的 libc 兼容性。EL 系统有对应原生 RPM 时应优先使用 RPM：
 
 ### Debian / Ubuntu（`.deb`） {#debian--ubuntu-deb}
 
@@ -62,14 +62,14 @@ psql -h localhost -p 5432 -U postgres
 curl -LO https://github.com/supervc-stack/VectorChord-bm25/releases/download/0.3.0/postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 sudo apt-get install ./postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 
-# 安装 pg_tokenizer（以 x86_64 上的 PostgreSQL 16 为例）
-curl -LO https://github.com/supervc-stack/pg_tokenizer.rs/releases/download/0.1.1/postgresql-16-pg-tokenizer_0.1.1-1_amd64.deb
-sudo apt-get install ./postgresql-16-pg-tokenizer_0.1.1-1_amd64.deb
+# 安装 pg_tokenizer 0.2.0（以 x86_64 上的 PostgreSQL 16 为例）
+curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
 ```
 
-### RHEL 9+ / Enterprise Linux（`.zip` 归档包） {#rhel-9--enterprise-linux-zip-archive}
+### 手工安装 ZIP 归档 {#rhel-9--enterprise-linux-zip-archive}
 
-在 RHEL 9+ 系统（要求 `glibc >= 2.34`）中手动通过 Release `.zip` 归档包安装时：
+如果没有匹配的原生软件包，可以在确认 PostgreSQL 主版本、CPU 架构和目标系统 libc 兼容后手工安装 ZIP 归档：
 
 ```bash
 # 1. 查询 PostgreSQL 的动态库目录与扩展共享目录
@@ -79,12 +79,12 @@ pg_config --sharedir
 # 示例输出：/usr/pgsql-16/share
 
 # 2. 下载并解压发布归档包
-wget https://github.com/supervc-stack/pg_tokenizer.rs/releases/download/0.1.1/pg16-pg_tokenizer-0.1.1-x86_64-unknown-linux-gnu.zip
-unzip pg16-pg_tokenizer-0.1.1-x86_64-unknown-linux-gnu.zip
+wget https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip
+unzip postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
 # 3. 拷贝共享库 (.so) 与扩展控制/SQL 脚本文件
-sudo cp ./usr/lib/postgresql/16/lib/pg_tokenizer.so $(pg_config --pkglibdir)
-sudo cp ./usr/share/postgresql/16/extension/* $(pg_config --sharedir)/extension
+sudo cp ./pg_tokenizer/pg_tokenizer.so $(pg_config --pkglibdir)
+sudo cp ./pg_tokenizer/pg_tokenizer.control ./pg_tokenizer/pg_tokenizer--*.sql $(pg_config --sharedir)/extension
 ```
 
 ## 方式四：从源码编译 {#method-4-build-from-source-cargo-pgrx}
@@ -128,10 +128,12 @@ SELECT pg_backend_pid();
 
 ### 1. 配置 `shared_preload_libraries`（0.4.0 必需） {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
 
-当前源码必须通过 `shared_preload_libraries` 预加载 `vchord_bm25`。请保留其他所需扩展；`pg_tokenizer` 对原生 `to_tsvector` 工作流是可选的：
+当前源码必须通过 `shared_preload_libraries` 预加载 `vchord_bm25`。请保留其他所需扩展；原生 `to_tsvector` 工作流不需要 `pg_tokenizer`，如果安装它来使用自定义分词，则应在 PostgreSQL 启动前将其加入同一设置：
 
 ```ini
 shared_preload_libraries = 'vchord_bm25'
+# 如果使用 pg_tokenizer 0.2.0 做自定义分词：
+# shared_preload_libraries = 'vchord_bm25, pg_tokenizer'
 ```
 
 修改 `shared_preload_libraries` 后请重启 PostgreSQL。

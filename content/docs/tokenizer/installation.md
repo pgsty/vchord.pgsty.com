@@ -3,12 +3,12 @@ title: "Installation"
 description: "Install pg_tokenizer via Pigsty native Linux packages, Docker, Debian/ZIP archives, or cargo-pgrx."
 weight: 5
 icon: fa-solid fa-download
-upstream_link: "https://github.com/tensorchord/pg_tokenizer.rs/blob/main/docs/01-installation.md"
+upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/01-installation.md"
 ---
 
 ## Linux Packages via `pig` (Recommended)
 
-On EL 8/9/10, Debian 12/13, and Ubuntu 22.04/24.04 (PostgreSQL 14–18), you can install pre-built native packages from the [Pigsty repository](https://pigsty.io/ext/e/pg_tokenizer) (see package matrix on [pgext.cloud](https://pgext.cloud/ext/pg_tokenizer)):
+On EL 8/9/10, Debian 12/13, and Ubuntu 22.04/24.04/26.04 (PostgreSQL 14–18), you can install the native package built for your distribution and architecture from the [Pigsty repository](https://pigsty.io/ext/e/pg_tokenizer) (see the package matrix on [pgext.cloud](https://pgext.cloud/ext/pg_tokenizer)):
 
 ```bash
 curl -fsSL https://repo.pigsty.io/pig | bash
@@ -40,11 +40,11 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 
 ## Configuration (`shared_preload_libraries` & `search_path`)
 
-When installing via native packages or archives, add `pg_tokenizer.so` to `shared_preload_libraries` (required for model preloading) and include `tokenizer_catalog` in `search_path`:
+`pg_tokenizer` has no required PostgreSQL extension dependency. `vchord_bm25` is optional: its 0.3.x API consumes `INT[]` values through `bm25vector`, while its 0.4.0/main API can consume native `tsvector` values. The `pg_tokenizer` library must be loaded through `shared_preload_libraries` before PostgreSQL starts; include `tokenizer_catalog` in `search_path` if you want to call the functions without schema qualification:
 
 ```bash
-psql -U postgres -c 'ALTER SYSTEM SET shared_preload_libraries = "pg_tokenizer.so"'
-psql -U postgres -c 'ALTER SYSTEM SET search_path TO "$user", public, tokenizer_catalog'
+psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer.so';"
+psql -U postgres -c "ALTER SYSTEM SET search_path TO \"\$user\", public, tokenizer_catalog;"
 sudo systemctl restart postgresql.service
 ```
 
@@ -56,7 +56,7 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 
 ## From Debian Package or ZIP Archive
 
-Pre-built `.deb` and `.zip` release archives (`GLIBC >= 2.35`, `x86_64` and `aarch64`) are available on the [`pgsty/pg_tokenizer` Releases page](https://github.com/pgsty/pg_tokenizer/releases/latest):
+Pre-built `.deb` and `.zip` release archives for selected PostgreSQL major versions and `x86_64`/`aarch64` architectures are available on the [`pgsty/pg_tokenizer` Releases page](https://github.com/pgsty/pg_tokenizer/releases/latest). Select a `.deb` matching the exact target Debian/Ubuntu release, PostgreSQL major version, and architecture. ZIP archives have no package-manager dependency metadata, so verify their shared-library compatibility with the target system's libc before installing; use a matching native package when one is available.
 
 ```bash
 # Debian / Ubuntu
@@ -71,15 +71,15 @@ cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
 
-## Upgrading to 0.1.2
+## Upgrading to 0.2.0
 
-The 0.1.2 source changes are not yet a published release. After installing the matching library and SQL files, restart PostgreSQL to load the new preloaded library, then update each database as the extension owner/administrator:
+After installing the 0.2.0 library and SQL files, restart PostgreSQL to load the preloaded library, then update each database as the extension owner or an administrator:
 
 ```sql
-ALTER EXTENSION pg_tokenizer UPDATE TO '0.1.2';
+ALTER EXTENSION pg_tokenizer UPDATE TO '0.2.0';
 ```
 
-Both 0.1.0 and 0.1.1 have upgrade paths. The upgrade replaces trigger/helper definitions and grants catalog access without rebuilding custom vocabularies or changing existing token IDs. Six-argument helper dependencies remain valid. Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. Lindera's separate dictionary-ID migration still requires re-tokenization as described in the [model notes](/docs/tokenizer/models/).
+Upgrade paths are provided from 0.1.0, 0.1.1, and 0.1.2. The migration preserves catalog data, existing custom-model token IDs, and dependencies on the six-argument helper. Version 0.2.0 adds transaction-end invalidation for backend-local object caches, native `tsvector` helpers, and consecutive positions after empty output tokens are removed. Recompute persisted `tsvector` or token-ID columns when those semantics or a rebuilt analyzer/model affect stored search values. Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. Lindera's dictionary-ID migration still requires re-tokenization as described in the [model notes](/docs/tokenizer/models/).
 
 ### Database-owner permissions
 

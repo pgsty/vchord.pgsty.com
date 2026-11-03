@@ -90,9 +90,9 @@ SELECT name FROM tokenizer_catalog.tokenizer;
 SELECT drop_tokenizer('wiki_eng');
 ```
 
-## Native PostgreSQL full-text search (0.1.2, unreleased)
+## Native PostgreSQL full-text search in 0.2.0 {#native-postgresql-full-text-search}
 
-Version 0.1.2 adds two functions returning the native `tsvector` type. `analyze_to_tsvector` uses the text analyzer's string tokens as lexemes, making it useful for Jieba and custom stemmer/filter pipelines. `tokenize_to_tsvector` instead uses the model's token IDs as decimal lexemes, supporting built-in, custom, Hugging Face, and Lindera models. No model decoding or second PostgreSQL text normalization is performed.
+Version 0.2.0 provides two functions returning the native `tsvector` type. `analyze_to_tsvector` uses the text analyzer's string tokens as lexemes, making it useful for Jieba and custom stemmer/filter pipelines. `tokenize_to_tsvector` instead uses the model's token IDs as decimal lexemes, supporting built-in, custom, Hugging Face, and Lindera models. No model decoding or second PostgreSQL text normalization is performed.
 
 ```sql
 SELECT create_text_analyzer('fts_words', $$

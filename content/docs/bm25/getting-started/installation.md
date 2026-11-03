@@ -12,7 +12,7 @@ weight: 20
 
 ## Method 1: Pigsty / Native OS Packages (Recommended)
 
-[**Pigsty**](https://pgsty.com) provides pre-built native RPM and DEB packages for `vchord`, `vchord_bm25`, and `pg_tokenizer` across EL 8/9/10, Debian 12/13, and Ubuntu 22.04/24.04 for PostgreSQL 14–18.
+[**Pigsty**](https://pgsty.com) provides pre-built native RPM and DEB packages for `vchord`, `vchord_bm25`, and `pg_tokenizer` across EL 8/9/10, Debian 12/13, and Ubuntu 22.04/24.04/26.04 for PostgreSQL 14–18. Choose the package built for the target distribution, PostgreSQL major version, and CPU architecture.
 
 ```bash
 # Install via Pigsty CLI (automatically resolves PG version and OS distro)
@@ -51,9 +51,9 @@ Connect with `psql`:
 psql -h localhost -p 5432 -U postgres
 ```
 
-## Method 3: GitHub Release Packages (`.deb` & RHEL `.zip`)
+## Method 3: GitHub Release Packages (`.deb` and `.zip`)
 
-Download prebuilt `.deb` or RHEL 9+ `.zip` packages for your PostgreSQL major version (`14`–`18`) and CPU architecture (`amd64` / `x86_64` or `arm64` / `aarch64`) from the GitHub Releases pages of [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) (upstream [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)) and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) (upstream [`supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs)):
+Download release archives for your PostgreSQL major version (`14`–`18`) and CPU architecture (`amd64` / `x86_64` or `arm64` / `aarch64`) from the GitHub Releases pages of [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer). Select a `.deb` built for the exact Debian/Ubuntu release. ZIP archives have no package-manager dependency metadata and require a libc compatibility check on the target host; for supported EL systems, use the matching RPM package.
 
 ### Debian / Ubuntu (`.deb`)
 
@@ -62,14 +62,14 @@ Download prebuilt `.deb` or RHEL 9+ `.zip` packages for your PostgreSQL major ve
 curl -LO https://github.com/supervc-stack/VectorChord-bm25/releases/download/0.3.0/postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 sudo apt-get install ./postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 
-# Install pg_tokenizer (example for PostgreSQL 16 on x86_64)
-curl -LO https://github.com/supervc-stack/pg_tokenizer.rs/releases/download/0.1.1/postgresql-16-pg-tokenizer_0.1.1-1_amd64.deb
-sudo apt-get install ./postgresql-16-pg-tokenizer_0.1.1-1_amd64.deb
+# Install pg_tokenizer 0.2.0 (example for PostgreSQL 16 on x86_64)
+curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
 ```
 
-### RHEL 9+ / Enterprise Linux (`.zip` Archive)
+### Manual ZIP installation
 
-For RHEL 9+ systems when installing manually from the release `.zip` archive (requires `glibc >= 2.34`):
+If a matching native package is unavailable, install the ZIP archive manually after verifying the PostgreSQL major version, CPU architecture, and target system libc:
 
 ```bash
 # 1. Locate PostgreSQL library and extension directories
@@ -79,12 +79,12 @@ pg_config --sharedir
 # Example: /usr/pgsql-16/share
 
 # 2. Download and extract the release archive
-wget https://github.com/supervc-stack/pg_tokenizer.rs/releases/download/0.1.1/pg16-pg_tokenizer-0.1.1-x86_64-unknown-linux-gnu.zip
-unzip pg16-pg_tokenizer-0.1.1-x86_64-unknown-linux-gnu.zip
+wget https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip
+unzip postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
 # 3. Copy the shared library (.so) and extension control/SQL files
-sudo cp ./usr/lib/postgresql/16/lib/pg_tokenizer.so $(pg_config --pkglibdir)
-sudo cp ./usr/share/postgresql/16/extension/* $(pg_config --sharedir)/extension
+sudo cp ./pg_tokenizer/pg_tokenizer.so $(pg_config --pkglibdir)
+sudo cp ./pg_tokenizer/pg_tokenizer.control ./pg_tokenizer/pg_tokenizer--*.sql $(pg_config --sharedir)/extension
 ```
 
 ## Method 4: Build from Source {#method-4-build-from-source-cargo-pgrx}
@@ -128,10 +128,12 @@ SELECT pg_backend_pid();
 
 ### 1. Shared Preload Libraries (Required for 0.4.0) {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
 
-Current source requires `vchord_bm25` in `shared_preload_libraries`. Preserve other required libraries. `pg_tokenizer` is optional for the native `to_tsvector` workflow:
+Current source requires `vchord_bm25` in `shared_preload_libraries`. Preserve other required libraries. `pg_tokenizer` is optional for the native `to_tsvector` workflow; if you install it for custom tokenization, add it to the same setting before PostgreSQL starts:
 
 ```ini
 shared_preload_libraries = 'vchord_bm25'
+# If using pg_tokenizer 0.2.0 for custom tokenization:
+# shared_preload_libraries = 'vchord_bm25, pg_tokenizer'
 ```
 
 Restart PostgreSQL after modifying `shared_preload_libraries`.

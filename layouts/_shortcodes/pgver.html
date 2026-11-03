@@ -1,0 +1,23 @@
+{{- /*
+PostgreSQL major-version support strip (e.g. 18, 17, 16, 15, 14).
+
+@param {string} 0 comma-separated majors, e.g. "18,17,16,15,14"
+@param {string} 1 comma-separated color codes: g green, r red, y yellow, b blue, o orange, gr gray
+*/ -}}
+{{- $versions := split (strings.TrimSpace (.Get 0)) "," -}}
+{{- $codes := split (strings.TrimSpace (.Get 1)) "," -}}
+{{- $names := dict "r" "red" "g" "green" "y" "yellow" "b" "blue" "o" "orange" "gr" "gray" -}}
+{{- $format := lower (.Page.Store.Get "tdOutputFormat" | default "html") -}}
+{{- if eq $format "markdown" -}}
+`PG {{ delimit $versions "/" }}`
+{{- else -}}
+<span class="pgx-vers">
+{{- range $i, $v := $versions -}}
+  {{- $v = strings.TrimSpace $v -}}
+  {{- $code := "gr" -}}
+  {{- if lt $i (len $codes) }}{{ $code = strings.TrimSpace (index $codes $i) }}{{ end -}}
+  {{- $name := index $names $code | default "gray" -}}
+  <span class="pgx-v pgx-v--{{ $name }}">{{ $v }}</span>
+{{- end -}}
+</span>
+{{- end -}}

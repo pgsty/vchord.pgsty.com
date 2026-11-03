@@ -1,0 +1,17 @@
+{{- /*
+Positional badge pill for availability matrices and package metadata tables.
+
+@param {string} 0 label (required)
+@param {string} 1 tooltip (optional)
+@param {string} 2 color (optional; defaults to blue)
+*/ -}}
+{{- $text := strings.TrimSpace (printf "%v" (.Get 0 | default "")) -}}
+{{- $alt := strings.TrimSpace (printf "%v" (.Get 1 | default "")) -}}
+{{- $color := lower (strings.TrimSpace (printf "%v" (.Get 2 | default "blue"))) -}}
+{{- $format := lower (.Page.Store.Get "tdOutputFormat" | default "html") -}}
+{{- if not $text -}}
+{{- else if eq $format "markdown" -}}
+`{{ $text }}`
+{{- else -}}
+<span class="pgx-b pgx-b--{{ $color }} pgx-b--hued pgx-b--mono"{{ with $alt }} title="{{ . }}"{{ end }}>{{ $text }}</span>
+{{- end -}}

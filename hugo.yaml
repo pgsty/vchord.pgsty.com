@@ -101,6 +101,12 @@ languages:
               url: /docs/vchord/benchmark/performance/
               icon: fa-solid fa-chart-line
               keywords: [benchmark, performance, qps, recall, cost]
+            - id: download_packages
+              title: Download & Availability Matrix
+              description: Install vchord, vchord_bm25, and pg_tokenizer with pig or RPM/DEB packages
+              url: /download/
+              icon: fa-solid fa-download
+              keywords: [download, install, pig, rpm, deb, matrix, packages]
     menu:
       main:
         - identifier: docs
@@ -133,30 +139,30 @@ languages:
           params:
             icon: fa-solid fa-language
             description: Multilingual text analyzers, stemmers, and custom models
-        - identifier: docs-vector
-          parent: docs
-          name: pgvector
-          pageRef: /docs/vector
-          weight: 40
-          params:
-            icon: fa-solid fa-circle-nodes
-            description: Core vector types, distance operators, HNSW, and IVFFlat
         - identifier: docs-vectors
           parent: docs
           name: pgvecto.rs
           pageRef: /docs/vectors
-          weight: 50
+          weight: 40
           params:
             icon: fa-solid fa-cube
-            description: Complete documentation archive for pgvecto.rs (vectors)
+            description: Predecessor reference manual for pgvecto.rs (vectors)
         - identifier: docs-bestmatch
           parent: docs
           name: pg_bestmatch
           pageRef: /docs/bestmatch
-          weight: 60
+          weight: 50
           params:
             icon: fa-solid fa-ranking-star
-            description: BM25 sparse vector generator for pgvector and pgvecto.rs
+            description: Predecessor reference manual for pg_bestmatch.rs
+        - identifier: docs-vector
+          parent: docs
+          name: pgvector
+          pageRef: /docs/vector
+          weight: 60
+          params:
+            icon: fa-solid fa-circle-nodes
+            description: Required upstream foundational vector extension
         - identifier: blog
           name: Blog
           pageRef: /blog
@@ -179,6 +185,12 @@ languages:
           params:
             icon: fa-solid fa-tag
             description: Version announcements for vchord and pgvecto.rs
+        - identifier: download
+          name: Download
+          pageRef: /download
+          weight: 30
+          params:
+            icon: fa-solid fa-download
         - identifier: pigsty
           name: Pigsty
           weight: 60
@@ -261,6 +273,12 @@ languages:
               url: /zh/docs/vchord/benchmark/performance/
               icon: fa-solid fa-chart-line
               keywords: [benchmark, performance, qps, recall, cost, 基准测试, 性能]
+            - id: download_packages
+              title: 下载与可用性矩阵
+              description: 使用 pig 包管理器或原生 RPM / DEB 软件包安装 vchord、vchord_bm25 与 pg_tokenizer
+              url: /zh/download/
+              icon: fa-solid fa-download
+              keywords: [download, install, pig, rpm, deb, matrix, 下载, 安装, 软件包]
     menu:
       main:
         - identifier: docs
@@ -293,30 +311,30 @@ languages:
           params:
             icon: fa-solid fa-language
             description: 多语言文本分析器、词干提取与自定义词表模型
-        - identifier: docs-vector
-          parent: docs
-          name: pgvector
-          pageRef: /docs/vector
-          weight: 40
-          params:
-            icon: fa-solid fa-circle-nodes
-            description: 核心向量类型、距离操作符、HNSW 与 IVFFlat 索引
         - identifier: docs-vectors
           parent: docs
           name: pgvecto.rs
           pageRef: /docs/vectors
-          weight: 50
+          weight: 40
           params:
             icon: fa-solid fa-cube
-            description: pgvecto.rs（vectors 扩展）完整历史文档归档
+            description: 前代产品参考手册：pgvecto.rs 历史归档与迁移指南
         - identifier: docs-bestmatch
           parent: docs
           name: pg_bestmatch
           pageRef: /docs/bestmatch
-          weight: 60
+          weight: 50
           params:
             icon: fa-solid fa-ranking-star
-            description: 面向 pgvector 与 pgvecto.rs 的 BM25 稀疏向量生成器
+            description: 前代产品参考手册：早期 BM25 稀疏向量生成扩展
+        - identifier: docs-vector
+          parent: docs
+          name: pgvector
+          pageRef: /docs/vector
+          weight: 60
+          params:
+            icon: fa-solid fa-circle-nodes
+            description: 依赖的上游基础扩展：核心向量类型与 HNSW 索引
         - identifier: blog
           name: 博客
           pageRef: /blog
@@ -339,6 +357,12 @@ languages:
           params:
             icon: fa-solid fa-tag
             description: vchord 与 pgvecto.rs 各版本发布公告
+        - identifier: download
+          name: 下载
+          pageRef: /download
+          weight: 30
+          params:
+            icon: fa-solid fa-download
         - identifier: pigsty
           name: Pigsty
           weight: 60
@@ -448,7 +472,7 @@ params:
     preset_menu: [paper, slate, ink, terminal]
     shell_types: [docs, blog]
     quick_links: [docs, blog]
-    sidebar_icon_policy: groups
+    sidebar_icon_policy: all
     typography: technical
     breadcrumb: true
     navbar_logo: true

@@ -1,9 +1,16 @@
 // Project-level SCSS refinements for vchord.pgsty.com (OINK v1.4.0 hook)
 
-// 1. Capabilities (Value Proposition) & Landing Syntax Highlighting:
-//    step down module heading font-size so subheadings fit on a single line,
-//    and apply vivid, distinct Chroma syntax highlighting across the 4 feature
-//    SQL codeplates and the 3 Quick Start Bash command blocks.
+// 1. Hero Lead & Capabilities (Value Proposition) & Landing Syntax Highlighting:
+//    widen .td-landing-hero__lead so the two-line hero description fits comfortably
+//    in both English and Chinese; step down module heading font-size so subheadings
+//    fit on a single line; and apply vivid, distinct Chroma syntax highlighting.
+.td-landing-hero .td-landing-hero__lead {
+  max-width: 760px;
+  font-size: clamp(1rem, 1.3vw, 1.12rem);
+  line-height: 1.65;
+  text-wrap: normal;
+}
+
 .td-landing-module__copy {
   h3 {
     font-size: clamp(1.32rem, 1.9vw, 1.62rem);
@@ -253,6 +260,59 @@
     outline: 2px solid var(--td-copper);
     outline-offset: 3px;
   }
+
+  &.td-landing-card--core {
+    border-width: 1.5px;
+    border-color: color-mix(in srgb, var(--td-copper) 58%, var(--td-line));
+    background:
+      linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--td-copper) 4.5%, var(--td-paper)),
+        var(--td-paper) 62%
+      );
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04),
+      0 8px 22px -14px color-mix(in srgb, var(--td-copper) 32%, transparent);
+
+    .td-landing-card__media {
+      border-color: color-mix(in srgb, var(--td-copper) 35%, var(--td-line));
+      background: color-mix(in srgb, var(--td-copper) 10%, transparent);
+      color: var(--td-copper);
+    }
+
+    &:hover {
+      border-color: var(--td-copper);
+    }
+  }
+
+  &.td-landing-card--deprecated::before,
+  &.td-landing-card--upstream::before {
+    position: absolute;
+    top: 18px;
+    inset-inline-end: 20px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-family: var(--td-meta-font-family);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  &.td-landing-card--deprecated::before {
+    content: 'Deprecated';
+    border: 1px solid color-mix(in srgb, var(--td-copper) 32%, var(--td-line));
+    background: color-mix(in srgb, var(--td-copper) 9%, var(--td-paper));
+    color: var(--td-muted);
+  }
+
+  &.td-landing-card--upstream::before {
+    content: 'Upstream';
+    border: 1px solid color-mix(in srgb, var(--td-blue) 35%, var(--td-line));
+    background: color-mix(in srgb, var(--td-blue) 9%, var(--td-paper));
+    color: var(--td-blue);
+  }
 }
 
 // 4. Quick Start Three Steps: 3 full-width horizontal step bars stacked
@@ -364,7 +424,8 @@
 }
 
 // 5. Documentation Cards (.td-content-cards--auto): enforce a 3-column grid
-//    on desktop (3x2 for 6 cards, 3x1 for 3 cards), 2-column on tablet, 1-column on mobile.
+//    on desktop (3x2 for 6 cards, 3x1 for 3 cards), 2-column on tablet, 1-column on mobile,
+//    and keep card descriptions uniform at 4 lines.
 .td-content-cards--auto:not(.td-cards-list) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 
@@ -385,8 +446,199 @@
   }
 }
 
+.td-content-cards:not(.td-cards-list) .td-content-card__description > p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  min-height: calc(4 * 1.55em);
+}
+
+// Highlight the top 3 core extension cards in the Extension Suite grid on /docs/
+.td-content-cards:has(> .td-content-card .td-content-card__badge) > .td-content-card:nth-child(-n + 3) {
+  border-width: 1.5px;
+  border-color: color-mix(in srgb, var(--td-brand-copper, #c27848) 55%, var(--bs-border-color));
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--td-brand-copper, #c27848) 4.5%, var(--bs-body-bg)),
+      var(--bs-body-bg) 65%
+    );
+
+  .td-content-card__icon {
+    background: color-mix(in srgb, var(--td-brand-copper, #c27848) 12%, transparent);
+    color: var(--td-brand-copper, #c27848);
+  }
+}
+
 // 6. Footer two-line brand slogan spacing
 .td-site-footer__slogan {
   max-width: 34rem;
   line-height: 1.75;
+}
+
+// 7. Download Page & PGEXT Availability Matrix / Package Badges
+:root {
+  --pgx-green: #2f9e4f;
+  --pgx-blue: #2456b8;
+  --pgx-orange: #e8590c;
+  --pgx-purple: #7c3aed;
+  --pgx-red: #d21f3c;
+  --pgx-amber: #b97e0c;
+  --pgx-teal: #0f9e99;
+}
+
+:root[data-bs-theme='dark'] {
+  --pgx-green: #38b85e;
+  --pgx-blue: #5c8df6;
+  --pgx-orange: #f57c38;
+  --pgx-purple: #a374f7;
+  --pgx-red: #e85d6f;
+  --pgx-amber: #d89b28;
+  --pgx-teal: #25bdb8;
+}
+
+.pgx-b {
+  --pgx-seg: var(--bs-secondary-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 8px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+  background: var(--bs-body-bg);
+  color: var(--bs-secondary-color);
+  font-family: var(--td-code-font-family);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+  vertical-align: 0.04em;
+  white-space: nowrap;
+
+  &--hued {
+    border-color: color-mix(in srgb, var(--pgx-seg) 38%, var(--bs-border-color));
+    background: color-mix(in srgb, var(--pgx-seg) 9%, var(--bs-body-bg));
+    color: var(--pgx-seg);
+  }
+
+  &--flat {
+    border-color: transparent;
+    background: var(--bs-secondary-bg);
+  }
+
+  &--mono {
+    font-size: 0.77rem;
+    letter-spacing: -0.01em;
+  }
+
+  &--gray { --pgx-seg: var(--bs-secondary-color); }
+  &--blue { --pgx-seg: var(--pgx-blue); }
+  &--green { --pgx-seg: var(--pgx-green); }
+  &--orange { --pgx-seg: var(--pgx-orange); }
+  &--purple { --pgx-seg: var(--pgx-purple); }
+  &--red { --pgx-seg: var(--pgx-red); }
+  &--yellow,
+  &--amber { --pgx-seg: var(--pgx-amber); }
+  &--teal { --pgx-seg: var(--pgx-teal); }
+}
+
+a.pgx-b {
+  transition:
+    border-color 0.14s ease,
+    background-color 0.14s ease,
+    color 0.14s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: color-mix(in srgb, var(--pgx-seg) 65%, var(--bs-border-color));
+    background: color-mix(in srgb, var(--pgx-seg) 15%, var(--bs-body-bg));
+    color: var(--bs-emphasis-color);
+    text-decoration: none;
+  }
+}
+
+.pgx-vers {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: 0.04em;
+  white-space: nowrap;
+}
+
+.pgx-v {
+  min-width: 2.15em;
+  padding: 1px 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family: var(--td-code-font-family);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+
+  &--green {
+    border-color: color-mix(in srgb, var(--pgx-green) 36%, var(--bs-border-color));
+    background: color-mix(in srgb, var(--pgx-green) 10%, var(--bs-body-bg));
+    color: var(--pgx-green);
+  }
+  &--red {
+    border-color: color-mix(in srgb, var(--pgx-red) 32%, var(--bs-border-color));
+    background: color-mix(in srgb, var(--pgx-red) 8%, var(--bs-body-bg));
+    color: var(--pgx-red);
+  }
+  &--gray {
+    border-color: var(--bs-border-color);
+    background: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+  }
+}
+
+.td-download-page .td-content {
+  .td-table-scroll--matrix {
+    max-block-size: none;
+    overflow-x: auto;
+
+    > table {
+      th,
+      td {
+        padding: 6px 12px;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+
+      th[scope='row'] {
+        text-align: center;
+      }
+    }
+  }
+
+  table.packages {
+    th,
+    td {
+      padding: 8px 12px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  }
+
+  table.downloads {
+    th,
+    td {
+      padding: 6px 12px;
+      vertical-align: middle;
+    }
+
+    td:not(:last-child),
+    th:not(:last-child) {
+      white-space: nowrap;
+    }
+
+    td:last-child a {
+      font-family: var(--td-code-font-family);
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+  }
 }

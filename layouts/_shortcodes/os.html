@@ -1,0 +1,16 @@
+{{- /*
+OS / Architecture target pill linking to PGEXT.CLOUD platform page.
+The flat variant marks the aarch64 row of each distribution pair.
+
+@param {string} 0 OS target, e.g. `el9.x86_64`
+*/ -}}
+{{- $os := strings.TrimSpace (printf "%v" (.Get 0 | default "")) -}}
+{{- $flat := strings.HasSuffix $os "aarch64" -}}
+{{- $url := printf "https://pgext.cloud/os/%s" $os -}}
+{{- $format := lower (.Page.Store.Get "tdOutputFormat" | default "html") -}}
+{{- if not $os -}}
+{{- else if eq $format "markdown" -}}
+[`{{ $os }}`]({{ $url }})
+{{- else -}}
+<a class="pgx-b pgx-b--gray pgx-b--mono{{ if $flat }} pgx-b--flat{{ end }}" href="{{ $url }}" title="OS: {{ $os }}" target="_blank" rel="noopener">{{ $os }}</a>
+{{- end -}}

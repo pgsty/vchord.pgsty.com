@@ -21,7 +21,7 @@ cascade:
 
 {{< cards >}}
   {{< card link="/zh/docs/tokenizer/installation/" title="安装指南" icon="fa-solid fa-download" >}}
-通过 Pigsty 原生 Linux 软件包、Docker 容器镜像、Debian/ZIP 预编译归档包或 `cargo-pgrx` 源码编译方式安装并启用 `pg_tokenizer`。
+通过 Pigsty 原生 Linux 软件包、Docker（Obsolete） 容器镜像、Debian/ZIP 预编译归档包或 `cargo-pgrx` 源码编译方式安装并启用 `pg_tokenizer`。
 {{< /card >}}
   {{< card link="/zh/docs/tokenizer/overview/" title="架构与基本用法" icon="fa-solid fa-sitemap" >}}
 深入了解文本分析器（Text Analyzer）与词表模型（Model）如何协同工作，将原始文本转化为词元 ID 数组或原生 `tsvector`。

@@ -5,6 +5,9 @@ weight: 40
 icon: fa-solid fa-language
 ---
 
+> [!NOTE]
+> Recipes using `bm25vector` require historical `vchord_bm25` 0.1–0.3. With 1.0.0, store `analyze_to_tsvector` or `tokenize_to_tsvector` output in a `tsvector` column and use `to_bm25query(vector, index)`. See the [native BM25 example](/docs/tokenizer/overview/#native-postgresql-full-text-search).
+
 This page provides production-ready tokenization recipes for English, Chinese, and Japanese full-text BM25 search, followed by important operational limitations to keep in mind.
 
 ## Recipe 1: English with Stemming & Stopwords (`wiki_tocken`)

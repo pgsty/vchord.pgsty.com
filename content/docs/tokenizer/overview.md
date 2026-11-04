@@ -119,4 +119,15 @@ Both functions preserve repeated output tokens and assign positions from the fin
 
 PostgreSQL's native limits apply: tokens longer than 2046 bytes are skipped without leaving position gaps; each lexeme stores at most 256 positions, and positions above 16,383 are clamped. Long input can therefore lose term-frequency/proximity detail. See [PostgreSQL text search limits](https://www.postgresql.org/docs/current/textsearch-limitations.html).
 
-Use the same analyzer/model and lexeme representation for documents and queries. `plainto_tsquery('english', ...)` does not generate model token IDs or reproduce a custom Chinese analyzer. These functions do not add a custom text search parser or a `tsquery` builder. They are `STABLE` because definitions live in catalogs: store/update the resulting vector in a column and index that column with GIN/GiST. When an installed BM25 implementation accepts native `tsvector`, it can consume these values too; check that implementation's SQL API before migrating an existing `bm25vector` index.
+Use the same analyzer/model and lexeme representation for documents and queries. `plainto_tsquery('english', ...)` does not generate model token IDs or reproduce a custom Chinese analyzer. These functions do not add a custom text search parser or a `tsquery` builder. They are `STABLE` because definitions live in catalogs: store/update the resulting vector in a column and index that column with GIN/GiST. `vchord_bm25` 1.0.0 indexes these values directly. After [installing and preloading it](/docs/bm25/getting-started/installation/), add a BM25 index to the example above:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+CREATE INDEX fts_documents_bm25 ON fts_documents USING bm25 (terms bm25_ops);
+SELECT id, terms <&> to_bm25query(analyze_to_tsvector('cat', 'fts_words'), 'fts_documents_bm25') AS rank
+FROM fts_documents
+ORDER BY rank
+LIMIT 10;
+```
+
+Existing `bm25vector` indexes require the [1.0.0 migration procedure](/docs/bm25/reference/migration/).

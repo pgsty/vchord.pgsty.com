@@ -21,7 +21,7 @@ cascade:
 
 {{< cards >}}
   {{< card link="/docs/tokenizer/installation/" title="Installation" icon="fa-solid fa-download" >}}
-Install and preload `pg_tokenizer` via Pigsty native Linux packages, Docker containers, Debian/ZIP release archives, or `cargo-pgrx` source builds.
+Install and preload `pg_tokenizer` via Pigsty native Linux packages, Docker (Obsolete) containers, Debian/ZIP release archives, or `cargo-pgrx` source builds.
 {{< /card >}}
   {{< card link="/docs/tokenizer/overview/" title="Architecture & Usage" icon="fa-solid fa-sitemap" >}}
 Understand how two-stage Text Analyzers and Vocabulary Models work together to transform raw text into integer token IDs or native `tsvector` values.

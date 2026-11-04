@@ -35,7 +35,7 @@ SELECT tokenize('VectorChord-BM25 brings Block-WeakAnd to PostgreSQL.', 'bert_to
 
 ### 方式 A：一步到位辅助函数（`create_custom_model_tokenizer_and_trigger`） {#option-a-one-step-helper-create_custom_model_tokenizer_and_trigger}
 
-该便捷函数会一步完成创建自定义模型、创建分词器、为所有存量行回填目标 `bm25vector` 列，并安装一个 `BEFORE INSERT OR UPDATE` 触发器——当数据行发生变化时，自动学习新词元并更新 `bm25vector` 列：
+该便捷函数创建自定义模型和分词器，回填 `INT[]` 目标列，并安装触发器，在行变化时学习新词元、更新词元 ID。历史 `bm25vector` 列可通过类型转换接收整数数组。此辅助函数不会填充 `tsvector` 列。BM25 1.0.0 应在词表更新完成后存储 `tokenize_to_tsvector` 的输出，或使用不依赖词表的 `analyze_to_tsvector`；参阅[原生全文检索](/zh/docs/tokenizer/overview/#native-fts)。
 
 ```sql
 -- 1. 定义文本分析流水线

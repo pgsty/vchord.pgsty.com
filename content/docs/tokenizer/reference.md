@@ -27,7 +27,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | :--- | :--- | :--- |
 | `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)` | `VOID` | Builds a custom vocabulary model on an existing table column. |
 | `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | Creates a custom model and tokenizer, backfills `target_column`, and installs triggers. Version 1.0.0 adds the optional SQL predicate; omit it or pass NULL to include all rows. The original six-argument signature remains available. |
-| `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | Drops a custom vocabulary model. |
+| `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | Drops a custom vocabulary model and its associated triggers (succeeds even if the source table has already been dropped). |
 | `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)` | `VOID` | Imports a HuggingFace `tokenizer.json` model specification. |
 | `tokenizer_catalog.drop_huggingface_model(name TEXT)` | `VOID` | Drops an imported HuggingFace model. |
 | `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)` | `VOID` | Creates a Lindera morphological analyzer model from TOML config. |

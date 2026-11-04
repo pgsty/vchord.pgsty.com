@@ -35,7 +35,7 @@ For maximum BM25 accuracy and minimal memory footprint, you can build a **custom
 
 ### Option A: One-Step Helper (`create_custom_model_tokenizer_and_trigger`)
 
-This convenience function creates the custom model, creates the tokenizer, populates the target `bm25vector` column for all existing rows, and installs a `BEFORE INSERT OR UPDATE` trigger that automatically learns new vocabulary tokens and updates the `bm25vector` column when rows change:
+This convenience function creates the custom model and tokenizer, populates an `INT[]` target column, and installs triggers to learn vocabulary and update token IDs when rows change. Historical `bm25vector` columns can receive the integer arrays through a cast. The helper does not populate `tsvector` columns. For BM25 1.0.0, store `tokenize_to_tsvector` output after vocabulary updates have completed, or use `analyze_to_tsvector` without a vocabulary; see [native full-text search](/docs/tokenizer/overview/#native-postgresql-full-text-search).
 
 ```sql
 -- 1. Define how text should be analyzed

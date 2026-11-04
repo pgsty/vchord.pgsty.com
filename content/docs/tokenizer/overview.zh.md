@@ -119,4 +119,15 @@ SELECT tokenize_to_tsvector('hello hello', 'fts_bert');
 
 原生类型限制仍然适用：超过 2046 字节的词元会被跳过且不保留位置间隙，每个词素最多保存 256 个位置，超过 16,383 的位置被截到 16,383。长文本的词频与距离信息可能因此丢失，详见 [PostgreSQL 全文检索限制](https://www.postgresql.org/docs/current/textsearch-limitations.html)。
 
-文档与查询应使用相同分析器或模型、相同词素表示；`plainto_tsquery('english', ...)` 不会生成模型 ID，也不能复现自定义中文分析器。本次不增加文本搜索解析器或 `tsquery` 构造器。两个函数因读取目录配置而标记为 `STABLE`：先将结果存入列，再为该列创建 GIN/GiST 索引。接受原生 `tsvector` 的 BM25 实现也能使用这些值；迁移旧 `bm25vector` 索引前，应核对所安装 BM25 版本的 SQL API。
+文档与查询应使用相同分析器或模型、相同词素表示；`plainto_tsquery('english', ...)` 不会生成模型 ID，也不能复现自定义中文分析器。本次不增加文本搜索解析器或 `tsquery` 构造器。两个函数因读取目录配置而标记为 `STABLE`：先将结果存入列，再为该列创建 GIN/GiST 索引。`vchord_bm25` 1.0.0 可直接索引这些值。[安装并预加载扩展](/zh/docs/bm25/getting-started/installation/)后，可在上例中添加 BM25 索引：
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+CREATE INDEX fts_documents_bm25 ON fts_documents USING bm25 (terms bm25_ops);
+SELECT id, terms <&> to_bm25query(analyze_to_tsvector('cat', 'fts_words'), 'fts_documents_bm25') AS rank
+FROM fts_documents
+ORDER BY rank
+LIMIT 10;
+```
+
+旧 `bm25vector` 索引需按 [1.0.0 迁移流程](/zh/docs/bm25/reference/migration/)重建。

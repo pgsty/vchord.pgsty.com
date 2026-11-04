@@ -5,6 +5,9 @@ weight: 40
 icon: fa-solid fa-language
 ---
 
+> [!NOTE]
+> 使用 `bm25vector` 的配方适用于历史 `vchord_bm25` 0.1–0.3。1.0.0 应将 `analyze_to_tsvector` 或 `tokenize_to_tsvector` 的输出存入 `tsvector` 列，并使用 `to_bm25query(vector, index)`。参阅[原生 BM25 示例](/zh/docs/tokenizer/overview/#native-fts)。
+
 本页提供可直接用于生产环境的英文、中文和日文全文 BM25 检索分词配置配方，并列出在实际运维中需要注意的关键限制事项。
 
 ## 配方一：带词干提取与停用词过滤的英文检索（`wiki_tocken`） {#recipe-1-english-with-stemming--stopwords-wiki_tocken}

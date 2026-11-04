@@ -27,7 +27,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | :--- | :--- | :--- |
 | `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)` | `VOID` | 基于现有数据表列构建自定义词表模型。 |
 | `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | 一键创建自定义词表模型与分词器，回填 `target_column`，并安装自动更新触发器。1.0.0 增加可选的第七个 `filter` 参数；省略或传入 SQL NULL 表示处理全部行，原六参签名继续可用。 |
-| `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | 删除自定义词表模型。 |
+| `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | 删除自定义词表模型及其关联触发器（即使源表已提前删除也能正常执行）。 |
 | `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)` | `VOID` | 导入 HuggingFace `tokenizer.json` 模型定义。 |
 | `tokenizer_catalog.drop_huggingface_model(name TEXT)` | `VOID` | 删除已导入的 HuggingFace 模型。 |
 | `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)` | `VOID` | 根据 TOML 配置创建 Lindera 形态学分词模型。 |

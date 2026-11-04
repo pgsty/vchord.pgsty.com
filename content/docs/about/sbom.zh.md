@@ -8,16 +8,18 @@ aliases:
   - "/about/sbom/"
 ---
 
-本页列出由 [PGSTY](https://pigsty.cc/) 社区维护的三个核心 Rust 扩展——**[`vchord`](https://github.com/pgsty/vchord)**、**[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)** 与 **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)** 的完整**软件物料清单（Software Bill of Materials, SBOM）**。下方所有依赖版本号与 SPDX 许可证标识符均直接提取自各仓库当前的 `Cargo.toml`、`Cargo.lock`，以及存在时的 `deny.toml`。pg_tokenizer 一行描述 1.0.0 源码，不代表软件包已发布。
+本页列出由 [PGSTY](https://pigsty.cc/) 社区维护的三个核心 Rust 扩展——**[`vchord`](https://github.com/pgsty/vchord)**、**[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)** 与 **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)** 的完整**软件物料清单（Software Bill of Materials, SBOM）**。下方所有依赖版本号与 SPDX 许可证标识符均直接提取自各仓库当前的 `Cargo.toml`、`Cargo.lock`，以及存在时的 `deny.toml`。
 
 ## 核心扩展套件概览 {#summary}
 
 | **扩展名称** | **代码仓库** | **版本** | **许可证** | **Rust / `pgrx`** | **PG 支持** | **内部 Crate** | **锁定包数** |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **[`vchord`](/zh/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg19` | 15 | 243 |
-| **[`vchord_bm25`](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `0.4.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg19` | 8 | 194 |
+| **[`vchord`](/zh/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 15 | 243 |
+| **[`vchord_bm25`](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.0.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 8 | 194 |
 | **[`pg_tokenizer`](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
 {.wide .expand}
+
+正式版本的测试与打包矩阵覆盖 PostgreSQL 14–18。`vchord` 和 `vchord_bm25` 的可选 `pg19` 特性用于开发验证；pgrx 提供绑定不代表扩展已正式支持。
 
 ---
 
@@ -86,7 +88,7 @@ aliases:
 
 | **Crate 名称** | **目录路径** | **许可证** | **模块职责说明** |
 |:---|:---|:---:|:---|
-| `vchord_bm25` | `/` | `AGPL-3.0-only` | PostgreSQL 扩展入口（`pgrx`）、`bm25` 索引访问方法、`bm25vector`/`bm25query` 类型、`<&>` 操作符、GUC 参数与规划器代价估计钩子 |
+| `vchord_bm25` | `/` | `AGPL-3.0-only` | PostgreSQL 扩展入口（`pgrx`）、`bm25` 索引访问方法、原生 `tsvector` 支持与 `bm25query` 类型、`<&>` 操作符、GUC 参数与规划器代价估计钩子 |
 | `bm25` | `crates/bm25` | `AGPL-3.0-only` | Block-WeakAnd（`WAND`）Top-K 查询执行器、差分/位打包倒排链压缩、段构建器与外部排序 I/O |
 | `score` | `crates/score` | `AGPL-3.0-only` | Okapi BM25 评分核心（`k1 = 1.2`、`b = 0.75`）与文档长度量化归一化查表 |
 | `index` | `crates/index` | `AGPL-3.0-only` | PostgreSQL 关系页面管理、跳转页（Jump Pages）与 MVCC 安全缓冲区锁控制 |
@@ -120,7 +122,7 @@ aliases:
 
 ## 3 · `pg_tokenizer` (`pgsty/pg_tokenizer`) {#pg_tokenizer}
 
-**`pg_tokenizer`** 是单 Crate 结构的 Rust/pgrx 扩展（`cdylib`，采用 `Apache-2.0` 许可证），在 PostgreSQL 数据库内提供多语言文本分析流水线、预分词器、词干提取、停用词/同义词过滤以及整数词元 ID（Token ID）编码。
+**`pg_tokenizer`** 是单 Crate 结构的 Rust/pgrx 扩展（`cdylib`，采用 `Apache-2.0` 许可证），在 PostgreSQL 数据库内提供多语言文本分析流水线、预分词器、词干提取、停用词/同义词过滤整数词元 ID（Token ID）编码，以及带位置的 `tsvector` 输出。
 
 ### 3.1 直接依赖与关键原生绑定 (`pg_tokenizer`) {#pg_tokenizer-dependencies}
 
@@ -153,7 +155,7 @@ aliases:
 
 ## 4 · 许可证合规审计与 SBOM 导出验证 {#verification}
 
-`vchord` 与 `vchord_bm25` 使用 [`cargo-deny`](https://embarkstudios.github.io/cargo-deny/)（`deny.toml`）定义依赖项许可证白名单。`pg_tokenizer` 当前没有 `deny.toml` 或 cargo-deny CI 门禁；本页清单不等同于该仓库已通过这项审计。已有白名单包括：
+`vchord` 与 `vchord_bm25` 使用 [`cargo-deny`](https://embarkstudios.github.io/cargo-deny/)（`deny.toml`）定义并校验依赖项许可证白名单，`pg_tokenizer` 的锁定依赖清单见上文第 3 节。配置的许可证白名单包括：
 
 - `MIT`
 - `Apache-2.0` 与 `Apache-2.0 WITH LLVM-exception`

@@ -9,7 +9,7 @@ sections:
   - cta
 
 hero:
-  eyebrow: vchord 1.1.1 · PostgreSQL 13–18 · Successor to pgvecto.rs
+  eyebrow: vchord 1.2.0 · PostgreSQL 14–18 · Successor to pgvecto.rs
   title_lines:
     - Scalable Vector Search
     - Built for PostgreSQL
@@ -22,8 +22,8 @@ hero:
     light: img/vchord-architecture-light.svg
     dark: img/vchord-architecture-dark.svg
     alt: >-
-      Vchord architecture: PostgreSQL vector, vector[], and bm25vector types flow through
-      RaBitQ 4-bit/8-bit quantization into vchordrq, vchordg, and bm25 native index engines.
+      Vchord architecture: PostgreSQL vector, vector[], and tsvector types flow through
+      RaBitQ 4-bit/8-bit quantization and Block-WeakAnd into vchordrq, vchordg, and bm25 native index engines.
   media:
     ratio: 1.24fr 0.76fr
     max_width: 440px
@@ -42,8 +42,8 @@ hero:
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
-    label: What's new in vchord 1.1
-    url: /blog/release/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/
+    label: What's new in vchord 1.2
+    url: /blog/release/vchord-1.2.0/
 
 metrics:
   eyebrow: Proven at 100M+ Scale
@@ -181,19 +181,19 @@ suite:
   columns: 3
   items:
     - title: vchord Documentation
-      meta: Core Vector Engine · v1.1.1
+      meta: Core Vector Engine · v1.2.0
       icon: fa-solid fa-layer-group
       class: td-landing-card--core
       desc: Core disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, featuring vchordrq IVF indexes, vchordg graph indexes, and MaxSim.
       url: /docs/vchord/
     - title: vchord_bm25 Documentation
-      meta: Native BM25 Ranking Index
+      meta: Native BM25 Ranking Index · v1.0.0
       icon: fa-solid fa-magnifying-glass
       class: td-landing-card--core
       desc: Core native Okapi BM25 ranking extension for PostgreSQL using Block-WeakAnd Top-K index pruning, designed to pair with vchord for hybrid search in SQL.
       url: /docs/bm25/
     - title: pg_tokenizer Documentation
-      meta: Multilingual & LLM Vocabularies
+      meta: Multilingual & LLM Vocabularies · v1.0.0
       icon: fa-solid fa-language
       class: td-landing-card--core
       desc: Core in-database multilingual text analyzer and tokenization pipeline supporting Jieba, Lindera, Snowball stemmers, LLM vocabularies, and custom models.
@@ -223,8 +223,8 @@ steps:
   desc: Start a local container or install native packages via Pigsty, enable the extension, and run your first similarity search.
   items:
     - icon: fa-brands fa-docker
-      title: Start PG with vchord
-      desc: Run the prebuilt Docker container or install native packages via [Pigsty](/docs/vchord/getting-started/installation/).
+      title: Docker example (Obsolete)
+      desc: "**Obsolete — pending updates and maintenance.** PGSTY Docker images are not yet available. The upstream example is retained for reference; use [Pigsty packages](/docs/vchord/getting-started/installation/) for current releases."
       cmd:
         code: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres tensorchord/vchord-postgres:pg18-v1.1.1
     - icon: fa-solid fa-plug
@@ -252,17 +252,18 @@ faq:
         and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)—so the PostgreSQL community can continue relying on them.
     - question: What is PGSTY's maintenance scope, roadmap, and security policy?
       answer: >-
-        PGSTY maintains open-source supply-chain continuity, currently tests and packages the suite for **PostgreSQL** (`PG 14–18`),
-        with extension-specific **`pgrx`** baselines (`pg_tokenizer 0.2.0` uses `pgrx 0.19.3`). Pre-built native RPM/DEB packages are published for the supported matrix;
-        package reproducibility and SBOM publication remain release-engineering work items rather than current guarantees.
-        We do **not** commit to developing new features—roadmap items will be handled on a best-effort basis as maintainer
-        capacity allows—but **security vulnerabilities and critical bug reports are always welcome** via [GitHub Issues](https://github.com/pgsty/vchord/issues).
+        PGSTY maintains open-source supply-chain continuity, testing and packaging **`vchord` (`v1.2.0`)**, **`vchord_bm25` (`v1.0.0`)**,
+        and **`pg_tokenizer` (`v1.0.0`)** on a unified **`pgrx 0.19.3`** baseline for **PostgreSQL 14–18**. Pre-built native RPM and DEB
+        packages are published across [16 mainstream Linux OS and CPU targets](/download/), with dependency and license inventories documented
+        in the [SBOM](/docs/about/sbom/). We do **not** commit to developing new features—roadmap items will be handled on a best-effort basis
+        as maintainer capacity allows—but **security vulnerabilities and critical bug reports are always welcome** via [GitHub Issues](https://github.com/pgsty/vchord/issues).
     - question: What license is the Vchord suite under, and is it drop-in compatible?
       answer: >-
         [`vchord`](https://github.com/pgsty/vchord) and [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) are distributed under the
         [**GNU AGPL v3.0**](/docs/about/license/) license, while [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) is distributed under
-        **Apache-2.0**. Compatibility is version-specific: `pg_tokenizer 0.2.0` has migrations from 0.1.0, 0.1.1, and 0.1.2,
-        while `vchord_bm25` 0.4.0 requires its own migration path from the historical 0.3.x format. See [Attribution & Provenance](/docs/about/attribution/).
+        **Apache-2.0**. `vchord 1.2.0` and `pg_tokenizer 1.0.0` provide in-place `ALTER EXTENSION ... UPDATE` scripts from earlier releases,
+        while `vchord_bm25 1.0.0` uses native `tsvector` and requires following the [migration guide](/docs/bm25/reference/migration/) from 0.3.x.
+        See [Attribution & Provenance](/docs/about/attribution/).
     - question: How does vchord relate to pgvector and pgvecto.rs?
       answer: >-
         **`vchord`** is the next-generation successor to [`pgvecto.rs`](/docs/vectors/), redesigned around SIGMOD'24 **RaBitQ**

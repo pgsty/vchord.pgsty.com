@@ -14,6 +14,10 @@ timeZone: UTC
 pagination:
   pagerSize: 20
 
+services:
+  googleAnalytics:
+    id: G-JLB25NYKJX
+
 frontmatter:
   lastmod:
     - lastmod
@@ -436,7 +440,7 @@ outputs:
 params:
   description: "vchord is a scalable, fast, and disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, maintained by the Pigsty community."
   logo: img/vchord.svg
-  version: 1.1.1
+  version: 1.2.0
   copyright:
     authors: '[TensorChord](https://github.com/tensorchord) & [PGSTY](https://pigsty.io/) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)'
     from_year: 2023

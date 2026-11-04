@@ -9,7 +9,7 @@ sections:
   - cta
 
 hero:
-  eyebrow: vchord 1.1.1 · PostgreSQL 13–18 · pgvecto.rs 的继任者
+  eyebrow: vchord 1.2.0 · PostgreSQL 14–18 · pgvecto.rs 的继任者
   title_lines:
     - 可扩展的向量检索
     - 为 PostgreSQL 而生
@@ -22,8 +22,8 @@ hero:
     light: img/vchord-architecture-light.svg
     dark: img/vchord-architecture-dark.svg
     alt: >-
-      Vchord 架构图：PostgreSQL 的 vector、vector[] 与 bm25vector 类型经由
-      RaBitQ 4-bit/8-bit 量化流入 vchordrq、vchordg 与 bm25 原生索引引擎。
+      Vchord 架构图：PostgreSQL 的 vector、vector[] 与 tsvector 类型经由
+      RaBitQ 4-bit/8-bit 量化与 Block-WeakAnd 流入 vchordrq、vchordg 与 bm25 原生索引引擎。
   media:
     ratio: 1.24fr 0.76fr
     max_width: 440px
@@ -42,8 +42,8 @@ hero:
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
-    label: 了解 vchord 1.1 新特性
-    url: /blog/release/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/
+    label: 了解 vchord 1.2 新特性
+    url: /blog/release/vchord-1.2.0/
 
 metrics:
   eyebrow: 亿级规模生产验证
@@ -181,19 +181,19 @@ suite:
   columns: 3
   items:
     - title: vchord 文档
-      meta: 核心向量引擎 · v1.1.1
+      meta: 核心向量引擎 · v1.2.0
       icon: fa-solid fa-layer-group
       class: td-landing-card--core
       desc: 新一代可扩展、磁盘友好型 PostgreSQL 向量检索核心扩展，提供 RaBitQ 量化的 vchordrq 倒排索引、vchordg 高吞吐图索引与 MaxSim 多向量检索。
       url: /docs/vchord/
     - title: vchord_bm25 文档
-      meta: 原生 BM25 排序索引
+      meta: 原生 BM25 排序索引 · v1.0.0
       icon: fa-solid fa-magnifying-glass
       class: td-landing-card--core
       desc: PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-WeakAnd 块级剪枝索引加速 Top-K 查询，可与 vchord 无缝构建混合检索。
       url: /docs/bm25/
     - title: pg_tokenizer 文档
-      meta: 多语言与预训练词表
+      meta: 多语言与预训练词表 · v1.0.0
       icon: fa-solid fa-language
       class: td-landing-card--core
       desc: 独立运行的数据库内多语言文本分析与分词核心扩展，支持结巴中文、Lindera 日文、Snowball 词干提取、预训练词表与自定义语料模型训练。
@@ -223,8 +223,8 @@ steps:
   desc: 启动本地容器或通过 Pigsty 安装原生软件包，启用扩展，即可执行你的第一次向量相似度检索。
   items:
     - icon: fa-brands fa-docker
-      title: 启动内置 vchord 的 PG
-      desc: 直接运行预构建的 Docker 容器镜像，或通过 [Pigsty 仓库](/zh/docs/vchord/getting-started/installation/)安装原生软件包。
+      title: Docker 示例（Obsolete）
+      desc: "**Obsolete（过时，待更新维护）**：PGSTY Docker 镜像尚未发布。以下保留上游示例供参考；当前版本请使用 [Pigsty 软件包](/zh/docs/vchord/getting-started/installation/)。"
       cmd:
         code: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres tensorchord/vchord-postgres:pg18-v1.1.1
     - icon: fa-solid fa-plug
@@ -250,14 +250,15 @@ faq:
         与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)——以确保 PostgreSQL 开源生态中这一优秀的检索套件能够长期存续。
     - question: PGSTY 社区的维护承诺、路线图与安全策略是什么？
       answer: >-
-        PGSTY 社区维护开源软件供应链，目前针对 **PostgreSQL**（`PG 14–18`）测试并打包扩展套件，各扩展按仓库维护 **`pgrx`** 基线（其中 `pg_tokenizer 0.2.0` 使用 `pgrx 0.19.3`），
-        并为支持矩阵提供预构建原生 RPM/DEB 软件包。包的可复现构建与 SBOM 发布仍属于后续发布工程工作，目前不作现成承诺。需要说明的是，我们**不承诺任何新功能的开发**，相关功能需求与演进路线图将视维护团队的精力余量来响应；
+        PGSTY 社区维护开源软件供应链，基于统一的 **`pgrx 0.19.3`** 基线面向 **PostgreSQL 14–18** 测试并构建 **`vchord`（`v1.2.0`）**、**`vchord_bm25`（`v1.0.0`）**
+        与 **`pg_tokenizer`（`v1.0.0`）**，并在 [16 个主流 Linux 发行版与 CPU 架构目标](/zh/download/)上发布预编译原生 RPM/DEB 软件包，完整依赖与许可证清单记录于
+        [SBOM 页面](/zh/docs/about/sbom/)。需要说明的是，我们**不承诺任何新功能的开发**，相关功能需求与演进路线图将视维护团队的精力余量来响应；
         但如果您发现任何**安全漏洞或严重缺陷**，欢迎随时通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 提交给我们。
     - question: 这三个扩展采用什么开源许可证？现有用户如何无缝切换？
       answer: >-
         [`vchord`](https://github.com/pgsty/vchord) 与 [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) 均遵循
         [**GNU AGPL v3.0**](/zh/docs/about/license/) 开源许可证发布，[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 采用 **Apache-2.0** 许可证。
-        兼容性取决于具体版本：`pg_tokenizer 0.2.0` 提供从 0.1.0、0.1.1 与 0.1.2 的升级脚本；`vchord_bm25 0.4.0` 则需要按照迁移指南从历史 0.3.x 格式迁移。详见[署名与来源说明](/zh/docs/about/attribution/)。
+        `vchord 1.2.0` 与 `pg_tokenizer 1.0.0` 提供从旧版本的就地 `ALTER EXTENSION ... UPDATE` 升级脚本；`vchord_bm25 1.0.0` 改用原生 `tsvector`，需要按照[迁移指南](/zh/docs/bm25/reference/migration/)从历史 0.3.x 格式迁移。详见[署名与来源说明](/zh/docs/about/attribution/)。
     - question: vchord 与 pgvector、pgvecto.rs 是什么关系？
       answer: >-
         **`vchord`** 是 [`pgvecto.rs`](/zh/docs/vectors/) 的下一代架构继任者，围绕 SIGMOD'24 **RaBitQ** 量化算法以及

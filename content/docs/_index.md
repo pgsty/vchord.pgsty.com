@@ -47,7 +47,7 @@ Required upstream foundational extension providing standard `vector`, `halfvec`,
 
 {{< cards >}}
 {{< card title="Getting Started" icon="fa-solid fa-rocket" link="/docs/vchord/getting-started/" >}}
-Architecture overview, quickstart SQL walkthrough, installation via Pigsty packages, Docker, or source, and step-by-step migration from [`pgvecto.rs`](/docs/vectors/).
+Architecture overview, quickstart SQL walkthrough, installation via Pigsty packages, Docker (Obsolete), or source, and step-by-step migration from [`pgvecto.rs`](/docs/vectors/).
 {{< /card >}}
 {{< card title="Usage & Indexing" icon="fa-solid fa-code" link="/docs/vchord/usage/" >}}
 Build `vchordrq` and `vchordg` indexes, run KNN and sphere range queries, apply `WHERE` prefilters, prewarm indexes, and run external centroid builds.

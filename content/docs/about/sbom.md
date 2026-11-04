@@ -8,16 +8,18 @@ aliases:
   - "/about/sbom/"
 ---
 
-This page provides the **Software Bill of Materials (SBOM)** for the three core Rust extensions maintained by the [PGSTY](https://pigsty.io/) community: **[`vchord`](https://github.com/pgsty/vchord)**, **[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)**, and **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)**. All dependency versions and SPDX license identifiers below are extracted directly from each repository's `Cargo.toml` and `Cargo.lock`, plus `deny.toml` where present. The pg_tokenizer row describes the 1.0.0 source; package availability is tracked separately.
+This page provides the **Software Bill of Materials (SBOM)** for the three core Rust extensions maintained by the [PGSTY](https://pigsty.io/) community: **[`vchord`](https://github.com/pgsty/vchord)**, **[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)**, and **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)**. All dependency versions and SPDX license identifiers below are extracted directly from each repository's `Cargo.toml` and `Cargo.lock`, plus `deny.toml` where present.
 
 ## Extension Suite Summary {#summary}
 
 | **Extension** | **Repository** | **Version** | **License** | **Rust / `pgrx`** | **PG Support** | **Workspace Crates** | **Locked Packages** |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **[`vchord`](/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg19` | 15 | 243 |
-| **[`vchord_bm25`](/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `0.4.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg19` | 8 | 194 |
+| **[`vchord`](/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 15 | 243 |
+| **[`vchord_bm25`](/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.0.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 8 | 194 |
 | **[`pg_tokenizer`](/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
 {.wide .expand}
+
+The release test and package matrix covers PostgreSQL 14–18. The optional `pg19` feature in `vchord` and `vchord_bm25` is for development validation; pgrx binding availability does not imply release support.
 
 ---
 
@@ -86,7 +88,7 @@ This page provides the **Software Bill of Materials (SBOM)** for the three core 
 
 | **Crate** | **Path** | **License** | **Role in `vchord_bm25`** |
 |:---|:---|:---:|:---|
-| `vchord_bm25` | `/` | `AGPL-3.0-only` | PostgreSQL extension entrypoint (`pgrx`), `bm25` index access method, `bm25vector`/`bm25query` types, `<&>` operator, GUCs, and planner cost hooks |
+| `vchord_bm25` | `/` | `AGPL-3.0-only` | PostgreSQL extension entrypoint (`pgrx`), `bm25` index access method, native `tsvector` integration and `bm25query` type, `<&>` operator, GUCs, and planner cost hooks |
 | `bm25` | `crates/bm25` | `AGPL-3.0-only` | Block-WeakAnd (`WAND`) top-K query evaluator, delta/bit-packed posting list compression, segment builder, and external sort I/O |
 | `score` | `crates/score` | `AGPL-3.0-only` | Okapi BM25 scoring kernel (`k1 = 1.2`, `b = 0.75`) and quantized document-length normalization tables |
 | `index` | `crates/index` | `AGPL-3.0-only` | PostgreSQL relation page management, jump pages, and MVCC-safe buffer locking |
@@ -120,7 +122,7 @@ This page provides the **Software Bill of Materials (SBOM)** for the three core 
 
 ## 3 · `pg_tokenizer` (`pgsty/pg_tokenizer`) {#pg_tokenizer}
 
-**`pg_tokenizer`** is a single-crate Rust/pgrx extension (`cdylib`, licensed under `Apache-2.0`) providing in-database multilingual text analysis, pre-tokenization, stemming, stopword/synonym filtering, and integer token-ID encoding.
+**`pg_tokenizer`** is a single-crate Rust/pgrx extension (`cdylib`, licensed under `Apache-2.0`) providing in-database multilingual text analysis, pre-tokenization, stemming, stopword/synonym filtering, integer token-ID encoding, and positioned `tsvector` output.
 
 ### 3.1 Direct & Native Transitive Dependencies (`pg_tokenizer`) {#pg_tokenizer-dependencies}
 
@@ -153,7 +155,7 @@ This page provides the **Software Bill of Materials (SBOM)** for the three core 
 
 ## 4 · License Compliance & SBOM Verification {#verification}
 
-`vchord` and `vchord_bm25` define dependency license policies via [`cargo-deny`](https://embarkstudios.github.io/cargo-deny/) (`deny.toml`). `pg_tokenizer` currently has no `deny.toml` or cargo-deny CI gate; the inventory does not imply it passed that audit. The configured allowlists include:
+`vchord` and `vchord_bm25` enforce dependency license policies via [`cargo-deny`](https://embarkstudios.github.io/cargo-deny/) (`deny.toml`), while `pg_tokenizer`'s dependency tree is inventoried in Section 3 above. The configured allowlists include:
 
 - `MIT`
 - `Apache-2.0` and `Apache-2.0 WITH LLVM-exception`

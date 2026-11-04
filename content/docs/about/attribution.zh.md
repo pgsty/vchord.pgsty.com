@@ -24,7 +24,7 @@ aliases:
    - **VectorChord 与 pgvecto.rs 文档**：[`https://github.com/tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs)（`https://docs.vectorchord.ai/`）—— © 2023–2026 TensorChord Inc.（Apache-2.0）
    - **BM25 与分词器文档**：[`https://github.com/supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)、[`https://github.com/supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs) 与 [`https://github.com/tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) —— © 2024–2026 TensorChord Inc.
    - **pgvector 文档（`content/docs/vector/`）**：整理自 [`https://github.com/pgvector/pgvector`](https://github.com/pgvector/pgvector) —— © 2021–2026 Andrew Kane（PostgreSQL 许可证）。
-   - **适配说明**：迁移并统一整理至 Hugo + [OINK `v1.4.0`](https://github.com/pgsty/oink)，包含 GitHub 风格提示框规范化、KaTeX 数学公式分隔符标准化、站内链接解析修正、结构化导航元数据补齐以及完整中文化翻译。
+   - **适配说明**：迁移并统一整理至 Hugo + [OINK `v1.5.0`](https://github.com/pgsty/oink)，包含 GitHub 风格提示框规范化、KaTeX 数学公式分隔符标准化、站内链接解析修正、结构化导航元数据补齐以及完整中文化翻译。
 
 2. **工程技术博客与发布说明（`content/blog/`）**
    - **原始发布站点**：[`https://blog.vectorchord.ai/`](https://blog.vectorchord.ai/)

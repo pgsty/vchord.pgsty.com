@@ -27,4 +27,4 @@ aliases:
 
 The documentation and site adaptations in [`pgsty/vchord.pgsty.com`](https://github.com/pgsty/vchord.pgsty.com) are licensed under the **[Creative Commons Attribution 4.0 International License (`CC-BY-4.0`)](https://creativecommons.org/licenses/by/4.0/)**, with upstream materials adapted from [`tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) and [`blog.vectorchord.ai`](https://blog.vectorchord.ai/).
 
-The site theme, **[OINK `v1.4.0`](https://github.com/pgsty/oink)**, is licensed under **[Apache License 2.0 (`Apache-2.0`)](https://www.apache.org/licenses/LICENSE-2.0)**.
+The site theme, **[OINK `v1.5.0`](https://github.com/pgsty/oink)**, is licensed under **[Apache License 2.0 (`Apache-2.0`)](https://www.apache.org/licenses/LICENSE-2.0)**.

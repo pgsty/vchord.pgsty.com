@@ -24,7 +24,7 @@ aliases:
    - **VectorChord & pgvecto.rs Docs**: [`https://github.com/tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) (`https://docs.vectorchord.ai/`) — © 2023–2026 TensorChord Inc. (Apache-2.0)
    - **BM25 & Tokenizer Docs**: [`https://github.com/supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25), [`https://github.com/supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs), and [`https://github.com/tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) — © 2024–2026 TensorChord Inc.
    - **pgvector Docs (`content/docs/vector/`)**: Adapted from [`https://github.com/pgvector/pgvector`](https://github.com/pgvector/pgvector) — © 2021–2026 Andrew Kane (PostgreSQL License).
-   - **Adaptations**: Converted to Hugo + [OINK `v1.4.0`](https://github.com/pgsty/oink), including GitHub-style callout normalization, KaTeX math delimiter standardization, internal link resolution, and bilingual Chinese/English documentation.
+   - **Adaptations**: Converted to Hugo + [OINK `v1.5.0`](https://github.com/pgsty/oink), including GitHub-style callout normalization, KaTeX math delimiter standardization, internal link resolution, and bilingual Chinese/English documentation.
 
 2. **Engineering Blog & Release Notes (`content/blog/`)**
    - **Original Publication**: [`https://blog.vectorchord.ai/`](https://blog.vectorchord.ai/)

@@ -11,6 +11,15 @@ EXTENSIONS = ("vchord", "vchord_bm25", "pg_tokenizer")
 RELEASE_VERSIONS = {"vchord": "1.2.0", "vchord_bm25": "1.0.0", "pg_tokenizer": "1.0.0"}
 
 
+
+def table_reader_attributes(match: re.Match[str]) -> str:
+    """Preserve source table attributes and add missing reader opt-ins."""
+    attributes = match.group(1)
+    classes = set(re.findall(r"(?:^|\s)\.([\w-]+)", attributes))
+    missing = [name for name in ("wide", "expand") if name not in classes]
+    return "{" + attributes.rstrip() + "".join(" ." + name for name in missing) + "}"
+
+
 def parse_pgext_markdown(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
 
@@ -28,13 +37,13 @@ def parse_pgext_markdown(path: Path) -> dict[str, str]:
         version = target_version
 
     matrix_match = re.search(
-        r"(\| \*\*Linux\*\* / \*\*PG\*\* \|.*?\n\{\.matrix\})",
+        r"(\| \*\*Linux\*\* / \*\*PG\*\* \|.*?\n\{\.matrix(?:\s+[^{}\n]*)?\})",
         text,
         re.S,
     )
     if not matrix_match:
         raise ValueError(f"Could not find {{.matrix}} table in {path}")
-    matrix_en = matrix_match.group(1).replace("{.matrix}", "{.matrix .wide}")
+    matrix_en = re.sub(r"\{(\.matrix\b[^{}\n]*)\}", table_reader_attributes, matrix_match.group(1))
     matrix_zh = matrix_en.replace(
         "| **Linux** / **PG** |", "| **系统平台 / PG 版本** |", 1
     )
@@ -54,7 +63,7 @@ def parse_pgext_markdown(path: Path) -> dict[str, str]:
         r'{{< os "\1" >}}',
         packages_en,
     )
-    packages_en = packages_en.replace("{.downloads}", "{.downloads .wide .expand}")
+    packages_en = re.sub(r"\{(\.downloads\b[^{}\n]*)\}", table_reader_attributes, packages_en)
 
     packages_zh = re.sub(
         r"\| \*\*Package\*\* \| \*\*Version\*\* \| \*\*OS\*\* \| \*\*ORG\*\* \| \*\*SIZE\*\* \| \*\*File URL\*\* \|",
@@ -237,7 +246,7 @@ docker run -d \\
 | {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`vchord`](/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | [`vector`](/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_$v` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
-{{.packages .wide}}
+{{.packages .wide .expand}}
 
 ### Availability Matrix (`vchord`) {{#vchord-matrix}}
 
@@ -258,7 +267,7 @@ docker run -d \\
 | {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`vchord_bm25`](/docs/bm25/) | `{RELEASE_VERSIONS['vchord_bm25']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2160](https://pgext.cloud/e/vchord_bm25) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_bm25_$v` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord-bm25` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
-{{.packages .wide}}
+{{.packages .wide .expand}}
 
 ### Availability Matrix (`vchord_bm25`) {{#vchord_bm25-matrix}}
 
@@ -279,7 +288,7 @@ docker run -d \\
 | {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`pg_tokenizer`](/docs/tokenizer/) | `{RELEASE_VERSIONS['pg_tokenizer']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2170](https://pgext.cloud/e/pg_tokenizer) | {{{{< bg "Apache-2.0" "License: Apache-2.0" "green" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `pg_tokenizer_$v` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-pg-tokenizer` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
-{{.packages .wide}}
+{{.packages .wide .expand}}
 
 ### Availability Matrix (`pg_tokenizer`) {{#pg_tokenizer-matrix}}
 
@@ -470,7 +479,7 @@ docker run -d \\
 | {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`vchord`](/zh/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | [`vector`](/zh/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_$v` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
-{{.packages .wide}}
+{{.packages .wide .expand}}
 
 ### 可用性矩阵 (`vchord`) {{#vchord-matrix}}
 
@@ -491,7 +500,7 @@ docker run -d \\
 | {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`vchord_bm25`](/zh/docs/bm25/) | `{RELEASE_VERSIONS['vchord_bm25']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2160](https://pgext.cloud/e/vchord_bm25) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_bm25_$v` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord-bm25` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
-{{.packages .wide}}
+{{.packages .wide .expand}}
 
 ### 可用性矩阵 (`vchord_bm25`) {{#vchord_bm25-matrix}}
 
@@ -512,7 +521,7 @@ docker run -d \\
 | {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`pg_tokenizer`](/zh/docs/tokenizer/) | `{RELEASE_VERSIONS['pg_tokenizer']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2170](https://pgext.cloud/e/pg_tokenizer) | {{{{< bg "Apache-2.0" "许可证: Apache-2.0" "green" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `pg_tokenizer_$v` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-pg-tokenizer` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
-{{.packages .wide}}
+{{.packages .wide .expand}}
 
 ### 可用性矩阵 (`pg_tokenizer`) {{#pg_tokenizer-matrix}}
 

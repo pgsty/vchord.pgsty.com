@@ -472,6 +472,7 @@ params:
     enable: false
 
   ui:
+    compare: true
     preset: paper
     preset_menu: [paper, slate, ink, terminal]
     shell_types: [docs, blog]

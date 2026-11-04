@@ -159,7 +159,7 @@ docker run -d \
 | {{< bg "EXT" "PostgreSQL Extension" "blue" >}} | [`vchord`](/docs/vchord/) | `1.2.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | [`vector`](/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}} |
 | {{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}} | `vchord_$v` | `1.2.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `pgvector_$v` | {{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}} | {{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}} |
 | {{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}} | `postgresql-$v-vchord` | `1.2.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `postgresql-$v-pgvector` | {{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}} | {{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}} |
-{.packages .wide}
+{.packages .wide .expand}
 
 ### Availability Matrix (`vchord`) {#vchord-matrix}
 
@@ -181,7 +181,7 @@ docker run -d \
 | {{< os "u24.aarch64" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-18-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-17-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-16-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-15-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-14-vchord : AVAIL 1" "green" >}} |
 | {{< os "u26.x86_64" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-18-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-17-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-16-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-15-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-14-vchord : AVAIL 1" "green" >}} |
 | {{< os "u26.aarch64" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-18-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-17-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-16-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-15-vchord : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.2.0" "postgresql-14-vchord : AVAIL 1" "green" >}} |
-{.matrix .wide}
+{.matrix .wide .expand}
 
 ### Package Downloads (`vchord`) {#vchord-packages}
 
@@ -313,7 +313,7 @@ docker run -d \
 | {{< bg "EXT" "PostgreSQL Extension" "blue" >}} | [`vchord_bm25`](/docs/bm25/) | `1.0.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `-` | [PGEXT #2160](https://pgext.cloud/e/vchord_bm25) | {{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}} |
 | {{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}} | `vchord_bm25_$v` | `1.0.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `-` | {{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}} | {{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}} |
 | {{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}} | `postgresql-$v-vchord-bm25` | `1.0.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `-` | {{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}} | {{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}} |
-{.packages .wide}
+{.packages .wide .expand}
 
 ### Availability Matrix (`vchord_bm25`) {#vchord_bm25-matrix}
 
@@ -335,7 +335,7 @@ docker run -d \
 | {{< os "u24.aarch64" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-18-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-17-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-16-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-15-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-14-vchord-bm25 : AVAIL 1" "green" >}} |
 | {{< os "u26.x86_64" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-18-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-17-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-16-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-15-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-14-vchord-bm25 : AVAIL 1" "green" >}} |
 | {{< os "u26.aarch64" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-18-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-17-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-16-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-15-vchord-bm25 : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-14-vchord-bm25 : AVAIL 1" "green" >}} |
-{.matrix .wide}
+{.matrix .wide .expand}
 
 ### Package Downloads (`vchord_bm25`) {#vchord_bm25-packages}
 
@@ -467,7 +467,7 @@ docker run -d \
 | {{< bg "EXT" "PostgreSQL Extension" "blue" >}} | [`pg_tokenizer`](/docs/tokenizer/) | `1.0.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `-` | [PGEXT #2170](https://pgext.cloud/e/pg_tokenizer) | {{< bg "Apache-2.0" "License: Apache-2.0" "green" >}} |
 | {{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}} | `pg_tokenizer_$v` | `1.0.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `-` | {{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}} | {{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}} |
 | {{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}} | `postgresql-$v-pg-tokenizer` | `1.0.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `-` | {{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}} | {{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}} |
-{.packages .wide}
+{.packages .wide .expand}
 
 ### Availability Matrix (`pg_tokenizer`) {#pg_tokenizer-matrix}
 
@@ -489,7 +489,7 @@ docker run -d \
 | {{< os "u24.aarch64" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-18-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-17-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-16-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-15-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-14-pg-tokenizer : AVAIL 1" "green" >}} |
 | {{< os "u26.x86_64" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-18-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-17-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-16-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-15-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-14-pg-tokenizer : AVAIL 1" "green" >}} |
 | {{< os "u26.aarch64" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-18-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-17-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-16-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-15-pg-tokenizer : AVAIL 1" "green" >}} | {{< bg "PIGSTY 1.0.0" "postgresql-14-pg-tokenizer : AVAIL 1" "green" >}} |
-{.matrix .wide}
+{.matrix .wide .expand}
 
 ### Package Downloads (`pg_tokenizer`) {#pg_tokenizer-packages}
 

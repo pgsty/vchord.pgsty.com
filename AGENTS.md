@@ -4,7 +4,7 @@
 
 This repository builds **`https://vchord.pgsty.com/`**, the documentation and blog website for **`pgsty/vchord`** (the Pigsty-maintained fork of **VectorChord**, scalable and disk-friendly vector search for PostgreSQL).
 
-- **Framework**: Hugo Extended `0.168.0` + Go `1.27.3` + `github.com/pgsty/oink v1.4.0`
+- **Framework**: Hugo Extended `0.168.0` + Go `1.27.3` + `github.com/pgsty/oink v1.5.0`
 - **Upstream Docs Source**: `https://github.com/tensorchord/pgvecto.rs-docs` (`https://docs.vectorchord.ai/`)
 - **Upstream BM25 & Tokenizer Sources**: `https://github.com/supervc-stack/VectorChord-bm25` and `https://github.com/supervc-stack/pg_tokenizer.rs`
 - **Upstream Blog Source**: `https://blog.vectorchord.ai/`
@@ -14,8 +14,8 @@ This repository builds **`https://vchord.pgsty.com/`**, the documentation and bl
 
 ## 2. Hard Rules
 
-1. **Pure OINK 1.4.0**:
-   - Rely on `github.com/pgsty/oink v1.4.0` layouts, shortcodes, and `data/home/en.yaml` sections. Do not copy or fork OINK templates into `layouts/` unless strictly necessary.
+1. **Pure OINK 1.5.0**:
+   - Rely on `github.com/pgsty/oink v1.5.0` layouts, shortcodes, and `data/home/en.yaml` sections. Do not copy or fork OINK templates into `layouts/` unless strictly necessary.
    - Always run Hugo with `GOWORK=off HUGO_MODULE_WORKSPACE=off`.
    - Never enable `--panicOnWarning` or `HUGO_PANICONWARNING`.
 

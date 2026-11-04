@@ -237,11 +237,11 @@ SELECT remove_preload_model('llmlingua2');
 
 Restart PostgreSQL after calling `add_preload_model(...)` (with `shared_preload_libraries = 'pg_tokenizer.so'` set in `postgresql.conf`) for preloading to take effect across all backends.
 
-## Custom model behavior in 0.2.0
+## Custom model behavior in 1.0.0 {#custom-model-100}
 
 ### Concurrent writes
 
-Vocabulary triggers deduplicate and sort new tokens and take a transaction-level advisory lock per model before writing. This serializes writers to the same vocabulary across all rows and statements in a transaction, preventing the opposite token-lock order that caused concurrent batch inserts to deadlock. Ordinary tokenization reads and writes to different models can proceed independently. Keep transactions short; when writing multiple models or locking application rows, use a consistent order and retain normal deadlock/serialization retry handling.
+Vocabulary triggers first check for missing tokens. Only rows adding vocabulary entries acquire the per-model transaction advisory lock, then recheck and sort the missing tokens. Rows containing only committed vocabulary do not take this lock. This serializes vocabulary additions across rows and statements, preventing the opposite token-lock order that caused concurrent batch inserts to deadlock. Ordinary tokenization reads and writes to different models can proceed independently. Keep transactions short; when writing multiple models or locking application rows, use a consistent order and retain normal deadlock/serialization retry handling.
 
 The embedding trigger refreshes its SPI snapshot after the vocabulary trigger, so at `READ COMMITTED` it can see token IDs committed by a writer it waited for. At `REPEATABLE READ` or `SERIALIZABLE`, a conflicting writer can receive SQLSTATE `40001` and must retry the whole transaction. Existing vocabulary IDs are preserved during upgrade; new IDs are internal mappings and are not guaranteed to match a separately created model.
 
@@ -274,6 +274,13 @@ Omitting `filter` (or passing SQL `NULL` to the helper) retains the whole-table 
 
 ### Catalog cache invalidation
 
-Definitions are cached in each PostgreSQL backend for fast tokenization. In 0.2.0, creating, dropping, or rebuilding an analyzer, tokenizer, model, stopword dictionary, or synonym dictionary clears the current backend immediately and publishes an invalidation at transaction commit or abort. Other backends discard their cached definitions before their next lookup, and a rollback does not leave a phantom object in the current backend. A tokenizer that depends on a rebuilt analyzer or model is invalidated with it.
+Definitions are cached in each PostgreSQL backend for fast tokenization. Creating, dropping, or rebuilding an analyzer, tokenizer, model, stopword dictionary, or synonym dictionary clears the current backend immediately and publishes an invalidation at transaction commit. Other backends discard their cached definitions before their next lookup, and a rollback does not leave a phantom object in the current backend. A tokenizer that depends on a rebuilt analyzer or model is invalidated with it.
 
 Cache invalidation does not rewrite values already stored in `INT[]`, `bm25vector`, or `tsvector` columns. After deliberately replacing a definition under the same name, recompute persisted search columns and rebuild any index whose lexeme or token-ID representation changed.
+
+
+Backend cache invalidation preserves inherited preload objects. Non-built-in models reuse a preload only if the current database contains the same name and exact stored configuration. Managing the cluster-wide preload list requires administrator privileges; failed entries produce WARNING messages and are skipped. File changes are not transactional.
+
+Starting in 1.0.0, Lindera user-dictionary IDs start at `1073741824`, so they no longer overlap system-dictionary IDs. Recompute persisted IDs and rebuild their indexes when using a user dictionary. Native RPM/DEB builds require external dictionaries; GitHub release packages embed IPADIC.
+
+Lookups respect SQL snapshots. After an invalidation, objects loaded from an old snapshot are cleared before subsequent statements and at transaction end; parallel workers use the leader's snapshot. Definition-changing transactions cannot use `PREPARE TRANSACTION`. A matching NULL source overwrites even an explicitly supplied embedding with NULL; nonmatching rows remain untouched.

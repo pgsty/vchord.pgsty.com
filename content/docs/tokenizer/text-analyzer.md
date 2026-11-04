@@ -40,7 +40,8 @@ Converts all characters in the input text to lowercase.
 ```toml
 character_filters = ["to_lowercase"]
 # or table syntax:
-[character_filters.to_lowercase]
+[[character_filters]]
+to_lowercase = {}
 ```
 
 ### `unicode_normalization`
@@ -158,7 +159,7 @@ Removes common stopwords that carry little lexical signal.
   - `"lucene_english"` — Apache Lucene standard English stopword list
   - `"nltk_english"` — NLTK standard English stopword list
   - `"iso_english"` — Stopwords ISO English stopword list
-- **Custom stopword dictionary**: Create your own with `create_stopwords(name, text)` (one word per line) and reference it by name.
+- **Custom stopword dictionary**: Create your own with `create_stopwords(name, text)` (one word per line) and reference it by name. The built-in names are reserved: since 1.0.0 they cannot be dropped or replaced, so a logical restore always recreates the same lists.
 
 ```sql
 -- Create a custom stopword dictionary (one word per line)
@@ -202,7 +203,7 @@ SELECT apply_text_analyzer('pgsql and postgresql have many indices', 'text_analy
 
 ### `pg_dict` (PostgreSQL Full-Text Dictionaries)
 
-Delegates token filtering to any existing [PostgreSQL Full-Text Search Dictionary](https://www.postgresql.org/docs/current/textsearch-dictionaries.html) (`pg_ts_dict`, including `Simple`, `Ispell`, `Snowball`, and `Synonym` dictionaries; note that `Thesaurus` dictionaries are not supported because they operate on multi-word phrases rather than single tokens):
+Delegates token filtering to any existing [PostgreSQL Full-Text Search Dictionary](https://www.postgresql.org/docs/current/textsearch-dictionaries.html) (`pg_ts_dict`, including `Simple`, `Ispell`, `Snowball`, `Synonym`, and `Thesaurus` dictionaries). Each token is looked up on its own, as `ts_lexize` does, so a `Thesaurus` dictionary applies only its single-word entries, not phrases that span several tokens:
 
 ```toml
 [[token_filters]]
@@ -221,8 +222,8 @@ Splits each token into character n-grams (useful for substring, prefix, CJK with
 {.wide .expand}
 
 ```toml
-[[token_filters.ngram]]
-min_gram = 2
-max_gram = 3
-preserve_original = true
+[[token_filters]]
+ngram = { min_gram = 2, max_gram = 3, preserve_original = true }
 ```
+
+Lengths count Unicode characters, not bytes, so CJK text and emoji split cleanly. A token shorter than `min_gram` produces no n-grams unless `preserve_original` is set.

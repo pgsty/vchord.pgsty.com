@@ -26,14 +26,14 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | Function Signature | Return Type | Description |
 | :--- | :--- | :--- |
 | `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)` | `VOID` | Builds a custom vocabulary model on an existing table column. |
-| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | Creates a custom model and tokenizer, backfills `target_column`, and installs triggers. Version 0.2.0 adds the optional SQL predicate; omit it or pass NULL to include all rows. The original six-argument signature remains available. |
+| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | Creates a custom model and tokenizer, backfills `target_column`, and installs triggers. Version 1.0.0 adds the optional SQL predicate; omit it or pass NULL to include all rows. The original six-argument signature remains available. |
 | `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | Drops a custom vocabulary model. |
 | `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)` | `VOID` | Imports a HuggingFace `tokenizer.json` model specification. |
 | `tokenizer_catalog.drop_huggingface_model(name TEXT)` | `VOID` | Drops an imported HuggingFace model. |
 | `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)` | `VOID` | Creates a Lindera morphological analyzer model from TOML config. |
 | `tokenizer_catalog.drop_lindera_model(name TEXT)` | `VOID` | Drops a Lindera model. |
-| `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | Adds a model to the shared memory preload list (takes effect on PostgreSQL restart). |
-| `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | Removes a model from the preload list. |
+| `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | Adds a model to the cluster-wide preload list (administrator only, nontransactional; restart required). |
+| `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | Removes a model from the cluster-wide preload list (administrator only, nontransactional). |
 | `tokenizer_catalog.list_preload_models()` | `TEXT[]` | Lists all models currently registered for preloading. |
 {.wide .expand}
 
@@ -46,7 +46,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | Tokenizes `text` into an array of integer token IDs (implicitly castable to `bm25vector`). |
 {.wide .expand}
 
-### Native full-text search in 0.2.0
+### Native full-text search {#native-full-text-search}
 
 | Function Signature | Return Type | Description |
 | :--- | :--- | :--- |
@@ -81,8 +81,8 @@ These functions are `STABLE` because they read tokenizer definitions from the ca
 
 | Key | Type | Description |
 | :--- | :--- | :--- |
-| `table` | String | Source table name containing training documents; schema-qualified names and quoted identifiers are supported in 0.2.0. |
+| `table` | String | Source table name containing training documents; schema-qualified names and quoted identifiers are supported. |
 | `column` | String | Source `TEXT` column name. |
 | `text_analyzer` | String | Name of the `text_analyzer` used to extract vocabulary tokens. |
-| `filter` | String | Optional trusted SQL Boolean expression over source columns, without `WHERE` or `NEW.` (0.2.0). Only `TRUE` rows are used for training and embedding updates; `FALSE` and `NULL` rows are skipped. The vocabulary is append-only. |
+| `filter` | String | Optional trusted SQL Boolean expression over source columns, without `WHERE` or `NEW.` (1.0.0). Only `TRUE` rows are used for training and embedding updates; `FALSE` and `NULL` rows are skipped. The vocabulary is append-only. |
 {.wide .expand}

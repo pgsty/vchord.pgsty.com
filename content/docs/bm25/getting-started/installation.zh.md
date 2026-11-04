@@ -63,9 +63,9 @@ psql -h localhost -p 5432 -U postgres
 curl -LO https://github.com/supervc-stack/VectorChord-bm25/releases/download/0.3.0/postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 sudo apt-get install ./postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 
-# 安装 pg_tokenizer 0.2.0（以 x86_64 上的 PostgreSQL 16 为例）
-curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
+# 安装 pg_tokenizer 1.0.0（以 x86_64 上的 PostgreSQL 16 为例）
+curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
 ```
 
 ### 手工安装 ZIP 归档 {#rhel-9--enterprise-linux-zip-archive}
@@ -80,8 +80,8 @@ pg_config --sharedir
 # 示例输出：/usr/pgsql-16/share
 
 # 2. 下载并解压发布归档包
-wget https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip
-unzip postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip -d pg_tokenizer
+wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip
+unzip postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
 # 3. 拷贝共享库 (.so) 与扩展控制/SQL 脚本文件
 sudo cp ./pg_tokenizer/pg_tokenizer.so $(pg_config --pkglibdir)
@@ -133,7 +133,7 @@ SELECT pg_backend_pid();
 
 ```ini
 shared_preload_libraries = 'vchord_bm25'
-# 如果使用 pg_tokenizer 0.2.0 做自定义分词：
+# 如果使用 pg_tokenizer 1.0.0 做自定义分词：
 # shared_preload_libraries = 'vchord_bm25, pg_tokenizer'
 ```
 

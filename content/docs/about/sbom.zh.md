@@ -8,7 +8,7 @@ aliases:
   - "/about/sbom/"
 ---
 
-本页列出由 [PGSTY](https://pigsty.cc/) 社区维护的三个核心 Rust 扩展——**[`vchord`](https://github.com/pgsty/vchord)**、**[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)** 与 **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)** 的完整**软件物料清单（Software Bill of Materials, SBOM）**。下方所有依赖版本号与 SPDX 许可证标识符均直接提取自各仓库当前的 `Cargo.toml`、`Cargo.lock` 与 `deny.toml` 清单文件。
+本页列出由 [PGSTY](https://pigsty.cc/) 社区维护的三个核心 Rust 扩展——**[`vchord`](https://github.com/pgsty/vchord)**、**[`vchord_bm25`](https://github.com/pgsty/vchord_bm25)** 与 **[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)** 的完整**软件物料清单（Software Bill of Materials, SBOM）**。下方所有依赖版本号与 SPDX 许可证标识符均直接提取自各仓库当前的 `Cargo.toml`、`Cargo.lock`，以及存在时的 `deny.toml`。pg_tokenizer 一行描述 1.0.0 源码，不代表软件包已发布。
 
 ## 核心扩展套件概览 {#summary}
 
@@ -16,7 +16,7 @@ aliases:
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **[`vchord`](/zh/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg19` | 15 | 243 |
 | **[`vchord_bm25`](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `0.4.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg19` | 8 | 194 |
-| **[`pg_tokenizer`](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `0.2.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg19` | 1 | 366 |
+| **[`pg_tokenizer`](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
 {.wide .expand}
 
 ---
@@ -133,7 +133,7 @@ aliases:
 | `jieba-rs` | `0.11.0` | `MIT` | 运行时 | 结巴中文分词引擎（支持精确/全模式/搜索引擎模式、HMM 新词发现与自定义词典） | [messense/jieba-rs](https://github.com/messense/jieba-rs) |
 | `lindera` | `6.2.0` | `MIT` | 运行时 | 日文/中日韩形态学分析与分词框架（`lindera` 模型与预分词器） | [lindera/lindera](https://github.com/lindera/lindera) |
 | `lindera-analysis` | `6.2.0` | `MIT` | 运行时 | 字符过滤器、词元过滤器及内嵌 IPADIC / UniDic / ko-dic / CC-CEDICT 词典支持 | [lindera/lindera](https://github.com/lindera/lindera) |
-| `rust-stemmers` | `1.2.0` | `MIT OR BSD-3-Clause` | 运行时 | Snowball 多语言词干提取算法，支持 20+ 种语言（分支提交 `51696378`） | [tensorchord/rust-stemmers](https://github.com/tensorchord/rust-stemmers) |
+| `rust-stemmers` | `1.2.1` | `MIT OR BSD-3-Clause` | 运行时 | Snowball 多语言词干提取算法，支持 30 种语言（Git 标签 `v1.2.1`，提交 `61e8ea11`） | [pgsty/rust-stemmers](https://github.com/pgsty/rust-stemmers) |
 | `unicode-segmentation` | `1.13.3` | `MIT OR Apache-2.0` | 运行时 | Unicode 标准附件 #29（`UAX #29`）词边界切分（`unicode` 预分词器） | [unicode-rs/unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) |
 | `unicode-normalization` | `0.1.26` | `(MIT OR Apache-2.0) AND Unicode-3.0` | 运行时 | Unicode NFC / NFD / NFKC / NFKD 字符规范化过滤器 | [unicode-rs/unicode-normalization](https://github.com/unicode-rs/unicode-normalization) |
 | `regex` | `1.13.1` | `MIT OR Apache-2.0` | 运行时 | 基于有限自动机的正则表达式引擎，用于正则分词与模式替换过滤 | [rust-lang/regex](https://github.com/rust-lang/regex) |
@@ -153,7 +153,7 @@ aliases:
 
 ## 4 · 许可证合规审计与 SBOM 导出验证 {#verification}
 
-三个扩展仓库均在 CI 中通过 [`cargo-deny`](https://embarkstudios.github.io/cargo-deny/)（`deny.toml`）强制执行依赖项许可证白名单审计。`Cargo.lock` 解析图中的所有第三方依赖均严格限定为宽松的 OSI 认证开源许可证：
+`vchord` 与 `vchord_bm25` 使用 [`cargo-deny`](https://embarkstudios.github.io/cargo-deny/)（`deny.toml`）定义依赖项许可证白名单。`pg_tokenizer` 当前没有 `deny.toml` 或 cargo-deny CI 门禁；本页清单不等同于该仓库已通过这项审计。已有白名单包括：
 
 - `MIT`
 - `Apache-2.0` 与 `Apache-2.0 WITH LLVM-exception`
@@ -166,6 +166,7 @@ aliases:
 
 ```bash
 # 1. 使用 cargo-deny 校验许可证白名单与安全漏洞公告
+# 适用于包含 deny.toml 的仓库
 cargo deny check
 
 # 2. 查看完整锁定依赖树及其 SPDX 许可证

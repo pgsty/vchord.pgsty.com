@@ -11,9 +11,9 @@ icon: fa-solid fa-bolt
 
 This guide walks through creating a table, tokenizing documents, building a `bm25` index, and executing Top-K BM25 queries.
 
-## Workflow A: `bm25vector` + `pg_tokenizer 0.2.0` (`v0.1` – `v0.3`)
+## Workflow A: `bm25vector` + `pg_tokenizer 1.0.0` (`v0.1` – `v0.3`)
 
-In released `vchord_bm25` versions `v0.1.0` through `v0.3.0`, `pg_tokenizer 0.2.0` can tokenize text into an `INT[]` column that is implicitly cast to the historical `bm25vector` type. The helper and `tokenize()` API remain available for this workflow.
+In released `vchord_bm25` versions `v0.1.0` through `v0.3.0`, `pg_tokenizer 1.0.0` can tokenize text into an `INT[]` column that is implicitly cast to the historical `bm25vector` type. The helper and `tokenize()` API remain available for this workflow.
 
 ### 1. Enable Extensions and Configure `search_path`
 
@@ -95,7 +95,7 @@ LIMIT 10;
 
 ## Workflow B: Native `tsvector` API (`main` Branch)
 
-In the next-generation `main` branch rewrite, `vchord_bm25` indexes PostgreSQL's native **`tsvector`** type directly—no external tokenizer extension is required for standard languages. Install `pg_tokenizer 0.2.0` when you need its custom analyzer, model, or multilingual pipeline and use `analyze_to_tsvector` or `tokenize_to_tsvector` to produce the indexed value.
+In the next-generation `main` branch rewrite, `vchord_bm25` indexes PostgreSQL's native **`tsvector`** type directly—no external tokenizer extension is required for standard languages. Install `pg_tokenizer 1.0.0` when you need its custom analyzer, model, or multilingual pipeline and use `analyze_to_tsvector` or `tokenize_to_tsvector` to produce the indexed value.
 
 ### 1. Create Extension and Table
 

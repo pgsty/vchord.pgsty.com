@@ -17,7 +17,7 @@ cascade:
   upstream_modified: true
 ---
 
-**`pg_tokenizer` 0.2.0** (maintained by Pigsty at [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)) is a standalone multilingual tokenization extension for PostgreSQL built in Rust (`pgrx`). It provides customizable text analyzers, character/token filters, and vocabulary models that produce integer token ID arrays (`INT[]`) for the historical `bm25vector` workflow and native PostgreSQL `tsvector` values for GIN/GiST or compatible BM25 indexes.
+**`pg_tokenizer` 1.0.0** (maintained by Pigsty at [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)) is a standalone multilingual tokenization extension for PostgreSQL built in Rust (`pgrx`). It provides customizable text analyzers, character/token filters, and vocabulary models that produce integer token ID arrays (`INT[]`) for the historical `bm25vector` workflow and native PostgreSQL `tsvector` values for GIN/GiST or compatible BM25 indexes.
 
 {{< cards >}}
   {{< card link="/docs/tokenizer/installation/" title="Installation" icon="fa-solid fa-download" >}}

@@ -17,7 +17,7 @@ cascade:
   upstream_modified: true
 ---
 
-**`pg_tokenizer` 0.2.0**（由 Pigsty 在 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 维护）是一个使用 Rust（`pgrx`）构建的独立 PostgreSQL 多语言分词扩展。它提供可定制的文本分析器、字符与词元过滤器以及词表模型：既能为历史 `bm25vector` 工作流生成整数词元 ID 数组（`INT[]`），也能生成供 GIN/GiST 或兼容 BM25 索引使用的 PostgreSQL 原生 `tsvector`。
+**`pg_tokenizer` 1.0.0**（由 Pigsty 在 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 维护）是一个使用 Rust（`pgrx`）构建的独立 PostgreSQL 多语言分词扩展。它提供可定制的文本分析器、字符与词元过滤器以及词表模型：既能为历史 `bm25vector` 工作流生成整数词元 ID 数组（`INT[]`），也能生成供 GIN/GiST 或兼容 BM25 索引使用的 PostgreSQL 原生 `tsvector`。
 
 {{< cards >}}
   {{< card link="/zh/docs/tokenizer/installation/" title="安装指南" icon="fa-solid fa-download" >}}

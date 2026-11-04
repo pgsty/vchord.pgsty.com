@@ -63,9 +63,9 @@ Download release archives for your PostgreSQL major version (`14`–`18`) and CP
 curl -LO https://github.com/supervc-stack/VectorChord-bm25/releases/download/0.3.0/postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 sudo apt-get install ./postgresql-16-vchord-bm25_0.3.0-1_amd64.deb
 
-# Install pg_tokenizer 0.2.0 (example for PostgreSQL 16 on x86_64)
-curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-pg-tokenizer_0.2.0-1_amd64.deb
+# Install pg_tokenizer 1.0.0 (example for PostgreSQL 16 on x86_64)
+curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
 ```
 
 ### Manual ZIP installation
@@ -80,8 +80,8 @@ pg_config --sharedir
 # Example: /usr/pgsql-16/share
 
 # 2. Download and extract the release archive
-wget https://github.com/pgsty/pg_tokenizer/releases/download/0.2.0/postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip
-unzip postgresql-16-pg-tokenizer_0.2.0_x86_64-linux-gnu.zip -d pg_tokenizer
+wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip
+unzip postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
 # 3. Copy the shared library (.so) and extension control/SQL files
 sudo cp ./pg_tokenizer/pg_tokenizer.so $(pg_config --pkglibdir)
@@ -133,7 +133,7 @@ Current source requires `vchord_bm25` in `shared_preload_libraries`. Preserve ot
 
 ```ini
 shared_preload_libraries = 'vchord_bm25'
-# If using pg_tokenizer 0.2.0 for custom tokenization:
+# If using pg_tokenizer 1.0.0 for custom tokenization:
 # shared_preload_libraries = 'vchord_bm25, pg_tokenizer'
 ```
 

@@ -72,7 +72,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 
 ---
 
-## `pg_tokenizer` 0.2.0 函数（`tokenizer_catalog`） {#pg_tokenizer-functions-tokenizer_catalog}
+## `pg_tokenizer` 1.0.0 函数（`tokenizer_catalog`） {#pg_tokenizer-functions-tokenizer_catalog}
 
 所有 `pg_tokenizer` 函数均位于 `tokenizer_catalog` 模式中：
 
@@ -129,7 +129,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | `custom_model_tokenizer_set_target_column_trigger()` | `trigger` | 由 `create_custom_model_tokenizer_and_trigger` 安装的 `BEFORE INSERT OR UPDATE` 触发器函数，自动执行 `NEW.<target_column> = tokenize(NEW.<source_column>, tokenizer_name)`。 |
 {.wide .expand}
 
-`pg_tokenizer 0.2.0` 还提供 `analyze_to_tsvector(text, text_analyzer_name)` 与 `tokenize_to_tsvector(text, tokenizer_name)`，返回带有位置的原生 `tsvector`；删除空输出词元后，剩余词元按最终输出顺序连续编号。应先将结果存储后再创建索引；替换目录定义不会自动重写已存储的向量，也不会自动重建依赖它的 BM25/GIN 索引。
+`pg_tokenizer 1.0.0` 还提供 `analyze_to_tsvector(text, text_analyzer_name)` 与 `tokenize_to_tsvector(text, tokenizer_name)`，返回带有位置的原生 `tsvector`；删除空输出词元后，剩余词元按最终输出顺序连续编号。应先将结果存储后再创建索引；替换目录定义不会自动重写已存储的向量，也不会自动重建依赖它的 BM25/GIN 索引。
 
 ---
 
@@ -163,7 +163,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 | :--- | :--- | :--- |
 | `character_filters` | `array` / `table` | 在分词前对整段字符串依次应用的字符过滤器列表：`to_lowercase`、`unicode_normalization`（`nfc`、`nfd`、`nfkc`、`nfkd`）。 |
 | `pre_tokenizer` | `string` / `table` | 将字符串切分为初始词元的单个预分词器：`unicode_segmentation`、`regex`（Rust 正则表达式）或 `jieba`（`mode = "full" \| "precise" \| "search"`，`enable_hmm = true \| false`）。 |
-| `token_filters` | `array` | 按顺序执行的词元过滤器列表：`skip_non_alphanumeric`、`stemmer`（支持 30 种 Snowball 词干提取器）、`stopwords`（内置 `lucene_english`、`nltk_english`、`iso_english` 或自定义停用词典）、`synonym`、`pg_dict`（除 `Thesaurus` 外的任意 `pg_ts_dict` 词典）、`ngram`（`min_gram`、`max_gram` 范围 `1..=255`，`preserve_original`）。 |
+| `token_filters` | `array` | 按顺序执行的词元过滤器列表：`skip_non_alphanumeric`、`stemmer`（支持 30 种 Snowball 词干提取器）、`stopwords`（内置 `lucene_english`、`nltk_english`、`iso_english` 或自定义停用词典）、`synonym`、`pg_dict`（任意 `pg_ts_dict` 词典，与 `ts_lexize` 一样逐个词元查询）、`ngram`（`min_gram`、`max_gram` 范围 `1..=255`，`preserve_original`）。 |
 {.wide .expand}
 
 ### 自定义模型配置项（`create_custom_model`） {#custom-model-options-create_custom_model}

@@ -48,13 +48,12 @@ SELECT tokenize('PostgreSQL is an object-relational database system.', 'llm_tok'
 ```sql
 SELECT create_tokenizer('wiki_eng', $$
 model = "wiki_tocken"
-
-[text_analyzer.character_filters.to_lowercase]
-[text_analyzer.pre_tokenizer.unicode_segmentation]
-[[text_analyzer.token_filters.stopwords]]
-words = "nltk_english"
-[[text_analyzer.token_filters.stemmer]]
-kind = "english_porter2"
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+stopwords = "nltk_english"
+[[token_filters]]
+stemmer = "english_porter2"
 $$);
 
 SELECT tokenize('PostgreSQL is an object-relational database system.', 'wiki_eng');
@@ -67,13 +66,14 @@ SELECT tokenize('PostgreSQL is an object-relational database system.', 'wiki_eng
 ```sql
 -- 1. 创建可复用的文本分析器
 SELECT create_text_analyzer('english_analyzer', $$
-[character_filters.to_lowercase]
-[pre_tokenizer.unicode_segmentation]
-[[token_filters.skip_non_alphanumeric]]
-[[token_filters.stopwords]]
-words = "nltk_english"
-[[token_filters.stemmer]]
-kind = "english_porter2"
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+skip_non_alphanumeric = {}
+[[token_filters]]
+stopwords = "nltk_english"
+[[token_filters]]
+stemmer = "english_porter2"
 $$);
 
 -- 预览文本分析器如何将文本切分为 TEXT[] 词元数组：
@@ -91,9 +91,9 @@ SELECT name FROM tokenizer_catalog.tokenizer;
 SELECT drop_tokenizer('wiki_eng');
 ```
 
-## 0.2.0 原生 PostgreSQL 全文检索 {#native-fts}
+## 原生 PostgreSQL 全文检索 {#native-fts}
 
-0.2.0 提供两个返回 PostgreSQL 原生 `tsvector` 的函数。`analyze_to_tsvector` 将文本分析器输出的字符串词元转换为词素，适合 Jieba 及自定义词干、停用词流水线；`tokenize_to_tsvector` 将模型输出的整数 ID 转为十进制词素，适用于内置、自定义、Hugging Face 和 Lindera 模型。它们不解码模型 ID，也不会再次使用 PostgreSQL 分词器归一化文本。
+1.0.0 提供两个返回 PostgreSQL 原生 `tsvector` 的函数。`analyze_to_tsvector` 将文本分析器输出的字符串词元转换为词素，适合 Jieba 及自定义词干、停用词流水线；`tokenize_to_tsvector` 将模型输出的整数 ID 转为十进制词素，适用于内置、自定义、Hugging Face 和 Lindera 模型。它们不解码模型 ID，也不会再次使用 PostgreSQL 分词器归一化文本。
 
 ```sql
 SELECT create_text_analyzer('fts_words', $$
@@ -117,6 +117,6 @@ SELECT tokenize_to_tsvector('hello hello', 'fts_bert');
 
 位置来自最终输出序列，默认权重为 D；它不代表原始文本偏移，因为过滤器会删除、展开或重排词元，模型也可能输出子词。引号、反斜杠、空白和标点会保留，空词元被忽略；空输出返回空向量，NULL 输入返回 NULL。
 
-原生类型限制仍然适用：单个词素小于 2 KB，每个词素最多保存 256 个位置，超过 16,383 的位置被截到 16,383。长文本的词频与距离信息可能因此丢失，详见 [PostgreSQL 全文检索限制](https://www.postgresql.org/docs/current/textsearch-limitations.html)。
+原生类型限制仍然适用：超过 2046 字节的词元会被跳过且不保留位置间隙，每个词素最多保存 256 个位置，超过 16,383 的位置被截到 16,383。长文本的词频与距离信息可能因此丢失，详见 [PostgreSQL 全文检索限制](https://www.postgresql.org/docs/current/textsearch-limitations.html)。
 
 文档与查询应使用相同分析器或模型、相同词素表示；`plainto_tsquery('english', ...)` 不会生成模型 ID，也不能复现自定义中文分析器。本次不增加文本搜索解析器或 `tsquery` 构造器。两个函数因读取目录配置而标记为 `STABLE`：先将结果存入列，再为该列创建 GIN/GiST 索引。接受原生 `tsvector` 的 BM25 实现也能使用这些值；迁移旧 `bm25vector` 索引前，应核对所安装 BM25 版本的 SQL API。

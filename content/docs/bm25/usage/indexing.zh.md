@@ -53,7 +53,7 @@ ALTER INDEX documents_vector_bm25 RESET (limit, prefilter);
 
 ## 自动分词触发器（`v0.1` – `v0.3`） {#automatic-tokenization-triggers-v01--v03}
 
-使用 `pg_tokenizer 0.2.0` 的历史 `bm25vector` 接口时，可以通过触发器在执行 `INSERT` 和 `UPDATE` 时自动同步更新词元列：
+使用 `pg_tokenizer 1.0.0` 的历史 `bm25vector` 接口时，可以通过触发器在执行 `INSERT` 和 `UPDATE` 时自动同步更新词元列：
 
 ### 使用自定义模型触发器（一步到位辅助函数） {#using-a-custom-model-trigger-one-step-helper}
 

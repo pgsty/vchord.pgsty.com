@@ -48,13 +48,12 @@ You can define the `text_analyzer` pipeline directly inside `create_tokenizer`:
 ```sql
 SELECT create_tokenizer('wiki_eng', $$
 model = "wiki_tocken"
-
-[text_analyzer.character_filters.to_lowercase]
-[text_analyzer.pre_tokenizer.unicode_segmentation]
-[[text_analyzer.token_filters.stopwords]]
-words = "nltk_english"
-[[text_analyzer.token_filters.stemmer]]
-kind = "english_porter2"
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+stopwords = "nltk_english"
+[[token_filters]]
+stemmer = "english_porter2"
 $$);
 
 SELECT tokenize('PostgreSQL is an object-relational database system.', 'wiki_eng');
@@ -67,13 +66,14 @@ You can create a standalone `text_analyzer` once with `create_text_analyzer` and
 ```sql
 -- 1. Create a reusable text analyzer
 SELECT create_text_analyzer('english_analyzer', $$
-[character_filters.to_lowercase]
-[pre_tokenizer.unicode_segmentation]
-[[token_filters.skip_non_alphanumeric]]
-[[token_filters.stopwords]]
-words = "nltk_english"
-[[token_filters.stemmer]]
-kind = "english_porter2"
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+skip_non_alphanumeric = {}
+[[token_filters]]
+stopwords = "nltk_english"
+[[token_filters]]
+stemmer = "english_porter2"
 $$);
 
 -- Preview how the text analyzer splits text into TEXT[] tokens:
@@ -91,9 +91,9 @@ SELECT name FROM tokenizer_catalog.tokenizer;
 SELECT drop_tokenizer('wiki_eng');
 ```
 
-## Native PostgreSQL full-text search in 0.2.0 {#native-postgresql-full-text-search}
+## Native PostgreSQL full-text search {#native-postgresql-full-text-search}
 
-Version 0.2.0 provides two functions returning the native `tsvector` type. `analyze_to_tsvector` uses the text analyzer's string tokens as lexemes, making it useful for Jieba and custom stemmer/filter pipelines. `tokenize_to_tsvector` instead uses the model's token IDs as decimal lexemes, supporting built-in, custom, Hugging Face, and Lindera models. No model decoding or second PostgreSQL text normalization is performed.
+Version 1.0.0 provides two functions returning the native `tsvector` type. `analyze_to_tsvector` uses the text analyzer's string tokens as lexemes, making it useful for Jieba and custom stemmer/filter pipelines. `tokenize_to_tsvector` instead uses the model's token IDs as decimal lexemes, supporting built-in, custom, Hugging Face, and Lindera models. No model decoding or second PostgreSQL text normalization is performed.
 
 ```sql
 SELECT create_text_analyzer('fts_words', $$
@@ -117,6 +117,6 @@ SELECT tokenize_to_tsvector('hello hello', 'fts_bert');
 
 Both functions preserve repeated output tokens and assign positions from the final output sequence (default weight D). Positions are **not source-text offsets**: filters can remove, expand, or reorder tokens, and model output can contain subwords. Quotes, backslashes, whitespace, and punctuation in lexemes are preserved. Empty tokens are omitted; an empty output produces an empty vector, and NULL input returns NULL.
 
-PostgreSQL's native limits apply: lexemes must be shorter than 2 KB, each lexeme stores at most 256 positions, and positions above 16,383 are clamped. Long input can therefore lose term-frequency/proximity detail. See [PostgreSQL text search limits](https://www.postgresql.org/docs/current/textsearch-limitations.html).
+PostgreSQL's native limits apply: tokens longer than 2046 bytes are skipped without leaving position gaps; each lexeme stores at most 256 positions, and positions above 16,383 are clamped. Long input can therefore lose term-frequency/proximity detail. See [PostgreSQL text search limits](https://www.postgresql.org/docs/current/textsearch-limitations.html).
 
 Use the same analyzer/model and lexeme representation for documents and queries. `plainto_tsquery('english', ...)` does not generate model token IDs or reproduce a custom Chinese analyzer. These functions do not add a custom text search parser or a `tsquery` builder. They are `STABLE` because definitions live in catalogs: store/update the resulting vector in a column and index that column with GIN/GiST. When an installed BM25 implementation accepts native `tsvector`, it can consume these values too; check that implementation's SQL API before migrating an existing `bm25vector` index.

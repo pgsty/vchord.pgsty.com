@@ -16,6 +16,8 @@ pig repo add pgsql -u
 pig ext add pg_tokenizer
 ```
 
+原生 RPM/DEB 不内嵌 Lindera 词典，需提供用 Lindera 6 编译的外部词典。GitHub `.deb`/ZIP 包启用 `lindera-ipadic` 并内嵌 IPADIC；其他词典仍是可选编译特性。
+
 ## 使用 Docker（`vchord-suite`） {#docker}
 
 [`tensorchord/vchord-suite`](/zh/docs/vchord/getting-started/vectorchord-suite/) Docker 镜像已预装完整的 Vchord 检索扩展套件：
@@ -71,18 +73,37 @@ cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
 
-## 升级到 0.2.0 {#upgrade-020}
+## 升级到 1.0.0 {#upgrade-100}
 
-安装 0.2.0 动态库和 SQL 脚本后，先重启 PostgreSQL 以加载预加载库，再由扩展拥有者或管理员对各数据库执行：
+安装 1.0.0 动态库和 SQL 脚本后，先重启 PostgreSQL 以加载预加载库，再由扩展拥有者或管理员对各数据库执行：
 
 ```sql
-ALTER EXTENSION pg_tokenizer UPDATE TO '0.2.0';
+ALTER EXTENSION pg_tokenizer UPDATE TO '1.0.0';
 ```
 
-0.1.0、0.1.1 与 0.1.2 均有升级路径。迁移会保留目录数据、已有自定义词表 ID 以及原六参函数的依赖关系。0.2.0 新增事务结束时的会话级对象缓存失效、原生 `tsvector` 辅助函数，以及删除空输出词元后连续编号的位置语义。如果分析器或模型重建影响了已存储的 `tsvector` 或词元 ID 列，应重新计算这些搜索值。标准 `cargo pgrx install/package` 与 `tools/package.sh` 均会包含升级脚本。Lindera 字典版本变化引起的 ID 迁移仍须按照[模型说明](/zh/docs/tokenizer/models/)重新分词。
+0.1.0 与 0.1.1 均有升级路径。迁移会保留目录数据、已有自定义词表 ID，以及原六参便捷函数的依赖关系（包括其函数 OID）。标准 `cargo pgrx install/package` 与 `tools/package.sh` 均会包含升级脚本。加载新版动态库后，已提交的定义变更会使各后端的本地缓存失效；每次查找都遵循所在 SQL 快照，在旧快照下加载的对象会在后续语句或事务复用前被丢弃。Lindera 词典版本变化引起的 ID 迁移须按照[模型说明](/zh/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model)重新分词。
 
 ### 数据库拥有者权限 {#database-owner-permissions}
 
-安装与升级向 `pg_database_owner` 授予 `tokenizer_catalog` 的 USAGE/CREATE、函数的 EXECUTE，目录表与模型表的 SELECT/INSERT/UPDATE/DELETE，以及序列的 USAGE/SELECT。安装角色以后在该模式中创建的表、序列和函数也有相同默认授权；新建自定义模型还会显式授权。授权随数据库拥有者变更而生效。
+安装与升级向 `pg_database_owner` 授予 `tokenizer_catalog` 的 USAGE/CREATE、数据库内管理函数的 EXECUTE，目录表与模型表的 SELECT/INSERT/UPDATE/DELETE，以及序列的 USAGE/SELECT。安装角色以后在该模式中创建的表、序列和函数也有相同默认授权；新建自定义模型还会显式授权。授权随数据库拥有者变更而生效。
 
 管理员安装扩展后，非超级用户的数据库拥有者可以创建、删除自己创建的模型、分析器、分词器、停用词及同义词。授权不转移对象所有权：删除其他角色创建的模型仍需原对象拥有者或管理员。其他应用角色需要显式授权；扩展不会向 PUBLIC 开放模式访问或目录写权限，函数继续以调用者权限执行。
+
+`add_preload_model` 与 `remove_preload_model` 管理整个集群的数据目录文件，仅扩展拥有者及获得显式授权的管理员可执行；PUBLIC 和 `pg_database_owner` 没有执行权限。文件修改不随 SQL 事务回滚，重启后生效。无效预加载条目会记录 WARNING 并跳过，不会阻止 PostgreSQL 启动。
+
+### 1.0.0 兼容性变化 {#compatibility-100}
+
+- `apply_text_analyzer` 改为 `STABLE`，与 `tokenize` 一致：分析器定义属于目录数据，标记为 `IMMUTABLE` 并不正确，还会让缓存计划绕过失效。只要有索引、存储生成列、分区键或扩展统计对象依赖它，升级就会拒绝执行。请先把这些表达式改为由应用或触发器维护的普通列，并为列建立索引，再执行升级。
+- Lindera 从 0.42 升级到 6.2。内嵌 IPADIC 由 2007-08-01 版更新为 2025-09-20 版，词元 ID 随之变化；外部编译词典须用 Lindera 6 重新构建。用户词典 ID 改为 `1073741824 + 词典内编号`，不再与系统词典 ID 重叠。需重新生成已存储的 Lindera 词元数组并重建相关索引。
+- 自定义模型中，匹配行的源列为 NULL 时，embedding 现在设为 NULL，包括 INSERT 显式提供的值；0.1.x 会保留目标列原值。不匹配过滤条件的行保留原有 embedding。
+- 向自定义模型新增词元的写入事务按模型取 advisory lock，持有至提交；所含词元均已存在的写入不等待。`REPEATABLE READ` 与 `SERIALIZABLE` 写入可能返回 SQLSTATE `40001`，需重试整个事务。
+- 调用过定义变更接口的事务不支持 `PREPARE TRANSACTION`；只读事务仍可 prepare。
+- `add_preload_model` 与 `remove_preload_model` 仅限管理员；无效预加载条目会记录 WARNING 并跳过。升级前，请移除仍使用未经 Lindera 6 重建的外部词典的 Lindera 模型预加载条目。
+- 内置停用词表 `lucene_english`、`nltk_english` 与 `iso_english` 为保留名：`drop_stopwords` 与 `create_stopwords` 拒绝这些名称。若旧版本替换过其中之一，升级会给出 WARNING；请把该词表复制为新名称，并改为引用新名称。
+- `pg_dump` 现在包含定义表，见[逻辑备份](#logical-backups)。
+
+### 逻辑备份 {#logical-backups}
+
+五张定义表（`text_analyzer`、`tokenizer`、`model`、`stopwords`、`synonym`）已通过 `pg_extension_config_dump` 登记，普通 `pg_dump` 会导出其中的行，以及自定义词表、对应的标识列序列和源表触发器。`CREATE EXTENSION` 会重新创建内置的 `lucene_english`、`nltk_english` 与 `iso_english` 停用词表，因此这三个名称不会被导出。它们是保留名，不能删除或替换，因此恢复后得到的词表与原来相同。
+
+外部 Lindera 词典和集群的 `pg_tokenizer/preload_models` 目录不在数据库内，需要单独备份。物理备份包含目录表数据和预加载目录，但不包含外部词典路径。

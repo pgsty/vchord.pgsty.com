@@ -40,7 +40,8 @@ $$);
 ```toml
 character_filters = ["to_lowercase"]
 # 或使用表语法：
-[character_filters.to_lowercase]
+[[character_filters]]
+to_lowercase = {}
 ```
 
 ### `unicode_normalization` {#unicode_normalization}
@@ -158,7 +159,7 @@ stemmer = "english_porter2"
   - `"lucene_english"` —— Apache Lucene 标准英文停用词表
   - `"nltk_english"` —— NLTK 标准英文停用词表
   - `"iso_english"` —— Stopwords ISO 英文停用词表
-- **自定义停用词典**：通过 `create_stopwords(name, text)` 创建（每行一个词），随后按名称引用。
+- **自定义停用词典**：通过 `create_stopwords(name, text)` 创建（每行一个词），随后按名称引用。内置名称是保留名：从 1.0.0 起不能删除或替换，逻辑恢复时总会重建相同的词表。
 
 ```sql
 -- 创建自定义停用词表（每行一个词）
@@ -202,7 +203,7 @@ SELECT apply_text_analyzer('pgsql and postgresql have many indices', 'text_analy
 
 ### `pg_dict`（PostgreSQL 全文检索词典） {#pg_dict-postgresql-full-text-dictionaries}
 
-将词元过滤委托给任意已有的 [PostgreSQL 全文检索词典](https://www.postgresql.org/docs/current/textsearch-dictionaries.html)（`pg_ts_dict`，支持 `Simple`、`Ispell`、`Snowball` 和 `Synonym` 词典；注意不支持 `Thesaurus` 分类词典，因为后者作用于多词短语而非单个词元）：
+将词元过滤委托给任意已有的 [PostgreSQL 全文检索词典](https://www.postgresql.org/docs/current/textsearch-dictionaries.html)（`pg_ts_dict`，支持 `Simple`、`Ispell`、`Snowball`、`Synonym` 与 `Thesaurus` 词典）。每个词元单独查询，与 `ts_lexize` 的行为一致，因此 `Thesaurus` 分类词典只应用单词条目，不匹配跨越多个词元的短语：
 
 ```toml
 [[token_filters]]
@@ -221,8 +222,8 @@ pg_dict = "english_stem"
 {.wide .expand}
 
 ```toml
-[[token_filters.ngram]]
-min_gram = 2
-max_gram = 3
-preserve_original = true
+[[token_filters]]
+ngram = { min_gram = 2, max_gram = 3, preserve_original = true }
 ```
+
+长度按 Unicode 字符计算，而非字节，因此中日韩文本与 emoji 都能正确切分。短于 `min_gram` 的词元不产生 N-gram，除非开启 `preserve_original`。

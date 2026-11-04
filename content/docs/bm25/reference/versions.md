@@ -9,7 +9,7 @@ icon: fa-solid fa-clock-rotate-left
 > [!IMPORTANT]
 > Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
 
-`pg_tokenizer 0.2.0` is an independent tokenizer release. Use it with the historical `vchord_bm25` 0.3.x `bm25vector` workflow, or use its native `tsvector` helpers with the 0.4.0/main API when custom tokenization is required. It is not a dependency of the native `vchord_bm25` path.
+`pg_tokenizer 1.0.0` is an independent tokenizer release. Use it with the historical `vchord_bm25` 0.3.x `bm25vector` workflow, or use its native `tsvector` helpers with the 0.4.0/main API when custom tokenization is required. It is not a dependency of the native `vchord_bm25` path.
 
 
 This page tracks the release history and SQL schema evolution of `vchord_bm25` ([`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) / [`supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)).

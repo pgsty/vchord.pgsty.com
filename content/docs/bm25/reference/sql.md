@@ -72,7 +72,7 @@ SELECT ARRAY[1, 2, 2, 2, 10, 10]::bm25vector;
 
 ---
 
-## `pg_tokenizer` 0.2.0 Functions (`tokenizer_catalog`)
+## `pg_tokenizer` 1.0.0 Functions (`tokenizer_catalog`)
 
 All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 
@@ -129,7 +129,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | `custom_model_tokenizer_set_target_column_trigger()` | `trigger` | `BEFORE INSERT OR UPDATE` trigger function installed by `create_custom_model_tokenizer_and_trigger` that automatically populates `NEW.<target_column> = tokenize(NEW.<source_column>, tokenizer_name)`. |
 {.wide .expand}
 
-`pg_tokenizer 0.2.0` also provides `analyze_to_tsvector(text, text_analyzer_name)` and `tokenize_to_tsvector(text, tokenizer_name)`. Both return native `tsvector` values with positions assigned consecutively after empty output tokens are removed. Store the result before indexing; replacing a catalog definition does not rewrite persisted vectors or rebuild a dependent BM25/GIN index.
+`pg_tokenizer 1.0.0` also provides `analyze_to_tsvector(text, text_analyzer_name)` and `tokenize_to_tsvector(text, tokenizer_name)`. Both return native `tsvector` values with positions assigned consecutively after empty output tokens are removed. Store the result before indexing; replacing a catalog definition does not rewrite persisted vectors or rebuild a dependent BM25/GIN index.
 
 ---
 
@@ -163,7 +163,7 @@ All `pg_tokenizer` functions reside in the `tokenizer_catalog` schema:
 | :--- | :--- | :--- |
 | `character_filters` | `array` / `table` | List of character filters applied to the full string before splitting: `to_lowercase`, `unicode_normalization` (`nfc`, `nfd`, `nfkc`, `nfkd`). |
 | `pre_tokenizer` | `string` / `table` | Single pre-tokenizer that splits the string into initial tokens: `unicode_segmentation`, `regex` (Rust regex string), or `jieba` (`mode = "full" \| "precise" \| "search"`, `enable_hmm = true \| false`). |
-| `token_filters` | `array` | Ordered list of token filters: `skip_non_alphanumeric`, `stemmer` (30 Snowball stemmers), `stopwords` (`lucene_english`, `nltk_english`, `iso_english`, or custom), `synonym`, `pg_dict` (any `pg_ts_dict` except `Thesaurus`), `ngram` (`min_gram`, `max_gram` in `1..=255`, `preserve_original`). |
+| `token_filters` | `array` | Ordered list of token filters: `skip_non_alphanumeric`, `stemmer` (30 Snowball stemmers), `stopwords` (`lucene_english`, `nltk_english`, `iso_english`, or custom), `synonym`, `pg_dict` (any `pg_ts_dict` dictionary, one token at a time as in `ts_lexize`), `ngram` (`min_gram`, `max_gram` in `1..=255`, `preserve_original`). |
 {.wide .expand}
 
 ### Custom Model Options (`create_custom_model`)

@@ -53,7 +53,7 @@ ALTER INDEX documents_vector_bm25 RESET (limit, prefilter);
 
 ## Automatic Tokenization Triggers (`v0.1` – `v0.3`)
 
-When using `pg_tokenizer 0.2.0` with the historical `bm25vector` API, you can keep a tokenized column automatically synchronized on `INSERT` and `UPDATE`:
+When using `pg_tokenizer 1.0.0` with the historical `bm25vector` API, you can keep a tokenized column automatically synchronized on `INSERT` and `UPDATE`:
 
 ### Using a Custom Model Trigger (One-Step Helper)
 

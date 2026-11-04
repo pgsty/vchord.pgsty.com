@@ -14,14 +14,14 @@ icon: fa-solid fa-language
 ```sql
 SELECT create_tokenizer('eng_wiki', $$
 model = "wiki_tocken"
-
-[text_analyzer.character_filters.to_lowercase]
-[text_analyzer.pre_tokenizer.unicode_segmentation]
-[[text_analyzer.token_filters.skip_non_alphanumeric]]
-[[text_analyzer.token_filters.stopwords]]
-words = "nltk_english"
-[[text_analyzer.token_filters.stemmer]]
-kind = "english_porter2"
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+skip_non_alphanumeric = {}
+[[token_filters]]
+stopwords = "nltk_english"
+[[token_filters]]
+stemmer = "english_porter2"
 $$);
 
 SELECT tokenize('PostgreSQL databases are running analytical and vector workloads.', 'eng_wiki');
@@ -94,13 +94,9 @@ CREATE TABLE zh_docs (
 
 -- 1. 创建启用 NFKD 规范化与结巴搜索引擎模式的中文文本分析器
 SELECT create_text_analyzer('text_analyzer1', $$
-[character_filters.to_lowercase]
-[character_filters.unicode_normalization]
-kind = "nfkd"
-[pre_tokenizer.jieba]
-mode = "search"
-enable_hmm = true
-[[token_filters.skip_non_alphanumeric]]
+character_filters = ["to_lowercase", { unicode_normalization = "nfkd" }]
+pre_tokenizer = { jieba = { mode = "search", enable_hmm = true } }
+token_filters = ["skip_non_alphanumeric"]
 $$);
 
 -- 2. 创建自定义词表模型、分词器，并绑定自动更新触发器
@@ -248,6 +244,6 @@ LIMIT 10;
 ## 运维注意事项与已知限制 {#operational-notes--known-limitations}
 
 1. **对象名称命名规范**：所有分词器、文本分析器、模型、停用词典和同义词典的名称只能包含字母、数字和下划线（`[A-Za-z0-9_]`），且不能以数字开头。
-2. **事务边界与对象缓存**：每个 PostgreSQL 后端连接都会在进程内存（`DashMap`）中缓存 `tokenizer`、`text_analyzer`、`model`、`stopwords` 和 `synonym` 对象。0.2.0 中，创建、删除或重建对象会立即清理当前后端，并在事务提交或回滚时发布缓存失效通知；其他后端会在下次查找前丢弃旧定义，回滚也不会留下刚创建的缓存对象。重建分析器或模型时，依赖它们的分词器也会一并失效。已经存储在 `INT[]`、`bm25vector` 或 `tsvector` 列中的值不会自动重算，主动替换定义后应重新回填。
+2. **事务边界与对象缓存**：每个 PostgreSQL 后端连接都会在进程内存（`DashMap`）中缓存 `tokenizer`、`text_analyzer`、`model`、`stopwords` 和 `synonym` 对象。创建、删除或重建对象会立即清理当前后端，并在事务提交时发布缓存失效通知，回滚只清理本地缓存；其他后端会在下次查找前丢弃旧定义，回滚也不会留下刚创建的缓存对象。重建分析器或模型时，依赖它们的分词器也会一并失效。已经存储在 `INT[]`、`bm25vector` 或 `tsvector` 列中的值不会自动重算，主动替换定义后应重新回填。
 3. **只读从库上的模型预加载**：`add_preload_model` 会将预加载模型列表写入主节点本地的 `$PGDATA/pg_tokenizer` 目录。由于 PostgreSQL 关系表以外的文件系统文件不会通过 WAL 日志复制到从库，如果你在只读从库上也需要预加载模型，请在从库上独立执行一次 `add_preload_model`。
 4. **内置大语言模型分词器的内存开销**：`llmlingua2`（~200 MB）、`gemma2b`（~100 MB）和 `lindera` 等模型会占用较多内存。在生产环境中，请务必使用 `add_preload_model` 让模型在 postmaster 主进程中仅加载一次，避免在每个连接中重复占用内存；或者优先选用仅占用几兆字节内存的自定义语料模型（`create_custom_model`）。

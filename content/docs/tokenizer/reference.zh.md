@@ -26,14 +26,14 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | 函数签名 | 返回类型 | 说明 |
 | :--- | :--- | :--- |
 | `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)` | `VOID` | 基于现有数据表列构建自定义词表模型。 |
-| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | 一键创建自定义词表模型与分词器，回填 `target_column`，并安装自动更新触发器。0.2.0 增加可选的第七个 `filter` 参数；省略或传入 SQL NULL 表示处理全部行，原六参签名继续可用。 |
+| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | 一键创建自定义词表模型与分词器，回填 `target_column`，并安装自动更新触发器。1.0.0 增加可选的第七个 `filter` 参数；省略或传入 SQL NULL 表示处理全部行，原六参签名继续可用。 |
 | `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | 删除自定义词表模型。 |
 | `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)` | `VOID` | 导入 HuggingFace `tokenizer.json` 模型定义。 |
 | `tokenizer_catalog.drop_huggingface_model(name TEXT)` | `VOID` | 删除已导入的 HuggingFace 模型。 |
 | `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)` | `VOID` | 根据 TOML 配置创建 Lindera 形态学分词模型。 |
 | `tokenizer_catalog.drop_lindera_model(name TEXT)` | `VOID` | 删除 Lindera 模型。 |
-| `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | 将模型加入共享内存预加载列表（重启 PostgreSQL 后生效）。 |
-| `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | 将模型移出预加载列表。 |
+| `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | 将模型加入集群预加载列表（仅管理员，不随事务回滚，重启生效）。 |
+| `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | 将模型移出集群预加载列表（仅管理员，不随事务回滚）。 |
 | `tokenizer_catalog.list_preload_models()` | `TEXT[]` | 列出当前已注册预加载的所有模型名称。 |
 {.wide .expand}
 
@@ -46,7 +46,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 | `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | 将 `text` 分词为整数词元 ID 数组（可隐式转换为 `bm25vector`）。 |
 {.wide .expand}
 
-### 原生全文检索接口（0.2.0） {#native-full-text-search-020}
+### 原生全文检索接口 {#native-full-text-search}
 
 | 接口 | 返回类型 | 行为 |
 | :--- | :--- | :--- |
@@ -81,14 +81,14 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 
 | 键名 | 类型 | 说明 |
 | :--- | :--- | :--- |
-| `table` | 字符串 | 存放训练语料的数据表名称。0.2.0 支持带模式名的表名及带引号的标识符。 |
+| `table` | 字符串 | 存放训练语料的数据表名称，支持带模式名的表名及带引号的标识符。 |
 | `column` | 字符串 | 存放原始文本的 `TEXT` 列名称。 |
 | `text_analyzer` | 字符串 | 用于提取词表词元的 `text_analyzer` 名称。 |
 | `filter` | 字符串 | 可选的可信 SQL 布尔表达式，不包含 `WHERE` 或 `NEW.`。只有结果为 TRUE 的行参与训练和 embedding 更新；FALSE/NULL 会跳过，词表只增不减。 |
 {.wide .expand}
 
-## 0.2.0 的并发、过滤与缓存语义 {#api-020}
+## 并发、过滤与缓存语义 {#api-semantics}
 
-词表写入会在每个模型上获取事务级咨询锁，并按 `COLLATE "C"` 排序新词元；同一模型的写入会在事务内串行化。`READ COMMITTED` 下，触发器会在等待词表写入后刷新快照；`REPEATABLE READ` 或 `SERIALIZABLE` 遇到冲突时可能返回 SQLSTATE `40001`，应用应重试整个事务。过滤条件同时作用于初始词表、回填和后续写入；不匹配行的既有 embedding 与词表条目不会自动删除。
+只有新增词元的写入会在每个模型上获取事务级咨询锁，并按 `COLLATE "C"` 排序新词元；同一模型的新增词元操作会在事务内串行化。`READ COMMITTED` 下，触发器会在等待词表写入后刷新快照；`REPEATABLE READ` 或 `SERIALIZABLE` 遇到冲突时可能返回 SQLSTATE `40001`，应用应重试整个事务。过滤条件同时作用于初始词表、回填和后续写入；不匹配行的既有 embedding 与词表条目不会自动删除。
 
 创建、删除或重建分析器、分词器、模型、停用词和同义词后，缓存会在当前事务结束时跨后端失效；回滚也会清理当前后端的缓存。依赖被重建的分析器或模型的分词器会在下一次调用时重新加载。这个机制不会自动重写已经持久化的 `INT[]`、`bm25vector` 或 `tsvector` 列，定义变化后应按需回填并重建相关索引。

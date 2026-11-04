@@ -41,21 +41,24 @@ With `vchord`, you can store 400,000 vectors for just $1, enabling significant s
 
 ## Quick Start
 
-For new users, we recommend using the Docker image to get started quickly. If you do not prefer Docker, please read [installation guide](/docs/vchord/getting-started/installation/) for other installation methods.
+For new users, install the current `vchord` 1.2.0 package from Pigsty, or
+build the `pgsty/vchord` 1.2.0 source release. See the [installation
+guide](/docs/vchord/getting-started/installation/) for package, source, and
+historical upstream Docker options.
 
 ```bash
-docker run \
-  --name vectorchord-demo \
-  -e POSTGRES_PASSWORD=mysecretpassword \
-  -p 5432:5432 \
-  -d tensorchord/vchord-postgres:pg18-v1.1.1
+pig ext add vchord
 ```
-> In addition to the base image with the VectorChord extension, we provide an all-in-one image, `tensorchord/vchord-suite:pg18-latest`. This comprehensive image includes all official TensorChord extensions. Developers should select an image tag that is compatible with their extension's version, as indicated in [the support matrix](https://github.com/tensorchord/VectorChord-images?tab=readme-ov-file#support-matrix).
 
-Then you can connect to the database using the `psql` command line tool. The default username is `postgres`, and the default password is `mysecretpassword`.
+Add `vchord` to `shared_preload_libraries`, restart PostgreSQL, and connect
+with `psql`. The Docker images linked from the installation guide are
+historical TensorChord images and contain older upstream builds.
+
+Then connect to the PostgreSQL cluster using the credentials configured for
+your installation:
 
 ```bash
-psql -h localhost -p 5432 -U postgres
+psql -U postgres
 ```
 
 Now you can play with VectorChord!

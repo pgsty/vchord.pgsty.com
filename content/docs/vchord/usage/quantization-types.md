@@ -39,6 +39,12 @@ By using `rabitq8`, both the table size and index size become \(\frac{1}{4}\) of
 
 In addition, there is also the `rabitq4` type. `rabitq8` quantized vectors use \(8\) bits per dimension, whereas `rabitq4` quantized vectors use only \(4\) bits per dimension. It is designed for constrained situations that favor low storage over high precision.
 
+### Input validation and numeric behavior {#input-validation}
+
+The `rabitq4` and `rabitq8` data types accept at most 65,535 dimensions. Codes must be in `0..15` for `rabitq4` and `0..255` for `rabitq8`. Version 1.2.0 rejects whitespace inside numbers, trailing garbage, and truncated binary input. `quantize_to_*` reports an error on metadata overflow; input still accepts non-finite metadata stored by earlier versions so existing dumps can be restored.
+
+Version 1.2.0 fixes numeric edge cases for zero vectors, constant vectors, and half-precision calculations. Quantized L2 estimates are clamped to nonnegative values so rounding errors do not produce NaN when taking the square root. Cosine distance for a zero vector remains mathematically undefined.
+
 <a id="Reference"></a>
 ## Reference
 

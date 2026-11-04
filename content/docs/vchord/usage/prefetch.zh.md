@@ -78,7 +78,7 @@ icon: fa-solid fa-bolt
 - 注意：
     - `read_buffer` 表示优先使用 `ReadBuffer`。
     - `prefetch_buffer` 表示优先结合使用 `PrefetchBuffer` 和 `ReadBuffer`。
-    - `read_stream` 表示优先使用 `read_stream`。
+    - `read_stream` 表示优先使用 `read_stream`。在 1.2.0 中，当并发 `VACUUM` 导致扫描项提前终止时，`read_stream` 重排序会保持缓冲区句柄与候选元组对齐，防止候选行丢失或错位。
 
 <a id="search-parameters"></a>
 ### 搜索参数（`vchordg`） {#search-parameters-vchordg}

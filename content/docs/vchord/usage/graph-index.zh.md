@@ -57,6 +57,27 @@ $$);
 
 索引构建可以通过使用多进程来加速。详情请参阅 [PostgreSQL 调优](/zh/docs/vchord/usage/postgresql-tuning/)。
 
+## 查询与维护 {#querying-and-maintenance}
+
+在 1.2.0 中，搜索会排除 `VACUUM` 后已删除的顶点，即使其堆位置被新行复用也不会误返回。已删除的图入口仍可用于遍历，但不会作为结果返回。
+
+球面过滤的半径使用距离操作符的单位：`<->` 对应欧氏距离，`<=>` 对应余弦距离。PostgreSQL 会对返回候选重新检查过滤条件，包括其他球面条件。搜索仍是近似搜索，不保证找到所有满足条件的行。
+
+部分索引可用于查询条件蕴含索引谓词的向量查询。不含可用向量排序或球面条件的查询（如 `COUNT(*)`）会使用其他执行计划。`CREATE INDEX`、`REINDEX` 与 `VACUUM` 会向 PostgreSQL 报告元组数和页数统计；单独执行 `ANALYZE` 不会重建图。
+
+<a id="result-order"></a>
+
+> [!WARNING] 结果顺序
+> `vchordg` 在返回结果的同时仍在继续搜索，后找到的行可能比已返回的行更近，因此 `ORDER BY ... LIMIT` 的结果不一定严格按距离升序排列。调大 `vchordg.ef_search` 能减少这种情况，但不能完全避免。对于 `halfvec` 列，索引比较的是向量的半精度副本，距离相差约 0.0001 以内的两行也可能顺序颠倒。需要严格顺序时，请在外层查询中对候选结果重新排序；召回率仍取决于候选数量与搜索参数。该问题记录于 [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17)。
+>
+> ```sql
+> WITH candidates AS MATERIALIZED (
+>     SELECT id, embedding <-> '[3,1,2]' AS distance
+>     FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 100
+> )
+> SELECT * FROM candidates ORDER BY distance LIMIT 10;
+> ```
+
 <a id="Reference"></a>
 ## 参考 {#reference}
 
@@ -173,7 +194,7 @@ $$);
 
 {{< badge text="since v0.5.0" tone="info" >}}
 
-- 说明：搜索期间包含最近邻的动态列表大小。`vchordg.ef_search` 越大，召回率越好，但 QPS 越低。`vchordg.ef_search` 对应于 HNSW 和 DiskANN 中的 \(\text{ef}\)。
+- 说明：搜索期间包含最近邻的动态列表大小。`vchordg.ef_search` 越大，召回率越好，但 QPS 越低。调大该值也能减少结果乱序，但不能完全避免，参见[结果顺序](#result-order)。`vchordg.ef_search` 对应于 HNSW 和 DiskANN 中的 \(\text{ef}\)。
 - 类型：整数（integer）
 - 默认值：
     - `64`

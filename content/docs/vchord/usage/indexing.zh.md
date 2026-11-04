@@ -151,7 +151,7 @@ $$);
 
 | 名称  | 说明           |
 | ----- | -------------- |
-| `<->` | 欧氏距离的平方 |
+| `<->` | 欧氏距离 |
 | `<#>` | 负点积         |
 | `<=>` | 余弦距离       |
 
@@ -162,6 +162,9 @@ $$);
 `rabitq8`、`rabitq4` 是由 VectorChord 定义的数据类型。有关 `rabitq8`、`rabitq4` 的更多信息，请参阅[量化类型](/zh/docs/vchord/usage/quantization-types/)。
 
 `MaxSim` 相关的操作符类自 `0.3.0` 版本起可用。`rabitq8` 和 `rabitq4` 相关的操作符类自 `1.1.0` 版本起可用。
+
+> [!NOTE]
+> 使用 `halfvec_cosine_ops` 时，索引以半精度对向量做归一化。因此余弦距离相差约 0.0001 以内的两行，返回顺序可能与 `<=>` 的值相反；启用 `rerank_in_table` 也是如此。需要严格顺序时，请按[图索引：结果顺序](/zh/docs/vchord/usage/graph-index/#result-order)中的方法对候选结果重新排序。该问题记录于 [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17)。
 
 ### 索引选项（`vchordrq`） {#indexing-options}
 
@@ -222,6 +225,10 @@ $$);
 ### 内部构建选项（`vchordrq`） {#internal-build-options}
 
 {{< badge text="vchordrq" tone="neutral" >}}
+
+内部训练只采样其 MVCC 快照可见的行。1.2.0 根据估算的表行数预分配采样缓冲区，并按实际需要扩容，最多采集 `max(lists) × sampling_factor` 个向量。对于多向量列，一行可以贡献多个向量。
+
+当分区数超过样本向量数时，所需的质心内存分配必须能放入 `maintenance_work_mem`，否则构建会在分配前报错。此时可减少 `lists` 或提高 `maintenance_work_mem`。该参数不是样本充足时整个构建过程的内存硬上限；这类构建应通过 `sampling_factor` 和 `kmeans_dimension` 控制工作集大小。
 
 <a id="build-internal-lists"></a>
 #### `build.internal.lists` {#build-internal-lists}
@@ -337,9 +344,10 @@ $$);
     - `SET vchordrq.probes = 1` 表示仅使用 1 个探测分区。
     - `SET vchordrq.probes = 10` 表示使用 10 个探测分区。
 - 注意：默认值为空列表。该选项的长度必须与 `lists` 的长度相匹配。
-    - 每项必须是 `1..=4294967295` 范围内的无符号十进制整数，空格会被忽略。空项（如 `,5`、`1,,2`、`10,`）、零值和溢出值会在设置参数或索引选项时直接拒绝。索引的 `probes` 回退参数也遵循相同规则。
+    - 每项必须是 `1..=4294967295` 范围内的无符号十进制整数，允许数值两侧有空白，也接受单个尾逗号（`10,` 或 `10, `）。前导或中间空项（`,5`、`1,,2`）、多个尾逗号、零值、溢出值、非法字符和缺少逗号（`1 0`）会在设置参数或索引选项时直接拒绝。索引的 `probes` 回退参数也遵循相同规则。
     - 如果 `lists = []`，则 probes 必须为 ` `。
     - 如果 `lists = [11, 22]`，则 probes 可以是 `2,4` 或 `4,8`。其形状不能不匹配，例如不能是 ` `、`3`、`7,8,9` 或 `5,5,5,5`。
+    - 在 1.2.0 中，查询规划器（`amcostestimate`）会结合 `LIMIT`、过滤选择率与 `probes` 预算估算代价，并自动禁用 `probes` 层级数与索引 `lists` 深度不匹配的 `vchordrq` 索引路径（仅在被强制执行不匹配的索引扫描时于执行期报错）。
 
 <a id="vchordrq-epsilon"></a>
 #### `vchordrq.epsilon` {#search-parameters-vchordrq-epsilon}

@@ -62,7 +62,7 @@ SELECT * FROM items WHERE embedding <<->> sphere('[0, 0, 0]'::vector, 0.1);
 请参阅：
 
 * [操作符类（`vchordrq`）](/zh/docs/vchord/usage/indexing/#operator-classes)。
-* [操作符类（`vchordg`）](/zh/docs/vchord/usage/graph-index/#operator-classes)。
+* [操作符类（`vchordg`）](/zh/docs/vchord/usage/graph-index/#operator-classes)。在 1.2.0 中，`vchordg` 球体扫描统一按对应操作符的距离单位比较半径（`<<->>` 使用欧氏距离，`<<=>>` 使用余弦距离，`<<#>>` 使用负内积），并设置 `xs_recheck = true` 由 PostgreSQL 执行器对候选行执行精确重检。
 
 <a id="Types"></a>
 ### 数据类型 {#types}
@@ -97,6 +97,8 @@ SELECT * FROM items WHERE embedding <<->> sphere('[0, 0, 0]'::vector, 0.1);
 
 <a id="Functions"></a>
 ### 函数 {#functions}
+
+在 1.2.0 中，所有 `sphere(...)` 构造函数均在创建时绑定返回复合类型（`SELECT ROW($1, $2)::sphere_*`），因此不受调用方 `search_path` 设置的影响。
 
 <a id="sphere-vector-real"></a>
 #### `sphere(vector, real)` {#sphere-vector-real}

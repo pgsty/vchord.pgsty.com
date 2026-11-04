@@ -75,6 +75,9 @@ icon: fa-solid fa-file-image
 
 您可以运行以下命令来启动包含 VectorChord-BM25 与 VectorChord 的 Postgres 容器：
 
+> [!WARNING]
+> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
+
 ```bash
 docker run \
   --name vchord-suite \

@@ -78,7 +78,7 @@ To fully leverage this feature with `read_stream`, you need to enable asynchrono
 - Note:
     - `read_buffer` indicates a preference for `ReadBuffer`.
     - `prefetch_buffer` indicates a preference for both `PrefetchBuffer` and `ReadBuffer`.
-    - `read_stream` indicates a preference for `read_stream`.
+    - `read_stream` indicates a preference for `read_stream`. In 1.2.0, `read_stream` reranking keeps buffer guards aligned with candidate tuples when items stop early during concurrent `VACUUM`, preventing candidate rows from being dropped or mismatched.
 
 <a id="search-parameters"></a>
 ### Search Parameters (`vchordg`)

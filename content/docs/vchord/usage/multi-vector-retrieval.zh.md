@@ -80,6 +80,8 @@ ORDER BY embeddings @#
 
 MaxSim 索引还使用了以下几个额外参数：
 
+只探测部分分区时，一个文档可能未出现在某个查询向量的候选集中。1.2.0 在精排和阈值都未提供估算值时，使用该候选集中的最差距离填补缺失值，避免缺失候选因得到 `-Infinity` 距离而错误排在最前面。这仍属于近似计算；评估召回率时应使用 [`exact_search => true`](/zh/docs/vchord/usage/measure-recall/)。
+
 <a id="vchordrq-maxsim-refine"></a>
 #### `vchordrq.maxsim_refine` {#search-parameters-vchordrq-maxsim-refine}
 

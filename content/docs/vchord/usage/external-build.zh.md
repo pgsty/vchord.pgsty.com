@@ -31,16 +31,16 @@ SELECT val FROM t TABLESAMPLE SYSTEM_ROWS(1000);
 
 ```sql
 CREATE TABLE public.t_build (id INTEGER NOT NULL UNIQUE, parent INTEGER, vector vector NOT NULL);
-INSERT INTO public.t_build (id, parent, vector) VALUES (0, NULL, '{0.1, 0.2, 0.3}');
-INSERT INTO public.t_build (id, parent, vector) VALUES (1, 0, '{0.1, 0.2, 0.3}');
-INSERT INTO public.t_build (id, parent, vector) VALUES (2, 0, '{0.4, 0.5, 0.6}');
-INSERT INTO public.t_build (id, parent, vector) VALUES (3, 0, '{0.7, 0.8, 0.9}');
+INSERT INTO public.t_build (id, parent, vector) VALUES (0, NULL, '[0.1, 0.2, 0.3]');
+INSERT INTO public.t_build (id, parent, vector) VALUES (1, 0, '[0.1, 0.2, 0.3]');
+INSERT INTO public.t_build (id, parent, vector) VALUES (2, 0, '[0.4, 0.5, 0.6]');
+INSERT INTO public.t_build (id, parent, vector) VALUES (3, 0, '[0.7, 0.8, 0.9]');
 ```
 
 随后可以使用以下语法创建索引：
 
 ```sql
-CREATE INDEX ON t USING vchordrq (embedding vector_l2_ops) WITH (options = $$
+CREATE INDEX ON t USING vchordrq (val vector_l2_ops) WITH (options = $$
 build.external.table = 'public.t_build'
 $$);
 ```
@@ -54,7 +54,9 @@ $$);
 - 第二列必须为 `parent`，类型为 `integer`，允许为 null（根节点为 `NULL`）。
 - 第三列必须为 `vector`，类型为 `vector`，不可为 null（`NOT NULL`）。目前尚不支持 `halfvec` 或其他类型。
 
-在逻辑上，这些数据构成了一棵树。从根节点到每个叶子节点的距离（深度）必须完全相同。
+在逻辑上，这些数据构成一棵树：根节点的 `parent` 为 `NULL`，其他节点的 `parent` 必须指向已有的 `id`。所有节点必须从根可达，所有叶子深度相同；包含根在内的树高为 2–9 层。循环、不可达节点或超出高度限制都会报错。质心维度必须与索引列一致。
+
+也支持不显式提供根节点的单层分区：至少提供两个质心，并将所有 `parent` 设为 `NULL`，构建时会自动生成根节点。
 
 如果上述任何属性未得到满足，系统都会报错。
 
@@ -69,9 +71,9 @@ from faiss import Kmeans
 import numpy
 
 def partition(
-    samples: List[numpy.Array[float]], lists: List[int]
-) -> List[numpy.Array[float]]:
-    dim = dataset.shape[1]
+    samples: numpy.ndarray, lists: List[int]
+) -> List[numpy.ndarray]:
+    dim = samples.shape[1]
     results = []
     for i in range(len(lists) + 1):
         kmeans = Kmeans(
@@ -84,7 +86,7 @@ def partition(
             spherical=False,
         )
         kmeans.train(samples)
-        results.push(kmeans.centroids)
+        results.append(kmeans.centroids)
         samples = kmeans.centroids
     return results
 ```

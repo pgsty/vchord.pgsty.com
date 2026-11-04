@@ -41,21 +41,20 @@ icon: fa-solid fa-compass
 
 ## 快速开始 {#quick-start}
 
-对于新用户，我们推荐使用 Docker 镜像快速上手。如果您倾向于不使用 Docker，请参阅[安装指南](/zh/docs/vchord/getting-started/installation/)了解其他安装方式。
+对于新用户，建议从 Pigsty 安装当前的 `vchord` 1.2.0 软件包，或构建
+`pgsty/vchord` 1.2.0 源码版本。软件包、源码以及历史上游 Docker 方式请参阅[安装指南](/zh/docs/vchord/getting-started/installation/)。
 
 ```bash
-docker run \
-  --name vectorchord-demo \
-  -e POSTGRES_PASSWORD=mysecretpassword \
-  -p 5432:5432 \
-  -d tensorchord/vchord-postgres:pg18-v1.1.1
+pig ext add vchord
 ```
-> 除了包含 VectorChord 扩展的基础镜像外，我们还提供了全合一镜像 `tensorchord/vchord-suite:pg18-latest`。该综合镜像包含了所有官方 TensorChord 扩展。开发者应根据[支持矩阵](https://github.com/tensorchord/VectorChord-images?tab=readme-ov-file#support-matrix)选择与所需扩展版本兼容的镜像标签。
 
-随后，您可以使用 `psql` 命令行工具连接到数据库。默认用户名为 `postgres`，默认密码为 `mysecretpassword`。
+将 `vchord` 加入 `shared_preload_libraries`，重启 PostgreSQL，然后使用
+`psql` 连接。安装指南中的 Docker 镜像链接属于 TensorChord 历史镜像，包含较早的上游构建。
+
+然后使用您为 PostgreSQL 集群配置的凭据，通过 `psql` 命令行工具连接：
 
 ```bash
-psql -h localhost -p 5432 -U postgres
+psql -U postgres
 ```
 
 现在，您可以开始体验 VectorChord 了！

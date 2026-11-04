@@ -33,7 +33,7 @@ SET max_parallel_workers = 15;
 SET max_parallel_maintenance_workers = 15;
 ```
 
-The number of parallel workers also depends on the table's configuration. By default, this is automatically determined by PostgreSQL. If PostgreSQL identifies it as disabled, parallel indexing will not take effect. You can override PostgreSQL's behavior by adjusting the table's `parallel_workers` setting to enable parallel indexing.
+The number of parallel workers also depends on the table's configuration. By default, this is automatically determined by PostgreSQL. If PostgreSQL identifies it as disabled, parallel indexing will not take effect. You can override PostgreSQL's behavior by adjusting the table's `parallel_workers` setting to enable parallel indexing. In `vchord` 1.2.0, setting `parallel_workers` or other table storage parameters on the heap relation no longer prevents PostgreSQL from planning parallel index build workers for `vchordrq` and `vchordg`.
 
 ```sql
 ALTER TABLE items set (parallel_workers = 15);

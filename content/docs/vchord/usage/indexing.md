@@ -151,7 +151,7 @@ The following table lists all available operator classes supported by `vchordrq`
 
 | Name  | Description                |
 | ----- | -------------------------- |
-| `<->` | squared Euclidean distance |
+| `<->` | Euclidean distance |
 | `<#>` | negative dot product       |
 | `<=>` | cosine distance            |
 
@@ -162,6 +162,9 @@ The following table lists all available operator classes supported by `vchordrq`
 `rabitq8`, `rabitq4` are types defined by VectorChord. For more information about `rabitq8`, `rabitq4`, refer to [Quantization Types](/docs/vchord/usage/quantization-types/).
 
 The operator classes for `MaxSim` are available since version `0.3.0`. The operator classes for `rabitq8` and `rabitq4` are available since version `1.1.0`.
+
+> [!NOTE]
+> With `halfvec_cosine_ops`, the index normalizes vectors in half precision. Two rows whose cosine distances differ by about 0.0001 or less can therefore be returned in the opposite order of their `<=>` values, with `rerank_in_table` as well. If strict order matters, re-sort the candidates as shown in [Graph Index: Result order](/docs/vchord/usage/graph-index/#result-order). This is tracked in [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17).
 
 ### Indexing Options (`vchordrq`) {#indexing-options}
 
@@ -222,6 +225,10 @@ This is the default value of index building. The index will not be partitioned. 
 ### Internal Build Options (`vchordrq`)
 
 {{< badge text="vchordrq" tone="neutral" >}}
+
+Internal training samples only rows visible to its MVCC snapshot. In 1.2.0, the initial sample buffer is sized from the estimated table row count and grows as needed, up to `max(lists) × sampling_factor` vectors. For multi-vector columns, one row can contribute several vectors.
+
+When there are more lists than sampled vectors, the required centroid allocations must fit in `maintenance_work_mem`; otherwise the build reports an error before allocating them. Reduce `lists` or increase `maintenance_work_mem` for that case. This setting is not a hard limit on the total memory of a build with enough samples; use `sampling_factor` and `kmeans_dimension` to control that working set.
 
 <a id="build-internal-lists"></a>
 #### `build.internal.lists`
@@ -337,9 +344,10 @@ This is the default value of index building. The index will not be partitioned. 
     - `SET vchordrq.probes = 1` means that only one probe is used.
     - `SET vchordrq.probes = 10` means that ten probes are used.
 - Note: The default value is an empty list. The length of this option must match the length of `lists`.
-    - Each entry must be an unsigned decimal integer in `1..=4294967295`. Spaces are ignored. Empty entries (`,5`, `1,,2`, `10,`), zero values, and overflowing values are rejected when the setting or index option is assigned. The same rules apply to the index's `probes` fallback option.
+    - Each entry must be an unsigned decimal integer in `1..=4294967295`. Whitespace is allowed around values, and one trailing comma is accepted (`10,` or `10, `). Leading or intermediate empty entries (`,5`, `1,,2`), repeated trailing commas, zero, overflow, invalid characters, and missing commas (`1 0`) are rejected when the setting or index option is assigned. The same rules apply to the index's `probes` fallback option.
     - If `lists = []`, then probes must be ` `.
     - If `lists = [11, 22]`, then probes can be `2,4` or `4,8`. It must not be incorrectly shaped, for example, ` `, `3`, `7,8,9`, `5,5,5,5`.
+    - In 1.2.0, the query planner (`amcostestimate`) accounts for `LIMIT`, filter selectivity, and the `probes` budget, and disables `vchordrq` index paths whose `probes` level count does not match the index's `lists` depth (raising an error at execution time only if a mismatched index scan is forced).
 
 <a id="vchordrq-epsilon"></a>
 #### `vchordrq.epsilon` {#search-parameters-vchordrq-epsilon}

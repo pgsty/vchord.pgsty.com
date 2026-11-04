@@ -1,6 +1,6 @@
 ---
-title: "Kubernetes"
-linkTitle: "Kubernetes"
+title: "Kubernetes (Obsolete)"
+linkTitle: "Kubernetes (Obsolete)"
 description: "If you want to use vectorchord in PostgreSQL which is running in Kubernetes, we provide a tutorial to help you. In this tutorial, we will use CloudNative-PG to "
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/admin/kubernetes.md"
@@ -9,6 +9,9 @@ aliases:
   - "/vectorchord/admin/kubernetes/"
 icon: fa-solid fa-dharmachakra
 ---
+
+> [!WARNING]
+> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
 
 If you want to use `vectorchord` in PostgreSQL which is running in Kubernetes, we provide a tutorial to help you. In this tutorial, we will use [CloudNative-PG](https://cloudnative-pg.io/) to deploy PostgreSQL cluster in Kubernetes.
 

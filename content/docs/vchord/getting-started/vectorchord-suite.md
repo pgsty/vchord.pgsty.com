@@ -31,7 +31,19 @@ The suite comprises three key PostgreSQL extensions working in concert:
 
 By combining these extensions, you unlock powerful capabilities for building advanced RAG systems entirely within PostgreSQL.
 
+## Released versions
+
+| Extension | Current release | Current document/search interface |
+| --- | --- | --- |
+| `vchord` | `1.2.0` | `vector`, `halfvec`, `rabitq4`, `rabitq8`, `vchordrq`, `vchordg` |
+| `vchord_bm25` | `1.0.0` | Native PostgreSQL `tsvector` and `USING bm25` |
+| `pg_tokenizer` | `1.0.0` | Token analyzers plus `analyze_to_tsvector` and `tokenize_to_tsvector` |
+{.wide .expand}
+
 ## How to Use the Vchord Suite
+
+> [!WARNING]
+> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
 
 You can use the `tensorchord/vchord-suite` Docker image to run multiple extensions which are provided by TensorChord. The image is based on the Docker official PostgreSQL image and includes the following extensions:
 - `vchord`

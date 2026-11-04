@@ -11,6 +11,9 @@ aliases:
 icon: fa-solid fa-code-merge
 ---
 
+> [!NOTE]
+> 本上游基准示例使用历史 `bm25vector` API（0.2–0.3）。`vchord_bm25` 1.0.0 请参阅[原生 `tsvector` 混合检索示例](/zh/docs/bm25/usage/hybrid-search/)与[迁移指南](/zh/docs/bm25/reference/migration/)。
+
 在检索增强生成（RAG）时代，从海量数据集中高效检索相关数据对于企业和开发者而言至关重要。传统的基于关键词的检索方法（例如使用 **BM25** 作为评分机制的方法）擅长根据词频和精确关键词匹配对文档进行排序，因此在处理结构化查询和关键词密集型内容时非常高效。然而，它们在理解同义词、上下文细微差别以及深层语义意图方面往往力不从心。相反，基于向量的检索能够捕捉深层语义信息，面对多样化的查询具备更好的泛化能力，但有时会在精确关键词匹配上牺牲精度。混合检索（Hybrid Search）通过将 BM25 的精确性与向量检索的上下文理解能力相结合，弥补了这一差距，从而提供更快、更准确且具备语义感知的检索结果。
 
 本文将探讨如何在 Postgres 中使用 [VectorChord-bm25](https://github.com/pgsty/vchord_bm25) 进行关键词检索，并使用 [VectorChord](https://github.com/pgsty/vchord) 进行语义检索，从而实现混合检索。通过结合 VectorChord-bm25 基于 **Block-WeakAnd** 算法的 BM25 排序能力与 VectorChord 先进的向量相似性检索能力，您可以构建一个将关键词精度与语义理解无缝融合的稳健检索系统。无论您是在构建推荐引擎、文档检索系统还是企业级搜索解决方案，本指南都将带您逐步解锁混合检索的全部潜能。
@@ -62,6 +65,9 @@ BM25（Best Matching 25）是信息检索领域常用的一种概率排序函数
 如果您希望快速复现本教程，可以使用 `tensorchord/vchord-suite` 镜像来运行由 TensorChord 提供的多个扩展。
 
 您可以运行以下命令来启动包含 VectorChord-BM25 与 VectorChord 的 Postgres 容器：
+
+> [!WARNING]
+> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
 
 ```bash
 docker run \

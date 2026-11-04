@@ -80,6 +80,8 @@ The indexing mechanism for `MaxSim` operators works similarly to other vector op
 
 There are a few extra parameters used by maxsim indexes.
 
+With partial probes, a document may be absent from one query vector's candidate set. In 1.2.0, when neither refinement nor a threshold provides an estimate, its missing distance uses the worst distance in that candidate set. Missing candidates therefore do not receive a `-Infinity` distance that incorrectly ranks them first. This remains an approximation; evaluate recall with [`exact_search => true`](/docs/vchord/usage/measure-recall/).
+
 <a id="vchordrq-maxsim-refine"></a>
 #### `vchordrq.maxsim_refine` {#search-parameters-vchordrq-maxsim-refine}
 

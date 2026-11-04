@@ -21,6 +21,9 @@ outline: [2,3]
 Most of VectorChord's vector types are supported by `pgvector`.
 Therefore, migrating from PGVecto.rs to VectorChord is a simple inversion of [migrating from pgvector to PGVecto.rs](/docs/vectors/admin/migration/).
 
+> [!WARNING]
+> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
+
 > [!TIP]
 > We provide migration image [modelzai/pgvectors-vchord](https://hub.docker.com/r/modelzai/pgvectors-vchord/tags) for pgvecto.rs to VectorChord and vice versa.
 
@@ -87,7 +90,7 @@ CREATE EXTENSION vchord CASCADE;
 >   Name   | Version |   Schema   |                                         Description                                          
 > ---------+---------+------------+----------------------------------------------------------------------------------------------
 >  plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
->  vchord  | 0.1.0   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
+>  vchord  | 1.2.0   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
 >  vector  | 0.8.0   | public     | vector data type and ivfflat and hnsw access methods
 >  vectors | 0.4.0   | vectors    | vectors: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
 > ```

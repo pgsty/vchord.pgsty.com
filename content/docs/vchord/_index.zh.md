@@ -25,7 +25,7 @@ cascade:
 
 {{< cards >}}
 {{< card title="快速上手" icon="fa-solid fa-rocket" link="/zh/docs/vchord/getting-started/" >}}
-涵盖 `vchord` 整体架构概览、快速开始 SQL 教程、通过 Pigsty 原生包或 Docker 容器部署安装，以及从 [`pgvecto.rs`](/zh/docs/vectors/) 迁移的完整指南。
+涵盖 `vchord` 整体架构概览、快速开始 SQL 教程、通过 Pigsty 原生包或 Docker（Obsolete） 容器部署安装，以及从 [`pgvecto.rs`](/zh/docs/vectors/) 迁移的完整指南。
 {{< /card >}}
 {{< card title="使用指南" icon="fa-solid fa-code" link="/zh/docs/vchord/usage/" >}}
 详解 `vchordrq` 与 `vchordg` 索引构建、最近邻与球面范围检索、预过滤查询、索引预热、外部预计算构建与完整 SQL 参数参考。
@@ -37,7 +37,7 @@ cascade:
 提供基于 GIST-1M、Cohere-10M 与 LAION-100M 标准数据集的可复现吞吐性能、召回精度、内存开销与云端 TCO 成本对比分析。
 {{< /card >}}
 {{< card title="运维管理" icon="fa-solid fa-sliders" link="/zh/docs/vchord/admin/" >}}
-涵盖生产环境 GUC 参数调优、PostgreSQL 共享内存规划、I/O 并发设置、VACUUM 索引维护、Kubernetes 部署与版本升级流程。
+涵盖生产环境 GUC 参数调优、PostgreSQL 共享内存规划、I/O 并发设置、VACUUM 索引维护、Kubernetes（Obsolete） 部署与版本升级流程。
 {{< /card >}}
 {{< card title="用户案例" icon="fa-solid fa-earth-americas" link="/zh/docs/vchord/customer-stories/" >}}
 深入了解牛津大学与 Earth Genome 团队如何利用 `vchord` 在单台 PostgreSQL 实例中高效存储并检索 30 亿地球观测嵌入向量。

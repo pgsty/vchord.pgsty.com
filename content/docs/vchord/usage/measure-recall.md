@@ -46,6 +46,10 @@ SELECT vchordrq_evaluate_query_recall(query => $$
 $$, exact_search => true);
 ```
 
+For MaxSim (`@#`) queries, `exact_search => true` is required; estimated recall evaluation is rejected. Keep sequential scans enabled when using exact search. See [Multi-Vector Retrieval](/docs/vchord/usage/multi-vector-retrieval/).
+
+The ANN pass uses your current settings, including index fallback parameters. Unless `accu_probes` is supplied, the estimated ground-truth pass probes all lists at each index level; if a single depth cannot be determined, it falls back to exact search. The function restores the values and sources of every GUC it changes, preserving subsequent fallback behavior. Both passes run with the caller's privileges.
+
 ## Query sampling
 
 {{< badge text="since v0.5.2" tone="info" >}}
@@ -68,6 +72,8 @@ SELECT * from vchordrq_sampled_queries('items_embedding_idx');
 ---------------+---------------------+------------+-------------+----------+--------------
 -- public      | items_embedding_idx | items      | embedding   | <->      | [0.5,0.25,1]
 ```
+
+Reading recorded query vectors requires ownership of the indexed table, table-level `SELECT`, or the privileges of `pg_read_all_stats`. This applies to both sampling functions. The `vchordrq_sampled_queries` view omits indexes the caller cannot access; querying the view also requires `SELECT` on the view itself.
 
 To measure the recall of the recorded queries, you can construct the target query statement.
 
@@ -92,7 +98,7 @@ If you are using the [replication](https://www.postgresql.org/docs/current/runti
 <a id="Reference"></a>
 ## Reference
 
-This feature is not supported by `vchordg` and Multi-Vector Retrieval.
+Query sampling is not supported by `vchordg` or multi-vector queries. MaxSim recall can be evaluated with `vchordrq_evaluate_query_recall(..., exact_search => true)`.
 
 ### Search Parameters (`vchordrq`) {#search-parameters}
 
@@ -165,12 +171,12 @@ This feature is not supported by `vchordg` and Multi-Vector Retrieval.
 {{< badge text="since v0.5.2" tone="info" >}}
 
 - Description: Retrieves the target vector of recorded queries for a `vchordrq` index.
-- Result: `text`, the text representation of the target vector from the query.
+- Result: `SETOF text`, the text representations of recorded query vectors.
 - Arguments:
     - `regclass`, the object identifier of a `vchordrq` index
 - Example:
     - `SELECT vchordrq_sampled_values('items_embedding_idx');`
-- Note: this view is only intended for debug.
+- Note: this function is only intended for debugging.
 
 <a id="vchordrq-evaluate-query-recall"></a>
 #### `vchordrq_evaluate_query_recall`

@@ -10,7 +10,9 @@ aliases:
 icon: fa-solid fa-download
 ---
 
-VectorChord is tested on the following operating system:
+`vchord` 1.2.0 is formally released for PostgreSQL 14–18. Pre-built native RPM and DEB packages are published for EL 8/9/10, Debian 12/13, and Ubuntu 22.04/24.04/26.04 on Linux `x86_64` and `aarch64` (see the [Download page](/download/) and [PGEXT release matrix](https://pgext.cloud/ext/vchord)). The source tree is also tested on macOS, Windows, Alpine Linux, and additional architectures in CI.
+
+The current release is installed from the `pgsty/vchord` repository or the Pigsty package repository. PostgreSQL 19 builds are development validation only and are not part of the release support matrix.
 
 * Ubuntu (x86_64, aarch64)
 * MacOS (x86_64, aarch64)
@@ -18,13 +20,16 @@ VectorChord is tested on the following operating system:
 * Alpine Linux (x86_64, aarch64) [^1]
 * Debian (powerpc64le, s390x, riscv64) [^2]
 
-[^1]: VectorChord is tested with PostgreSQL 15 in `community` repository, 16 and 17 in `main` repository on Alpine Linux 3.22.
-[^2]: VectorChord is tested with PostgreSQL 13, 14, 15, 16, 17 and 18 in PostgreSQL's official repository on `powerpc64le`, and PostgreSQL 15 and 17 in Debian's official repository on `s390x` and `riscv64`, with QEMU user space emulator.
+[^1]: CI coverage includes PostgreSQL 15–17 on Alpine Linux 3.22.
+[^2]: CI coverage includes PostgreSQL 14–18 on `powerpc64le`, and selected PostgreSQL 15/17 jobs on `s390x` and `riscv64` with QEMU user-space emulation. These are source/CI targets; native binary packages target `x86_64` and `aarch64`.
 
 Please report a bug if you encounter issues on any of the above operating systems, or submit a feature request for additional platform support.
 
 <a id="Docker"></a>
 ## Docker
+
+> [!WARNING]
+> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
 
 ### VectorChord Image
 
@@ -130,16 +135,16 @@ If you have not installed PostgreSQL yet, please install PostgreSQL. If you have
 1. Download the source code, build and install it with `make`.
 
 ```sh
-curl -fsSL https://github.com/tensorchord/VectorChord/archive/refs/tags/1.1.1.tar.gz | tar -xz
-cd VectorChord-1.1.1
-make build
-make install # or `sudo make install`
+curl -fsSL https://github.com/pgsty/vchord/archive/refs/tags/1.2.0.tar.gz | tar -xz
+cd vchord-1.2.0
+PG_CONFIG=/path/to/pg_config make build
+PG_CONFIG=/path/to/pg_config make install # or `sudo make install`
 ```
 
 2. Configure your PostgreSQL by modifying the `shared_preload_libraries` to include the extension. And then restart the PostgreSQL cluster.
 
 ```sh
-psql -U postgres -c 'ALTER SYSTEM SET shared_preload_libraries = "vchord"'
+psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'vchord'"
 ```
 
 3. Run the following SQL to ensure the extension is enabled.
@@ -174,7 +179,7 @@ Please note that binaries generated with a specific `target-cpu` are not compati
 You can also do it by using Cargo's configuration.
 
 ```sh
-cd VectorChord-1.1.1
+cd vchord-1.2.0
 mkdir -p .cargo
 touch .cargo/config.toml
 echo 'build.rustflags = ["-Ctarget-cpu=icelake"]' >> ./cargo/config.toml
@@ -183,23 +188,23 @@ echo 'build.rustflags = ["-Ctarget-cpu=icelake"]' >> ./cargo/config.toml
 <a id="Debian"></a>
 ## Debian
 
-If you have not installed PostgreSQL yet, please install PostgreSQL following https://www.postgresql.org/download/linux/debian/. If you have not installed pgvector yet, you could install pgvector by `apt install postgresql-18-pgvector` before the 3rd step.
+If you have not installed PostgreSQL yet, please install PostgreSQL following https://www.postgresql.org/download/linux/debian/. If you have not installed pgvector yet, you could install pgvector by `apt install postgresql-16-pgvector` before the 3rd step. Replace `16` with your PostgreSQL major version.
 
-> [!TIP] Note on release URLs
-> New VectorChord releases are hosted at `github.com/pgsty/vchord/releases`, while historical releases (`1.1.1` and earlier) remain available at `github.com/tensorchord/VectorChord/releases`.
+> [!TIP] Current release
+> The current PGSTY release is `vchord` 1.2.0. The example below uses PostgreSQL 16; replace `16` and `amd64` with the PostgreSQL major version and architecture of the package you downloaded.
 
 
 1. Download Debian packages in [the release page](https://github.com/pgsty/vchord/releases), and install them by `apt`.
 
 ```sh
-wget https://github.com/tensorchord/VectorChord/releases/download/1.1.1/postgresql-18-vchord_1.1.1-1_$(dpkg --print-architecture).deb
-sudo apt install ./postgresql-18-vchord_1.1.1-1_$(dpkg --print-architecture).deb
+wget https://github.com/pgsty/vchord/releases/download/1.2.0/postgresql-16-vchord_1.2.0-1_amd64.deb
+sudo apt install ./postgresql-16-vchord_1.2.0-1_amd64.deb
 ```
 
 2. Configure your PostgreSQL by modifying the `shared_preload_libraries` to include the extension. And then restart the PostgreSQL cluster.
 
 ```sh
-psql -U postgres -c 'ALTER SYSTEM SET shared_preload_libraries = "vchord"'
+psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'vchord'"
 sudo systemctl restart postgresql.service
 ```
 
@@ -212,23 +217,23 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 <a id="Ubuntu"></a>
 ## Ubuntu
 
-If you have not installed PostgreSQL yet, please install PostgreSQL following https://www.postgresql.org/download/linux/ubuntu/. If you have not installed pgvector yet, you could install pgvector by `apt install postgresql-18-pgvector` before the 3rd step.
+If you have not installed PostgreSQL yet, please install PostgreSQL following https://www.postgresql.org/download/linux/ubuntu/. If you have not installed pgvector yet, you could install pgvector by `apt install postgresql-16-pgvector` before the 3rd step. Replace `16` with your PostgreSQL major version.
 
-> [!TIP] Note on release URLs
-> New VectorChord releases are hosted at `github.com/pgsty/vchord/releases`, while historical releases (`1.1.1` and earlier) remain available at `github.com/tensorchord/VectorChord/releases`.
+> [!TIP] Current release
+> The current PGSTY release is `vchord` 1.2.0. The example below uses PostgreSQL 16; replace `16` and `amd64` with the PostgreSQL major version and architecture of the package you downloaded.
 
 
 1. Download Debian packages in [the release page](https://github.com/pgsty/vchord/releases), and install them by `apt`.
 
 ```sh
-wget https://github.com/tensorchord/VectorChord/releases/download/1.1.1/postgresql-18-vchord_1.1.1-1_$(dpkg --print-architecture).deb
-sudo apt install ./postgresql-18-vchord_1.1.1-1_$(dpkg --print-architecture).deb
+wget https://github.com/pgsty/vchord/releases/download/1.2.0/postgresql-16-vchord_1.2.0-1_amd64.deb
+sudo apt install ./postgresql-16-vchord_1.2.0-1_amd64.deb
 ```
 
 2. Configure your PostgreSQL by modifying the `shared_preload_libraries` to include the extension. And then restart the PostgreSQL cluster.
 
 ```sh
-psql -U postgres -c 'ALTER SYSTEM SET shared_preload_libraries = "vchord"'
+psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'vchord'"
 sudo systemctl restart postgresql.service
 ```
 
@@ -258,7 +263,7 @@ pgxnclient install vchord # or `pgxnclient install vchord --sudo`
 2. Configure your PostgreSQL by modifying the `shared_preload_libraries` to include the extension. And then restart the PostgreSQL cluster.
 
 ```sh
-psql -U postgres -c 'ALTER SYSTEM SET shared_preload_libraries = "vchord"'
+psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'vchord'"
 ```
 
 3. Run the following SQL to ensure the extension is enabled.
@@ -269,7 +274,7 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
 > [!TIP]
 >
-> There is a broken VectorChord `0.4.1` package on PGXN. Please do not use it. Use version `0.4.2` or later instead.
+> PGXN is a historical distribution path for the upstream VectorChord project. For the PGSTY 1.2.0 release, use the Pigsty or GitHub release packages above.
 >
 
 
@@ -295,11 +300,20 @@ cp -r ./sharedir/. $(pg_config --sharedir)
 2. Configure your PostgreSQL by modifying the `shared_preload_libraries` to include the extension. And then restart the PostgreSQL cluster.
 
 ```sh
-psql -U postgres -c 'ALTER SYSTEM SET shared_preload_libraries = "vchord"'
+psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'vchord'"
 ```
 
 3. Run the following SQL to ensure the extension is enabled.
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+```
+
+## Upgrading to 1.2.0
+
+To upgrade from `1.1.1` (or any earlier release from `0.2.0` onward), install the 1.2.0 library and extension SQL files for your PostgreSQL major version, then restart PostgreSQL to load the new preloaded library. Direct upgrade paths from `0.2.0` through `1.1.1` are included, along with compatibility symbols so extensions registered before `1.0.0` can complete `ALTER EXTENSION` cleanly. Run this in each database using `vchord`:
+
+```sql
+ALTER EXTENSION vchord UPDATE TO '1.2.0';
+SELECT extversion FROM pg_extension WHERE extname = 'vchord';
 ```

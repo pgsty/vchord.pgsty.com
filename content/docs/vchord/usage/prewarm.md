@@ -26,6 +26,8 @@ SELECT vchordrq_prewarm('items_embedding_idx');
 
 It works well even if the index size is much larger than memory size.
 
+Both `vchordrq_prewarm` and `vchordg_prewarm` require ownership of the indexed table or table-level `SELECT` privilege. Membership in `pg_read_all_stats` alone does not grant prewarm access.
+
 <a id="Reference"></a>
 ## Reference
 

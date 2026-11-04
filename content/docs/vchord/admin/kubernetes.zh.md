@@ -1,6 +1,6 @@
 ---
-title: "Kubernetes"
-linkTitle: "Kubernetes"
+title: "Kubernetes (Obsolete)"
+linkTitle: "Kubernetes (Obsolete)"
 description: "使用 CloudNative-PG 在 Kubernetes 中部署内置 VectorChord 扩展或挂载轻量级扩展镜像卷的 PostgreSQL 集群教程。"
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/admin/kubernetes.md"
@@ -9,6 +9,9 @@ aliases:
   - "/vectorchord/admin/kubernetes/"
 icon: fa-solid fa-dharmachakra
 ---
+
+> [!WARNING]
+> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
 
 如果您希望在运行于 Kubernetes 上的 PostgreSQL 中使用 `vectorchord`，本教程将为您提供完整的操作指引。在本教程中，我们将使用 [CloudNative-PG](https://cloudnative-pg.io/) 在 Kubernetes 中部署 PostgreSQL 集群。
 

@@ -31,7 +31,19 @@ icon: fa-solid fa-boxes-stacked
 
 通过组合这些扩展，您可以完全在 PostgreSQL 内部解锁构建高级 RAG 系统的强大能力。
 
+## 已发布版本 {#released-versions}
+
+| 扩展 | 当前版本 | 当前文档/检索接口 |
+| --- | --- | --- |
+| `vchord` | `1.2.0` | `vector`、`halfvec`、`rabitq4`、`rabitq8`、`vchordrq`、`vchordg` |
+| `vchord_bm25` | `1.0.0` | PostgreSQL 原生 `tsvector` 与 `USING bm25` |
+| `pg_tokenizer` | `1.0.0` | 文本分析器以及 `analyze_to_tsvector`、`tokenize_to_tsvector` |
+{.wide .expand}
+
 ## 如何使用 Vchord 家族套件 {#how-to-use-the-vectorchord-suite}
+
+> [!WARNING]
+> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
 
 您可以使用 `tensorchord/vchord-suite` Docker 镜像来运行由 TensorChord 提供的多个扩展。该镜像基于 Docker 官方 PostgreSQL 镜像构建，并内置了以下扩展：
 - `vchord`

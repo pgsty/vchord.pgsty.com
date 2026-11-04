@@ -55,3 +55,10 @@ There are 2 steps in the index construction process of `vchordg`. The phase name
 {.wide .expand}
 
 The 2nd step, `inserting tuples from table to index`, takes up the majority of the time during index construction. The `tuples_done`, `blocks_done` and `blocks_total` columns indicate the progress of this step.
+
+### Catalog Statistics & Maintenance
+
+In `vchord` 1.2.0:
+
+- `CREATE INDEX`, `REINDEX`, and `VACUUM` on both `vchordrq` and `vchordg` indexes report actual heap/index tuple counts and index page counts back to PostgreSQL, keeping `pg_class.reltuples` and `pg_class.relpages` accurate instead of resetting them to `0`.
+- Running `ANALYZE` alone no longer triggers index cleanup or compaction in `amvacuumcleanup`; physical index maintenance runs only during `VACUUM`.

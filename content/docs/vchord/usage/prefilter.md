@@ -39,7 +39,7 @@ SELECT * FROM items WHERE id % 97 = 0 ORDER BY embedding <-> '[0, 0, 0]' LIMIT 1
          Filter: ((id % '97'::bigint) = 0)
 ```
 
-To retrieve \(10\) vectors that satisfy the filter condition, the index returned approximately \(970\) rows. This suggests that the index executed a large amount of redundant computation. If the index could leverage the filter condition for pruning, the computation would be significantly reduced. The vector index provides a GUC parameter `vchordrq.prefilter` that allows pruning of the search space based on the filter condition.
+To retrieve \(10\) vectors that satisfy the filter condition, the index returned approximately \(970\) rows. This suggests that the index executed a large amount of redundant computation. (In `vchord` 1.2.0, `vchordrq` planner cost estimation accounts for `LIMIT`, filter selectivity, and the active `probes` budget when estimating filtered index scans.) If the index could leverage the filter condition for pruning, the computation would be significantly reduced. The vector index provides a GUC parameter `vchordrq.prefilter` that allows pruning of the search space based on the filter condition.
 
 ```sql
 SET vchordrq.prefilter = on;

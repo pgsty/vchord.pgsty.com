@@ -26,6 +26,8 @@ SELECT vchordrq_prewarm('items_embedding_idx');
 
 即使索引大小远大于内存容量，该函数依然能够很好地发挥作用。
 
+`vchordrq_prewarm` 与 `vchordg_prewarm` 均要求索引所属表的所有者权限或表级 `SELECT` 权限。仅具有 `pg_read_all_stats` 权限不能执行预热。
+
 <a id="Reference"></a>
 ## 参考 {#reference}
 

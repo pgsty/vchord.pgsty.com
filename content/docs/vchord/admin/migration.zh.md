@@ -21,6 +21,9 @@ outline: [2,3]
 VectorChord 的绝大多数向量类型均由 `pgvector` 提供支持。
 因此，从 PGVecto.rs 迁移到 VectorChord 的过程，基本上就是[从 pgvector 迁移到 PGVecto.rs](/zh/docs/vectors/admin/migration/) 的逆向操作。
 
+> [!WARNING]
+> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
+
 > [!TIP]
 > 我们提供了专用的迁移镜像 [modelzai/pgvectors-vchord](https://hub.docker.com/r/modelzai/pgvectors-vchord/tags)，用于支持在 pgvecto.rs 与 VectorChord 之间进行双向迁移。
 
@@ -87,7 +90,7 @@ CREATE EXTENSION vchord CASCADE;
 >   Name   | Version |   Schema   |                                         Description                                          
 > ---------+---------+------------+----------------------------------------------------------------------------------------------
 >  plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
->  vchord  | 0.1.0   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
+>  vchord  | 1.2.0   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
 >  vector  | 0.8.0   | public     | vector data type and ivfflat and hnsw access methods
 >  vectors | 0.4.0   | vectors    | vectors: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
 > ```

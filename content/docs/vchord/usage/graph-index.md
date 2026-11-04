@@ -57,6 +57,27 @@ $$);
 
 The index building can be sped up by using multiple processes. Refer to [PostgreSQL Tuning](/docs/vchord/usage/postgresql-tuning/).
 
+## Querying and maintenance {#querying-and-maintenance}
+
+In 1.2.0, searches exclude deleted vertices after `VACUUM`, including when their heap locations are reused. A deleted graph entry point may remain available for traversal without being returned as a result.
+
+Sphere filters compare the radius in the distance operator's units: Euclidean distance for `<->` and cosine distance for `<=>`. PostgreSQL rechecks the filter on returned candidates, including additional sphere conditions. Search remains approximate; this does not guarantee that every matching row is found.
+
+Partial indexes are supported for vector queries whose predicates imply the index predicate. Queries without a usable vector ordering or sphere condition, such as `COUNT(*)`, use other plans. `CREATE INDEX`, `REINDEX`, and `VACUUM` report tuple and page statistics to PostgreSQL; `ANALYZE` alone does not rebuild the graph.
+
+<a id="result-order"></a>
+
+> [!WARNING] Result order
+> `vchordg` keeps searching while it returns rows, so a row found later can be closer than one already returned. As a result, `ORDER BY ... LIMIT` output is not always in ascending distance order. A larger `vchordg.ef_search` makes this rarer but does not rule it out. With `halfvec` columns, rows whose distances differ by about 0.0001 or less can also be swapped, because the index compares half-precision copies of the vectors. When strict order matters, re-sort the candidates in an outer query. Recall still depends on the number of candidates and the search parameters. This is tracked in [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17).
+>
+> ```sql
+> WITH candidates AS MATERIALIZED (
+>     SELECT id, embedding <-> '[3,1,2]' AS distance
+>     FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 100
+> )
+> SELECT * FROM candidates ORDER BY distance LIMIT 10;
+> ```
+
 <a id="Reference"></a>
 ## Reference
 
@@ -173,7 +194,7 @@ The first 6 operator classes are available since version `0.5.0`, and the last 6
 
 {{< badge text="since v0.5.0" tone="info" >}}
 
-- Description: The size of the dynamic list containing the nearest neighbors in search. The larger `vchordg.ef_search` is, the better the recall, but the worse the QPS. `vchordg.ef_search` corresponds to \(\text{ef}\) in HNSW and DiskANN.
+- Description: The size of the dynamic list containing the nearest neighbors in search. The larger `vchordg.ef_search` is, the better the recall, but the worse the QPS. A larger value also makes out-of-order results rarer, but does not rule them out; see [Result order](#result-order). `vchordg.ef_search` corresponds to \(\text{ef}\) in HNSW and DiskANN.
 - Type: integer
 - Default:
     - `64`

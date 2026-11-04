@@ -39,6 +39,12 @@ CREATE INDEX ON items USING vchordrq (embedding rabitq8_l2_ops);
 
 此外，VectorChord 还提供了 `rabitq4` 类型。`rabitq8` 量化向量在每个维度上使用 \(8\) 比特，而 `rabitq4` 量化向量在每个维度上仅使用 \(4\) 比特。它专为在受限环境下优先追求低存储开销而非高精度的场景而设计。
 
+### 输入校验与数值行为 {#input-validation}
+
+`rabitq4` 与 `rabitq8` 的数据类型最多接受 65,535 维；`rabitq4` 编码必须在 `0..15` 内，`rabitq8` 编码必须在 `0..255` 内。1.2.0 会拒绝数字内部的空白、尾随垃圾和截断的二进制输入。`quantize_to_*` 遇到元数据溢出时会报错；旧版本已存储的非有限元数据仍可读入，以兼容已有转储。
+
+1.2.0 修正了零向量、常量向量和半精度运算的数值边界。量化向量的 L2 距离估算会限制为非负值，避免舍入误差导致开方产生 NaN；零向量的余弦距离仍无数学定义。
+
 <a id="Reference"></a>
 ## 参考 {#reference}
 

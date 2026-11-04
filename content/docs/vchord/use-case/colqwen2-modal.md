@@ -75,6 +75,9 @@ If you want to reproduce the tutorial quickly, you can use the `tensorchord/vcho
 
 You can run the following command to build and start Postgres with VectorChord-BM25 and VectorChord.
 
+> [!WARNING]
+> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
+
 ```bash
 docker run \
   --name vchord-suite \

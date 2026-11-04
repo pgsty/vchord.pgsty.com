@@ -55,3 +55,10 @@ SELECT command, phase, round(100.0 * blocks_done / nullif(blocks_total, 0), 1) A
 {.wide .expand}
 
 第 2 步 `inserting tuples from table to index` 占据了索引构建过程中的大部分时间。`tuples_done`、`blocks_done` 和 `blocks_total` 列可用于指示该步骤的当前进度。
+
+### 系统目录统计信息与维护 {#catalog-statistics--maintenance}
+
+在 `vchord` 1.2.0 中：
+
+- 在 `vchordrq` 和 `vchordg` 索引上执行 `CREATE INDEX`、`REINDEX` 与 `VACUUM` 时，会向 PostgreSQL 报告真实的元组数与索引页数，保持 `pg_class.reltuples` 与 `pg_class.relpages` 准确，而不再将其重置为 `0`。
+- 单独执行 `ANALYZE` 不再触发 `amvacuumcleanup` 中的索引清理或紧缩；物理索引维护仅在 `VACUUM` 期间运行。

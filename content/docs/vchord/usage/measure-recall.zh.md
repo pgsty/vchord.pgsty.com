@@ -46,6 +46,10 @@ SELECT vchordrq_evaluate_query_recall(query => $$
 $$, exact_search => true);
 ```
 
+对于 MaxSim（`@#`）查询，必须指定 `exact_search => true`；估算召回率模式会报错。使用精确搜索时，请保持顺序扫描开启。参阅[多向量检索](/zh/docs/vchord/usage/multi-vector-retrieval/)。
+
+ANN 扫描使用当前设置，包括索引回退参数。未显式指定 `accu_probes` 时，估算基准扫描会探测索引各层的全部分区；无法确定唯一层数时，回退到精确搜索。函数会恢复内部修改过的所有 GUC 的值及来源，保持后续查询的回退行为。两次查询均以调用者权限执行。
+
 ## 查询采样 {#query-sampling}
 
 {{< badge text="since v0.5.2" tone="info" >}}
@@ -68,6 +72,8 @@ SELECT * from vchordrq_sampled_queries('items_embedding_idx');
 ---------------+---------------------+------------+-------------+----------+--------------
 -- public      | items_embedding_idx | items      | embedding   | <->      | [0.5,0.25,1]
 ```
+
+读取已记录的查询向量需要索引所属表的所有者权限、表级 `SELECT` 权限，或 `pg_read_all_stats` 权限。两个采样函数均遵循此规则。`vchordrq_sampled_queries` 视图会隐藏调用者无权访问的索引；查询该视图还需具有视图本身的 `SELECT` 权限。
 
 要测量已记录查询的平均召回率，您可以构造目标查询语句并调用评估函数：
 
@@ -92,7 +98,7 @@ SELECT AVG(recall_value) FROM (
 <a id="Reference"></a>
 ## 参考 {#reference}
 
-`vchordg` 和多向量检索不支持此功能。
+`vchordg` 和多向量查询不支持查询采样。MaxSim 召回率可以通过 `vchordrq_evaluate_query_recall(..., exact_search => true)` 评估。
 
 ### 搜索参数（`vchordrq`） {#search-parameters}
 
@@ -165,7 +171,7 @@ SELECT AVG(recall_value) FROM (
 {{< badge text="since v0.5.2" tone="info" >}}
 
 - 说明：检索指定 `vchordrq` 索引已记录查询中的目标向量。
-- 返回值：`text`，查询中目标向量的文本表示。
+- 返回值：`SETOF text`，已记录查询向量的文本表示集合。
 - 参数：
     - `regclass`，`vchordrq` 索引的对象标识符
 - 示例：

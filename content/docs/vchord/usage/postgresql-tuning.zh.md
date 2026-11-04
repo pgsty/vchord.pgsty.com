@@ -33,7 +33,7 @@ SET max_parallel_workers = 15;
 SET max_parallel_maintenance_workers = 15;
 ```
 
-并行工作进程的数量还取决于表本身的配置。默认情况下，该值由 PostgreSQL 自动计算决定。如果 PostgreSQL 判定不启用并行，那么并行索引构建就不会生效。您可以通过调整表的 `parallel_workers` 存储参数来覆盖 PostgreSQL 的默认行为，强制启用并行索引构建。
+并行工作进程的数量还取决于表本身的配置。默认情况下，该值由 PostgreSQL 自动计算决定。如果 PostgreSQL 判定不启用并行，那么并行索引构建就不会生效。您可以通过调整表的 `parallel_workers` 存储参数来覆盖 PostgreSQL 的默认行为，强制启用并行索引构建。在 `vchord` 1.2.0 中，为基表设置 `parallel_workers` 或其他表存储参数不再阻碍 PostgreSQL 为 `vchordrq` 和 `vchordg` 规划并行索引构建工作进程。
 
 ```sql
 ALTER TABLE items set (parallel_workers = 15);

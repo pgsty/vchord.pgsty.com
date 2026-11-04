@@ -62,7 +62,7 @@ SELECT * FROM items WHERE embedding <<->> sphere('[0, 0, 0]'::vector, 0.1);
 Refer to
 
 * [Operator Classes (`vchordrq`)](/docs/vchord/usage/indexing/#operator-classes).
-* [Operator Classes (`vchordg`)](/docs/vchord/usage/graph-index/#operator-classes).
+* [Operator Classes (`vchordg`)](/docs/vchord/usage/graph-index/#operator-classes). In 1.2.0, `vchordg` sphere scans compare the radius in the operator's distance units (Euclidean distance for `<<->>`, cosine distance for `<<=>>`, and negative inner product for `<<#>>`) and set `xs_recheck = true` so PostgreSQL rechecks candidate tuples against the exact sphere predicate.
 
 <a id="Types"></a>
 ### Types
@@ -97,6 +97,8 @@ Refer to
 
 <a id="Functions"></a>
 ### Functions
+
+In 1.2.0, all `sphere(...)` constructors bind their return composite type at creation time (`SELECT ROW($1, $2)::sphere_*`), so they resolve reliably regardless of the caller's `search_path`.
 
 <a id="sphere-vector-real"></a>
 #### `sphere(vector, real)`

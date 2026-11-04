@@ -31,16 +31,16 @@ Based on these samples, you can partition the vector space into Voronoi cells. A
 
 ```sql
 CREATE TABLE public.t_build (id INTEGER NOT NULL UNIQUE, parent INTEGER, vector vector NOT NULL);
-INSERT INTO public.t_build (id, parent, vector) VALUES (0, NULL, '{0.1, 0.2, 0.3}');
-INSERT INTO public.t_build (id, parent, vector) VALUES (1, 0, '{0.1, 0.2, 0.3}');
-INSERT INTO public.t_build (id, parent, vector) VALUES (2, 0, '{0.4, 0.5, 0.6}');
-INSERT INTO public.t_build (id, parent, vector) VALUES (3, 0, '{0.7, 0.8, 0.9}');
+INSERT INTO public.t_build (id, parent, vector) VALUES (0, NULL, '[0.1, 0.2, 0.3]');
+INSERT INTO public.t_build (id, parent, vector) VALUES (1, 0, '[0.1, 0.2, 0.3]');
+INSERT INTO public.t_build (id, parent, vector) VALUES (2, 0, '[0.4, 0.5, 0.6]');
+INSERT INTO public.t_build (id, parent, vector) VALUES (3, 0, '[0.7, 0.8, 0.9]');
 ```
 
 The index can be created using the following syntax.
 
 ```sql
-CREATE INDEX ON t USING vchordrq (embedding vector_l2_ops) WITH (options = $$
+CREATE INDEX ON t USING vchordrq (val vector_l2_ops) WITH (options = $$
 build.external.table = 'public.t_build'
 $$);
 ```
@@ -51,10 +51,12 @@ $$);
 The table that stores the partition information must strictly follow the following schema:
 
 - The first column must be `id`. Its type is `integer`. It must not be null. It must be unique.
-- The second column must be `parent`. Its type is `integer`. It could not be null.
+- The second column must be `parent`. Its type is `integer`; the root has a NULL parent.
 - The third column must be `vector`. Its type is `vector`. It must not be null. `halfvec` or other types are not supported yet.
 
-Logically, this forms a tree. The distance from the root to each leaf must be the same.
+Logically, this forms a tree: the root has `parent = NULL`, and every other parent must reference an existing `id`. All nodes must be reachable from the root, and all leaves must have the same depth. The tree must have 2–9 levels including the root. Cycles, unreachable nodes, and excessive height raise errors. Centroid dimensions must match the indexed column.
+
+A flat partition can omit the explicit root: supply at least two centroids with all `parent` values set to `NULL`, and the build generates the root automatically.
 
 If any of the above properties are not satisfied, an error will be reported.
 
@@ -69,9 +71,9 @@ from faiss import Kmeans
 import numpy
 
 def partition(
-    samples: List[numpy.Array[float]], lists: List[int]
-) -> List[numpy.Array[float]]:
-    dim = dataset.shape[1]
+    samples: numpy.ndarray, lists: List[int]
+) -> List[numpy.ndarray]:
+    dim = samples.shape[1]
     results = []
     for i in range(len(lists) + 1):
         kmeans = Kmeans(
@@ -84,7 +86,7 @@ def partition(
             spherical=False,
         )
         kmeans.train(samples)
-        results.push(kmeans.centroids)
+        results.append(kmeans.centroids)
         samples = kmeans.centroids
     return results
 ```

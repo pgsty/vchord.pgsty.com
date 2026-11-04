@@ -11,6 +11,9 @@ aliases:
 icon: fa-solid fa-code-merge
 ---
 
+> [!NOTE]
+> This upstream benchmark uses the historical `bm25vector` API (0.2–0.3). For `vchord_bm25` 1.0.0, use the [native `tsvector` hybrid search example](/docs/bm25/usage/hybrid-search/) and [migration guide](/docs/bm25/reference/migration/).
+
 In the era of RAG (Retrieval-Augmented Generation), efficiently retrieving relevant data from vast datasets is crucial for businesses and developers. Traditional keyword-based retrieval methods, such as those utilizing **BM25** as a scoring mechanism, excel in ranking documents based on term frequency and exact keyword matches. This makes them highly effective for structured queries and keyword-heavy content. However, they struggle with understanding synonyms, contextual nuances, and semantic intent. Conversely, vector-based retrieval captures deep semantic meaning, enabling better generalization across varied queries but sometimes sacrificing precision in exact keyword matches. Hybrid Search bridges this gap by combining BM25’s precision with vector search’s contextual understanding, delivering faster, more accurate, and semantically aware results.
 
 This article explores how to implement Hybrid Search in Postgres using [VectorChord-bm25](https://github.com/pgsty/vchord_bm25) for keyword-based retrieval and [VectorChord](https://github.com/pgsty/vchord) for semantic search. By leveraging VectorChord-bm25's BM25 ranking with the **Block-WeakAnd** algorithm and VectorChord's advanced vector similarity capabilities, you can build a robust search system that seamlessly integrates keyword precision with semantic understanding. Whether you're building a recommendation engine, a document retrieval system, or an enterprise search solution, this guide will walk you through the steps to unlock the full potential of hybrid search.
@@ -63,6 +66,9 @@ In this tutorial, we will guide you through the steps to implement Hybrid Search
 If you want to reproduce the tutorial quickly, you can use the `tensorchord/vchord-suite` image to run multiple extensions which are provided by TensorChord.
 
 You can run the following command to build and start the Postgres with VectorChord-BM25 and VectorChord.
+
+> [!WARNING]
+> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
 
 ```bash
 docker run \

@@ -1,8 +1,12 @@
 ---
-title: "pg_tokenizer 1.0.0: Native Full-Text Search and Reliable Custom Models"
+title: "pg_tokenizer 1.0.0: First Release Under PGSTY"
 date: 2026-11-03
 description: "pg_tokenizer 1.0.0, the first PGSTY release, adds native tsvector output, filtered custom vocabularies, safe concurrent vocabulary writes, database-owner privileges, and transaction-aware definition caches."
-author: "[Ruohang Feng](https://github.com/Vonng) · [PGSTY](https://pgsty.com)"
+author: "[Ruohang Feng](https://vonng.com/en/) · [PGSTY](https://pgsty.com)"
+authors:
+  - "vonng"
+images:
+  - "/blog/covers/pg-tokenizer-1.0.0.png"
 tags:
   - "release"
   - "pg_tokenizer"
@@ -13,7 +17,12 @@ upstream_link: ""
 
 **pg_tokenizer 1.0.0** is the first release maintained by PGSTY in [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) under the Apache-2.0 license. It connects the multilingual analyzers and vocabulary models to PostgreSQL's native full-text search, makes corpus-trained custom models safe under concurrent writes, and lets non-superuser database owners manage their own tokenizer definitions.
 
-The existing `tokenize(text, tokenizer_name)` interface still returns `INT[]`. Applications using the historical `vchord_bm25` 0.3.x `bm25vector` workflow can retain that interface; applications using GIN/GiST or the `vchord_bm25` 0.4.0/main API can use the new `tsvector` functions. `pg_tokenizer` does not require either BM25 or vector-search extensions.
+The existing `tokenize(text, tokenizer_name)` interface still returns `INT[]`. Applications using the historical `vchord_bm25` 0.3.x `bm25vector` workflow can retain that interface; applications using GIN/GiST or the [`vchord_bm25` 1.0.0](/blog/release/vchord-bm25-1.0.0/) API can use the new `tsvector` functions. `pg_tokenizer` does not require either BM25 or vector-search extensions.
+
+> [!NOTE] Extension & Release Links
+> - **GitHub Release**: [`pgsty/pg_tokenizer 1.0.0`](https://github.com/pgsty/pg_tokenizer/releases/tag/1.0.0) · [Source Repository](https://github.com/pgsty/pg_tokenizer)
+> - **Extension Catalog**: [pgext.cloud (`pg_tokenizer`)](https://pgext.cloud/e/pg_tokenizer) · [Pigsty Extension Page (`pigsty.io`)](https://pigsty.io/ext/e/pg_tokenizer/)
+> - **Binary Packages**: [RPM / DEB Repository Setup](/download/) · [SBOM & License Inventory](/docs/about/sbom/)
 
 ## Changes in 1.0.0 {#changes}
 
@@ -27,6 +36,7 @@ The existing `tokenize(text, tokenizer_name)` interface still returns `INT[]`. A
 | Text analysis | `ngram` counts Unicode characters, so CJK text and emoji no longer fail, and tokens shorter than `min_gram` (including empty input) produce no n-grams instead of an error or an endless loop. `pg_dict` calls dictionaries the way `ts_lexize` does, so thesaurus dictionaries apply their single-word entries. |
 | Preloading and backups | Preloaded models survive cache invalidation, broken preload entries no longer prevent startup, and `pg_dump` includes the definition tables. |
 | Dependencies and upgrades | pgrx 0.19.3 for PostgreSQL 14–18, Lindera 6.2.0, Jieba 0.11.0, Hugging Face tokenizers 0.23.2, and Snowball stemmers from [`pgsty/rust-stemmers`](https://github.com/pgsty/rust-stemmers) 1.2.1 (same stemming output); migration paths from 0.1.0 and 0.1.1. |
+{.wide .expand}
 
 ## Native `tsvector` output {#native-tsvector}
 
@@ -138,8 +148,8 @@ See the [compatibility notes](/docs/tokenizer/installation/#compatibility-100) f
 
 ## Compatibility and packages {#compatibility}
 
-The check and release workflows target PostgreSQL **14–18** on Linux **x86_64/aarch64**. Build with the matching `cargo-pgrx 0.19.3`. A `pg19` Cargo feature is present, but PostgreSQL 19 is outside this release's test and package matrix.
+The check and release workflows target PostgreSQL **14–18** on Linux **x86_64/aarch64**, built with `cargo-pgrx 0.19.3`. A `pg19` Cargo feature is present, but PostgreSQL 19 is outside this release's test and package matrix.
 
-Native RPM/DEB recipes use version **`1.0.0-1PGSTY`** and do not embed Lindera dictionaries; supply a dictionary built with Lindera 6. Packages built by the GitHub release workflow enable `lindera-ipadic`, declare their shared-library dependencies, and are distinct from the native `1PGSTY` builds. ZIP archives carry no package-manager dependency metadata, so verify libc compatibility on the target host. Check actual package availability for your distribution, PostgreSQL major version, and architecture before upgrading. The release workflow does not generate or upload SBOM artifacts; see the [SBOM page](/docs/about/sbom/) for the dependency inventory.
+Native RPM and DEB packages (`1.0.0-1PIGSTY` / `1.0.0-1PGSTY`) are published for all 16 supported Linux targets on the [Download page](/download/); they do not embed Lindera dictionaries, so supply a dictionary built with Lindera 6 when using Lindera models. Packages built by the GitHub release workflow enable `lindera-ipadic`, declare their shared-library dependencies, and are distinct from the native Pigsty builds. ZIP archives carry no package-manager dependency metadata, so verify libc compatibility on the target host. See the [SBOM page](/docs/about/sbom/) for the full dependency and license inventory.
 
 Read the [installation and upgrade guide](/docs/tokenizer/installation/), [SQL reference](/docs/tokenizer/reference/), and [model documentation](/docs/tokenizer/models/) for configuration and operational details.

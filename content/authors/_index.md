@@ -1,5 +1,5 @@
 ---
 title: "Authors"
 linkTitle: "Authors"
-description: "Original authors and contributors of the Vchord and TensorChord engineering blog."
+description: "Maintainers and original authors of the Vchord and TensorChord engineering blog."
 ---

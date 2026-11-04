@@ -1,8 +1,12 @@
 ---
-title: "pg_tokenizer 1.0.0：原生全文检索与可靠的自定义模型"
+title: "pg_tokenizer 1.0.0：PGSTY 接手后的首个发布"
 date: 2026-11-03
 description: "pg_tokenizer 1.0.0 是 PGSTY 维护的首个版本，新增原生 tsvector 输出、语料过滤、安全的并发词表写入、数据库拥有者权限与事务感知的定义缓存。"
-author: "[冯若航](https://github.com/Vonng) · [PGSTY](https://pgsty.com)"
+author: "[冯若航](https://vonng.com/) · [PGSTY](https://pgsty.com/zh/)"
+authors:
+  - "vonng"
+images:
+  - "/blog/covers/pg-tokenizer-1.0.0.png"
 tags:
   - "release"
   - "pg_tokenizer"
@@ -13,7 +17,12 @@ upstream_link: ""
 
 **pg_tokenizer 1.0.0** 是 PGSTY 在 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 维护的首个版本，继续采用 Apache-2.0 许可证。它将多语言文本分析器与词表模型接入 PostgreSQL 原生全文检索，让基于语料训练的自定义模型在并发写入下保持正确，并允许非超级用户的数据库拥有者管理自己的分词定义。
 
-现有 `tokenize(text, tokenizer_name)` 接口仍返回 `INT[]`。使用历史 `vchord_bm25` 0.3.x `bm25vector` 工作流的应用可以保留原接口；使用 GIN/GiST 或 `vchord_bm25` 0.4.0/main 接口的应用可以使用新的 `tsvector` 函数。`pg_tokenizer` 不依赖 BM25 或向量检索扩展。
+现有 `tokenize(text, tokenizer_name)` 接口仍返回 `INT[]`。使用历史 `vchord_bm25` 0.3.x `bm25vector` 工作流的应用可以保留原接口；使用 GIN/GiST 或 [`vchord_bm25` 1.0.0](/zh/blog/release/vchord-bm25-1.0.0/) 接口的应用可以使用新的 `tsvector` 函数。`pg_tokenizer` 不依赖 BM25 或向量检索扩展。
+
+> [!NOTE] 扩展主页与发布链接
+> - **GitHub Release**：[`pgsty/pg_tokenizer 1.0.0`](https://github.com/pgsty/pg_tokenizer/releases/tag/1.0.0) · [源码仓库](https://github.com/pgsty/pg_tokenizer)
+> - **扩展目录主页**：[pgext.cloud (`pg_tokenizer`)](https://pgext.cloud/e/pg_tokenizer) · [Pigsty 扩展页面 (`pigsty.cc`)](https://pigsty.cc/ext/e/pg_tokenizer/)
+> - **二进制软件包**：[RPM / DEB 软件源配置](/zh/download/) · [SBOM 与许可证清单](/zh/docs/about/sbom/)
 
 ## 1.0.0 修改概览 {#changes}
 
@@ -27,6 +36,7 @@ upstream_link: ""
 | 文本分析 | `ngram` 按 Unicode 字符计数，中日韩文本与 emoji 不再报错；短于 `min_gram` 的词元（含空输入）不产生 N-gram，不再报错或陷入死循环。`pg_dict` 按 `ts_lexize` 的方式调用词典，`Thesaurus` 分类词典的单词条目可以生效。 |
 | 预加载与备份 | 预加载模型在缓存失效后继续保留，无效预加载条目不再阻止启动，`pg_dump` 会导出定义表。 |
 | 依赖与升级 | 基于 pgrx 0.19.3 支持 PostgreSQL 14–18，升级至 Lindera 6.2.0、Jieba 0.11.0、Hugging Face tokenizers 0.23.2，Snowball 词干提取改用 [`pgsty/rust-stemmers`](https://github.com/pgsty/rust-stemmers) 1.2.1（词干结果不变）；提供从 0.1.0 和 0.1.1 的迁移路径。 |
+{.wide .expand}
 
 ## 原生 `tsvector` 输出 {#native-tsvector}
 
@@ -138,8 +148,8 @@ SELECT extversion FROM pg_extension WHERE extname = 'pg_tokenizer';
 
 ## 兼容性与软件包 {#compatibility}
 
-检查与发布工作流面向 Linux **x86_64/aarch64** 上的 PostgreSQL **14–18**，构建时需使用匹配的 `cargo-pgrx 0.19.3`。代码中虽有 `pg19` Cargo feature，但 PostgreSQL 19 不在本版本的测试与打包矩阵内。
+检查与发布工作流面向 Linux **x86_64/aarch64** 上的 PostgreSQL **14–18**，基于 `cargo-pgrx 0.19.3` 构建。代码中虽有 `pg19` Cargo feature，但 PostgreSQL 19 不在本版本的测试与打包矩阵内。
 
-原生 RPM/DEB 配方使用 **`1.0.0-1PGSTY`** 版本，不内嵌 Lindera 词典，需要提供用 Lindera 6 构建的词典。GitHub 发布工作流构建的软件包启用 `lindera-ipadic` 并声明共享库依赖，与原生 `1PGSTY` 包相互独立。ZIP 压缩包不含包管理器依赖信息，请在目标主机上确认 libc 兼容性。升级前请确认目标发行版、PostgreSQL 主版本与 CPU 架构的软件包实际可用。发布工作流不生成或上传 SBOM 制品，依赖清单见 [SBOM 页面](/zh/docs/about/sbom/)。
+原生 RPM 与 DEB 软件包（`1.0.0-1PIGSTY` / `1.0.0-1PGSTY`）已覆盖全部 16 个受支持的 Linux 目标平台，可在[下载页面](/zh/download/)获取；原生配方不内嵌 Lindera 词典，使用 Lindera 模型时需提供用 Lindera 6 构建的词典。GitHub 发布工作流构建的软件包启用 `lindera-ipadic` 并声明共享库依赖，与原生 Pigsty 软件包相互独立。ZIP 压缩包不含包管理器依赖信息，请在目标主机上确认 libc 兼容性。完整依赖与许可证清单见 [SBOM 页面](/zh/docs/about/sbom/)。
 
 配置与运维细节可查阅[安装与升级指南](/zh/docs/tokenizer/installation/)、[SQL 参考](/zh/docs/tokenizer/reference/)和[模型文档](/zh/docs/tokenizer/models/)。

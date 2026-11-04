@@ -6,11 +6,11 @@ weight: 10
 icon: fa-solid fa-database
 ---
 
-`vchord_bm25` provides the `bm25` index access method and the explicit `bm25_ops` operator class. The SQL handler is `bm25_amhandler` in 0.4.0 and `_bm25_amhandler` in 0.3.x.
+`vchord_bm25` provides the `bm25` index access method and the explicit `bm25_ops` operator class. The SQL handler is `bm25_amhandler` in 1.0.0 and `_bm25_amhandler` in 0.3.x.
 
 ## Creating a `bm25` Index
 
-### Stable Releases (`v0.1` – `v0.3`, `bm25vector`)
+### Historical Releases (`v0.1` – `v0.3`, `bm25vector`) {#stable-releases-v01--v03-bm25vector}
 
 ```sql
 CREATE INDEX documents_embedding_bm25
@@ -18,9 +18,9 @@ ON documents
 USING bm25 (embedding bm25_ops);
 ```
 
-### Next-Gen `main` Branch (`tsvector`)
+### 1.0.0 (`tsvector`) {#next-gen-main-branch-tsvector}
 
-In the `main` branch, `bm25_ops` operates on `tsvector` and supports index-level storage parameters (`options`, `limit`, and `prefilter`):
+In 1.0.0, `bm25_ops` operates on `tsvector` and supports index-level storage parameters (`options`, `limit`, and `prefilter`):
 
 ```sql
 CREATE INDEX documents_vector_bm25
@@ -40,7 +40,7 @@ WITH (
 | :--- | :--- | :--- | :--- | :--- |
 | `options` (`k1`) | `float` (in TOML) | `1.2` | `1.2` – `2.0` | Term frequency saturation parameter \(k_1\). Higher values increase the weight of repeated occurrences of a term within a document. |
 | `options` (`b`) | `float` (in TOML) | `0.75` | `0.0` – `1.0` | Document length normalization parameter \(b\). `0.0` disables length normalization; `1.0` fully normalizes by document length relative to \(\text{avgdl}\). |
-| `limit` | `int` | `0` | `0` – `65535` | Default Top-K search limit stored on the index (used when session GUC `bm25.limit` has its default source, after `RESET`). |
+| `limit` | `int` | `100` | `0` – `65535` | Initial scan batch size; zero selects 100. Scans continue as needed for complete SQL results. |
 | `prefilter` | `bool` | `false` | `true` / `false` | Default prefilter behavior stored on the index (can be overridden per session via `bm25.prefilter`). |
 {.wide .expand}
 
@@ -90,6 +90,27 @@ BEFORE INSERT OR UPDATE OF passage ON documents
 FOR EACH ROW
 EXECUTE FUNCTION documents_tokenize_trigger();
 ```
+
+## Growing segments and maintenance in 1.0.0
+
+In 1.0.0, inserts append through a tail hint and are searchable immediately. Scans and scalar scoring share statistics within an executor execution, bounded by `work_mem`. Counts include physical non-NULL records, including tombstones until compaction removes them. Result generation skips tombstones immediately. WAND stays enabled with upper bounds adjusted for average-length drift. Scalar scoring is parallel restricted to keep one statistics snapshot.
+
+`VACUUM`, including parallel VACUUM, can merge while readers and writers continue. `ANALYZE` alone does not rebuild. Maintenance uses the heap's normal `ShareUpdateExclusiveLock` and short page locks. Publication records a retirement horizon; a later pass recycles old pages only after older snapshots are gone. Cancelled or crashed output is reclaimed and the free-space map repaired on a later pass.
+
+Automatic merging requires growing records to reach `max(maintenance_min_rows, maintenance_scale_factor × sealed records)`, or tombstones to reach `maintenance_scale_factor × total records`. Defaults are 1000 rows and 0.1. Unchanged indexes are not rewritten. Set these reloptions with `ALTER INDEX`.
+
+```sql
+ALTER INDEX documents_vector_bm25 SET (maintenance_min_rows = 1000, maintenance_scale_factor = 0.1);
+VACUUM documents;
+SELECT bm25_maintain('documents_vector_bm25');
+```
+
+`bm25_maintain(regclass)` bypasses the thresholds and returns true when it publishes a merged segment. False means no work or an older generation still prevents another merge. It requires table ownership or, on PostgreSQL 17+, `MAINTAIN` privilege. It does not find dead heap tuples; use `VACUUM` for that. It holds the table's `ShareUpdateExclusiveLock` while maintenance runs.
+
+There is one retirement slot. Long snapshots can postpone reclamation and the next merge, so growing-segment size has no hard bound. In an idle database the transaction horizon may also stop advancing. Tune table-level `autovacuum_vacuum_insert_threshold` and `autovacuum_vacuum_insert_scale_factor` for insert-heavy workloads. Freed pages are reused, not necessarily truncated; no fixed file-size multiplier is guaranteed. Standby readers that meet pages recycled on the primary receive SQLSTATE `40001`; retry or enable `hot_standby_feedback`, which can delay reclamation on the primary. Tombstones never cancel standby queries: PostgreSQL resolves those conflicts when it replays the heap pruning that precedes them.
+
+
+The `bm25_catalog.segment_growing_max_page_size` setting below belongs to 0.3.x and is not part of the 1.0.0 API.
 
 ## Segment Architecture: Growing vs. Sealed Segments (`v0.1` – `v0.3`)
 

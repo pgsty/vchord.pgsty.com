@@ -7,10 +7,10 @@ icon: fa-solid fa-sliders
 ---
 
 > [!IMPORTANT]
-> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+> **1.0.0** is the first PGSTY release, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [1.0.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
 
 
-## Stable Releases (`v0.1.0` – `v0.3.0`): `bm25_catalog.*` GUCs
+## Historical Releases (`v0.1.0` – `v0.3.0`): `bm25_catalog.*` GUCs {#stable-releases-v010--v030-bm25_catalog-gucs}
 
 In versions `v0.1.0` through `v0.3.0`, all session GUC parameters use the `bm25_catalog.` prefix and can be changed per session or transaction by any user (`GucContext::Userset`):
 
@@ -40,26 +40,28 @@ SET bm25_catalog.enable_index = false;
 
 ---
 
-## Next-Gen `main` Branch: `bm25.*` GUCs & Index Reloptions
+## 1.0.0: `bm25.*` GUCs & Index Reloptions {#next-gen-main-branch-bm25-gucs--index-reloptions}
 
-In the `main` branch rewrite, session GUCs use the `bm25.` prefix and work together with per-index storage parameters (`WITH (...)`):
+In 1.0.0, session GUCs use the `bm25.` prefix and work together with per-index storage parameters (`WITH (...)`):
 
-### Session GUC Parameters (`main`)
+### Session GUC Parameters (1.0.0) {#session-guc-parameters-main}
 
 | Parameter Name | Type | Default | Valid Range | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `bm25.enable_scan` | `boolean` | `true` | `true` / `false` | Enables or disables `bm25` index scans in the planner. |
-| `bm25.limit` | `integer` | `0` | `0` .. `65535` | Maximum candidates. Any explicitly set value overrides the index; explicit zero makes index scans error. `RESET` restores the index fallback. |
+| `bm25.limit` | `integer` | `100` | `0` .. `65535` | Initial scan batch size; zero selects 100. Explicit settings override the index. Scans continue as needed for SQL `LIMIT`, `OFFSET` and post-filtering. |
 | `bm25.prefilter` | `boolean` | `false` | `true` / `false` | Enables pre-filtering during `bm25` index scans (overrides the index's `prefilter` storage parameter even when explicitly set to `false`). |
 {.wide .expand}
 
 Settings from `postgresql.conf`, `ALTER DATABASE`, `ALTER ROLE`, or client startup options also override index reloptions. `RESET` restores that configured default; it falls back to the index only when the GUC source returns to the built-in default.
 
-### Index Storage Parameters (`WITH (...)` in `main`)
+### Index Storage Parameters (`WITH (...)` in 1.0.0) {#index-storage-parameters-with--in-main}
 
 | Storage Parameter | Type | Default | Valid Range | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `options` | `string` (TOML) | `k1 = 1.2, b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | TOML string configuring the Okapi BM25 parameters \(k_1\) and \(b\) for the index. |
-| `limit` | `integer` | `0` | `0` .. `65535` | Per-index fallback search limit used when `bm25.limit` has its default source (`RESET`), not when explicitly set to zero. |
+| `options` | `string` (TOML) | `k1 = 1.2`<br>`b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | TOML string configuring the Okapi BM25 parameters \(k_1\) and \(b\) for the index. |
+| `limit` | `integer` | `100` | `0` .. `65535` | Initial batch size used when `bm25.limit` has its built-in default source. Zero selects 100; this does not cap the SQL result count. |
 | `prefilter` | `boolean` | `false` | `true` / `false` | Per-index default prefilter setting. |
+| `maintenance_min_rows` | `integer` | `1000` | `0` .. `2147483647` | Minimum growing records before an automatic merge. The actual threshold is the greater of this value and `maintenance_scale_factor` × sealed records. |
+| `maintenance_scale_factor` | `real` | `0.1` | `0` .. `1` | Growing/sealed or tombstone/total fraction that triggers merging during VACUUM. Old snapshots can delay reclamation and the next merge. |
 {.wide .expand}

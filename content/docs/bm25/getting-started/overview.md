@@ -30,8 +30,8 @@ PostgreSQL includes built-in full-text search via `tsvector`, `tsquery`, `ts_ran
 ```mermaid
 flowchart LR
     subgraph Tokenization["1. Tokenization Layer"]
-        T1["Raw Text"] --> T2["pg_tokenizer (v0.1–v0.3)\\nor to_tsvector (main)"]
-        T2 --> T3["bm25vector / tsvector\\n(Token IDs + Term Frequencies)"]
+        T1["Raw Text"] --> T2["to_tsvector / pg_tokenizer 1.0.0"]
+        T2 --> T3["tsvector\\n(Lexemes + Positions)"]
     end
     subgraph Index["2. BM25 Index (USING bm25)"]
         I1["Growing Segment\\n(Append-only pages)"] --> I2["Sealed Segment\\n(Delta-Bitpacked 128-doc blocks)"]
@@ -49,16 +49,16 @@ flowchart LR
 
 When working with `vchord_bm25`, be aware of the two API generations across releases:
 
-1. **Stable Releases (`v0.1.0` – `v0.3.0`, schema `bm25_catalog`)**:
+1. **Historical Releases (`v0.1.0` – `v0.3.0`, schema `bm25_catalog`)**:
    - Uses custom data types `bm25vector` (sparse `token_id:frequency` map, e.g., `{1:1, 2:2}`) and `bm25query`.
    - Pairs with the **[`pg_tokenizer`](/docs/tokenizer/)** extension (`tokenizer_catalog`), which converts text into `INT[]` token ID arrays that cast implicitly to `bm25vector`.
    - Index creation: `CREATE INDEX idx ON documents USING bm25 (embedding bm25_ops);`
    - Query construction: `to_bm25query('idx', tokenize('query text', 'tokenizer_name'))`
 
-2. **Next-Gen Native `tsvector` Architecture (`main` branch)**:
+2. **Native `tsvector` Architecture (`1.0.0`)**:
    - Operates directly on PostgreSQL's built-in **`tsvector`** data type (`CREATE OPERATOR CLASS bm25_ops FOR TYPE tsvector USING bm25`), removing the requirement for a separate `bm25vector` column.
-   - Index creation: `CREATE INDEX idx ON documents USING bm25 (vector bm25_ops) WITH (options = $$ k1 = 1.2, b = 0.75 $$);`
+   - Index creation: `CREATE INDEX idx ON documents USING bm25 (vector bm25_ops);`
    - Query construction: `to_bm25query(to_tsvector('english', 'query text'), 'idx')`
 
 > [!TIP]
-> Both workflows are documented side-by-side throughout this guide so you can use whichever version matches your deployment.
+> New deployments should use the 1.0.0 `tsvector` workflow. Examples labeled 0.1–0.3 are retained for historical deployments; see the [migration guide](/docs/bm25/reference/migration/).

@@ -23,7 +23,7 @@ LIMIT 10;
 ```
 
 ```sql
--- main branch (native tsvector)
+-- 1.0.0 (native tsvector)
 SELECT
     id,
     passage,
@@ -55,7 +55,7 @@ $$\text{score}_{\text{operator}}(D, Q) = -\text{BM25}(D, Q) \le 0$$
 
 ## Tuning `bm25_limit` vs SQL `LIMIT`
 
-Because Block-WeakAnd maintains a bounded Top-K min-heap during the index scan to aggressively prune non-competitive posting blocks, the index scanner needs to know \(K\) (the maximum number of candidates to collect) when the scan begins.
+Block-WeakAnd uses a bounded Top-K heap to prune posting blocks. In 1.0.0, this bounds the initial scan batch; subsequent batches grow when PostgreSQL requests more rows. Historical 0.1–0.3 releases instead cap the total candidates returned.
 
 ### In `v0.1.0` – `v0.3.0`: `bm25_catalog.bm25_limit`
 
@@ -80,14 +80,14 @@ Special values of `bm25_catalog.bm25_limit`:
 | `-1` | Disables Block-WeakAnd Top-K pruning and performs a full brute-force scan over all matching postings in the index. |
 {.wide .expand}
 
-### In `main`: `bm25.limit` and Index `limit` Reloption
+### In 1.0.0: `bm25.limit` and Index `limit` Reloption {#in-main-bm25limit-and-index-limit-reloption}
 
-In the `main` branch, the effective limit is determined in priority order:
+In 1.0.0, the initial batch size is determined in priority order:
 
 1. An explicitly set session GUC `bm25.limit`, including zero.
 2. Otherwise, the index storage parameter `WITH (limit = ...)`.
 
-Both defaults are zero; set a positive limit before searching. Explicit zero errors and does not fall back. `RESET "bm25.limit"` restores the index default.
+Both initial batch sizes default to 100; explicit zero also selects 100. Scans continue when the executor requests more rows, including for SQL `LIMIT`, `OFFSET` and post-filtering. This parameter affects performance, not completeness.
 
 ```sql
 SET "bm25.limit" = 100;
@@ -96,7 +96,7 @@ SET "bm25.limit" = 100;
 Settings from `postgresql.conf`, `ALTER DATABASE`, `ALTER ROLE`, or client startup options also override index reloptions. `RESET` restores that configured default; it falls back to the index only when the GUC source returns to the built-in default.
 
 > [!WARNING]
-> Always ensure `bm25_catalog.bm25_limit` (or `bm25.limit`) is **greater than or equal to** the `LIMIT` in your SQL query. If your SQL query specifies `LIMIT 200` while `bm25_limit` is `100`, the index scan will stop after yielding 100 rows.
+> In historical 0.3.x, ensure `bm25_catalog.bm25_limit` is **greater than or equal to** the SQL `LIMIT`: a value of 100 can truncate a request for 200 rows. This restriction does not apply to the continuing scans in 1.0.0.
 
 ## Verifying the Query Plan with `EXPLAIN`
 
@@ -106,7 +106,7 @@ Use `EXPLAIN (ANALYZE, BUFFERS)` to confirm that PostgreSQL is using `Index Scan
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT id
 FROM documents
-ORDER BY embedding <&> to_bm25query('documents_embedding_bm25', tokenize('PostgreSQL', 'my_tokenizer'))
+ORDER BY vector <&> to_bm25query(to_tsvector('english', 'PostgreSQL'), 'documents_bm25_idx')
 LIMIT 10;
 ```
 
@@ -116,6 +116,6 @@ To force a sequential scan + exact brute-force evaluation (useful for verifying 
 -- v0.1 – v0.3
 SET bm25_catalog.enable_index = false;
 
--- main branch
+-- 1.0.0
 SET bm25.enable_scan = false;
 ```

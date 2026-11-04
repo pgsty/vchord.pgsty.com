@@ -6,11 +6,11 @@ weight: 10
 icon: fa-solid fa-database
 ---
 
-`vchord_bm25` 提供了 `bm25` 索引访问方法以及需要显式指定的 `bm25_ops` 操作符类。0.4.0 的 SQL 处理器为 `bm25_amhandler`，0.3.x 为 `_bm25_amhandler`。
+`vchord_bm25` 提供了 `bm25` 索引访问方法以及需要显式指定的 `bm25_ops` 操作符类。1.0.0 的 SQL 处理器为 `bm25_amhandler`，0.3.x 为 `_bm25_amhandler`。
 
 ## 创建 `bm25` 索引 {#creating-a-bm25-index}
 
-### 稳定发布版（`v0.1` – `v0.3`，`bm25vector`） {#stable-releases-v01--v03-bm25vector}
+### 历史版本（`v0.1` – `v0.3`，`bm25vector`） {#stable-releases-v01--v03-bm25vector}
 
 ```sql
 CREATE INDEX documents_embedding_bm25
@@ -18,9 +18,9 @@ ON documents
 USING bm25 (embedding bm25_ops);
 ```
 
-### 新一代 `main` 分支（`tsvector`） {#next-gen-main-branch-tsvector}
+### 1.0.0（`tsvector`） {#next-gen-main-branch-tsvector}
 
-在 `main` 分支中，`bm25_ops` 直接作用于 `tsvector`，并支持索引级存储参数（`options`、`limit` 和 `prefilter`）：
+在 1.0.0 中，`bm25_ops` 直接作用于 `tsvector`，并支持索引级存储参数（`options`、`limit` 和 `prefilter`）：
 
 ```sql
 CREATE INDEX documents_vector_bm25
@@ -40,7 +40,7 @@ WITH (
 | :--- | :--- | :--- | :--- | :--- |
 | `options` (`k1`) | `float`（TOML 内） | `1.2` | `1.2` – `2.0` | 词频饱和度参数 \(k_1\)。数值越大，文档内重复出现的词项权重越高。 |
 | `options` (`b`) | `float`（TOML 内） | `0.75` | `0.0` – `1.0` | 文档长度归一化参数 \(b\)。`0.0` 禁用长度归一化；`1.0` 完全按相对于 \(\text{avgdl}\) 的文档长度进行归一化。 |
-| `limit` | `int` | `0` | `0` – `65535` | 存储在索引上的默认 Top-K 检索上限（当会话 GUC `bm25.limit` 保持默认来源或执行 `RESET` 后使用）。 |
+| `limit` | `int` | `100` | `0` – `65535` | 首批候选数，零表示使用 100；扫描按需续扫，保证 SQL 结果完整。 |
 | `prefilter` | `bool` | `false` | `true` / `false` | 存储在索引上的默认预过滤行为（可在会话级通过 `bm25.prefilter` 覆盖）。 |
 {.wide .expand}
 
@@ -90,6 +90,27 @@ BEFORE INSERT OR UPDATE OF passage ON documents
 FOR EACH ROW
 EXECUTE FUNCTION documents_tokenize_trigger();
 ```
+
+## 1.0.0 的增长段与维护 {#growing-segments-and-maintenance-in-100}
+
+1.0.0 通过尾页提示追加写入，新行立即可搜索。索引扫描与标量评分在同一次执行中共享统计（总量受 `work_mem` 限制），计数包含所有非 NULL 物理记录，**包括合并前的 tombstone**；返回结果时立即跳过 tombstone。WAND 根据平均文档长度的漂移调整上界，增长段存在时仍可剪枝。标量评分为 parallel restricted，以保持同一份统计快照。
+
+`VACUUM`（包括并行 VACUUM）可以在读写继续进行时合并段；单独的 `ANALYZE` 不执行重建。维护使用表上常规的 `ShareUpdateExclusiveLock` 和短暂的页锁。发布新段时同时记录回收视界，后续维护在旧快照全部结束后回收旧页。取消或崩溃遗留的未发布输出会在后续维护中清除，空闲空间映射也会修复。
+
+自动合并要求增长段记录数达到 `max(maintenance_min_rows, maintenance_scale_factor × 封闭段记录数)`，或 tombstone 数达到 `maintenance_scale_factor × 总记录数`。默认分别为 1000 行和 0.1，没有变化时不重写索引；可通过 `ALTER INDEX` 调整这两个参数。
+
+```sql
+ALTER INDEX documents_vector_bm25 SET (maintenance_min_rows = 1000, maintenance_scale_factor = 0.1);
+VACUUM documents;
+SELECT bm25_maintain('documents_vector_bm25');
+```
+
+`bm25_maintain(regclass)` 绕过门槛，发布了合并结果时返回 true；没有变化或旧代际尚不能回收时返回 false。需要表所有者权限，或 PostgreSQL 17+ 的 `MAINTAIN` 权限。它不会自行识别死亡堆元组，这仍需 `VACUUM`。维护运行期间持有表的 `ShareUpdateExclusiveLock`。
+
+实现只保留一个待回收代际。长快照会推迟旧页回收和下一次合并，因此增长段没有硬性大小上限；完全空闲的数据库也可能因事务号不前进而推迟回收。写入密集的表应调整 PostgreSQL 的 `autovacuum_vacuum_insert_threshold` 和 `autovacuum_vacuum_insert_scale_factor`。空闲页会复用，但未必截短文件，不能承诺固定的文件大小倍数。备库读者遇到主库已回收的页时返回 SQLSTATE `40001`；可以重试或启用 `hot_standby_feedback`，后者可能推迟主库回收。tombstone 本身不会取消备库查询：PostgreSQL 在回放其之前的堆页清理时已经处理了这类冲突。
+
+
+下文的 `bm25_catalog.segment_growing_max_page_size` 设置仅属于 0.3.x，不是 1.0.0 API 的一部分。
 
 ## 段架构：增长段（Growing）与封闭段（Sealed）（`v0.1` – `v0.3`） {#segment-architecture-growing-vs-sealed-segments-v01--v03}
 

@@ -13,12 +13,12 @@ no_list: true
 涵盖 `bm25vector`、`bm25query`、`tsvector`、`<&>`、`to_bm25query`、`bm25_page_inspect` 以及 `pg_tokenizer` SQL 函数的完整参考。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/reference/gucs/" title="GUC 与索引参数" icon="fa-solid fa-sliders" >}}
-完整列出 `v0.1`–`v0.3`（`bm25_catalog.*`）与 `0.4.0`（`bm25.*`）的会话级 GUC 运行时参数、优先级覆盖规则及索引存储选项。
+完整列出 `v0.1`–`v0.3`（`bm25_catalog.*`）与 `1.0.0`（`bm25.*`）的会话级 GUC 运行时参数、优先级覆盖规则及索引存储选项。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/reference/benchmarks/" title="基准测试 (BEIR / MS MARCO)" icon="fa-solid fa-chart-bar" >}}
 展示 `vchord_bm25` 与 Elasticsearch、Lucene、ParadeDB 及 PostgreSQL 原生 GIN 索引的 QPS 吞吐量与 NDCG@10 检索精度对比。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/reference/versions/" title="版本历史与 API 演进" icon="fa-solid fa-clock-rotate-left" >}}
-梳理从 `v0.1.0` 到 `v0.3.0` 再到新一代 `0.4.0` 原生 `tsvector` 架构的版本变更日志、SQL 模式演进与兼容性边界。
+梳理从 `v0.1.0` 到 `v0.3.0` 再到新一代 `1.0.0` 原生 `tsvector` 架构的版本变更日志、SQL 模式演进与兼容性边界。
 {{< /card >}}
 {{< /cards >}}

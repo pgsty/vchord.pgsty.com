@@ -6,10 +6,10 @@ icon: fa-solid fa-bolt
 ---
 
 > [!IMPORTANT]
-> 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+> **1.0.0** 是 PGSTY 的首个正式版本，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[1.0.0 迁移指南](/zh/docs/bm25/reference/migration/)。
 
 
-本指南将带你一步步创建数据表、对文档进行分词、构建 `bm25` 索引，并执行 Top-K BM25 检索查询。
+本指南介绍如何创建表、分词、构建索引并执行 Top-K BM25 查询。1.0.0 请从[工作流 B](#workflow-b-native-tsvector-api-main-branch)开始；工作流 A 仅适用于历史 0.1–0.3 版本。
 
 ## 工作流 A：`bm25vector` + `pg_tokenizer 1.0.0`（`v0.1` – `v0.3`） {#workflow-a-bm25vector--pg_tokenizer-v01--v03}
 
@@ -93,9 +93,9 @@ LIMIT 10;
 
 ---
 
-## 工作流 B：原生 `tsvector` API（`main` 分支） {#workflow-b-native-tsvector-api-main-branch}
+## 工作流 B：原生 `tsvector` API（`1.0.0`） {#workflow-b-native-tsvector-api-main-branch}
 
-在新一代 `main` 分支重构中，`vchord_bm25` 可直接为 PostgreSQL 原生的 **`tsvector`** 类型建立索引——对于标准语言无需安装额外的分词器扩展。如果需要自定义分析器、模型或多语言流水线，可以安装 `pg_tokenizer 1.0.0`，使用 `analyze_to_tsvector` 或 `tokenize_to_tsvector` 生成索引值。
+在 1.0.0 中，`vchord_bm25` 可直接为 PostgreSQL 原生的 **`tsvector`** 类型建立索引——对于标准语言无需安装额外的分词器扩展。如果需要自定义分析器、模型或多语言流水线，可以安装 `pg_tokenizer 1.0.0`，使用 `analyze_to_tsvector` 或 `tokenize_to_tsvector` 生成索引值。
 
 ### 1. 创建扩展与数据表 {#1-create-extension-and-table}
 

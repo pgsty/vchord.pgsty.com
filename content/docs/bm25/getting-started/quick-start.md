@@ -6,10 +6,10 @@ icon: fa-solid fa-bolt
 ---
 
 > [!IMPORTANT]
-> Current source targets **0.4.0 (unreleased)**, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [0.4.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+> **1.0.0** is the first PGSTY release, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [1.0.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
 
 
-This guide walks through creating a table, tokenizing documents, building a `bm25` index, and executing Top-K BM25 queries.
+This guide walks through creating a table, tokenizing documents, building a `bm25` index, and executing Top-K BM25 queries. For 1.0.0, start with [Workflow B](#workflow-b-native-tsvector-api-main-branch); Workflow A applies only to historical 0.1–0.3 installations.
 
 ## Workflow A: `bm25vector` + `pg_tokenizer 1.0.0` (`v0.1` – `v0.3`)
 
@@ -93,9 +93,9 @@ LIMIT 10;
 
 ---
 
-## Workflow B: Native `tsvector` API (`main` Branch)
+## Workflow B: Native `tsvector` API (`1.0.0`) {#workflow-b-native-tsvector-api-main-branch}
 
-In the next-generation `main` branch rewrite, `vchord_bm25` indexes PostgreSQL's native **`tsvector`** type directly—no external tokenizer extension is required for standard languages. Install `pg_tokenizer 1.0.0` when you need its custom analyzer, model, or multilingual pipeline and use `analyze_to_tsvector` or `tokenize_to_tsvector` to produce the indexed value.
+In 1.0.0, `vchord_bm25` indexes PostgreSQL's native **`tsvector`** type directly—no external tokenizer extension is required for standard languages. Install `pg_tokenizer 1.0.0` when you need its custom analyzer, model, or multilingual pipeline and use `analyze_to_tsvector` or `tokenize_to_tsvector` to produce the indexed value.
 
 ### 1. Create Extension and Table
 

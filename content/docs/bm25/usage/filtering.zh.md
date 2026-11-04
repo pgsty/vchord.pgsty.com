@@ -6,80 +6,78 @@ weight: 30
 icon: fa-solid fa-filter
 ---
 
-在实际业务场景中，全文 BM25 排序通常需要与结构化关系过滤条件（例如 `category_id = 5`、`tenant_id = 'acme'` 或时间范围）结合使用。`vchord_bm25` 支持三种带过滤条件的 BM25 检索策略。
+以下示例使用 **1.0.0 原生 `tsvector` API**，将 BM25 排序与类别、租户或时间范围等结构化条件结合。文档和查询应使用相同的文本检索配置。
 
-## 1. 后过滤（Post-Filtering）与预过滤（Pre-Filtering） {#1-post-filtering-vs-pre-filtering}
-
-当你执行一条同时包含 `WHERE` 子句和 `ORDER BY embedding <&> to_bm25query(...) LIMIT K` 的查询时：
+## 1. 后过滤与预过滤 {#1-post-filtering-vs-pre-filtering}
 
 ```sql
 SELECT id, passage
 FROM documents
 WHERE category = 'database'
-ORDER BY embedding <&> to_bm25query('documents_embedding_bm25', tokenize('PostgreSQL BM25', 'my_tokenizer'))
+ORDER BY vector <&> to_bm25query(
+    to_tsvector('english', 'PostgreSQL BM25'), 'documents_bm25_idx')
 LIMIT 10;
 ```
 
-`vchord_bm25` 可以通过以下两种方式评估 `WHERE` 谓词：
+### 后过滤（`bm25.prefilter = false`） {#post-filtering-enable_prefilter--false}
 
-### 后过滤（`enable_prefilter = false`） {#post-filtering-enable_prefilter--false}
+BM25 索引提供按得分排序的候选行，PostgreSQL 再应用 `WHERE` 条件。如果首批候选中不足 10 行符合条件，扫描会扩大批次并继续，直到满足 SQL 的行数限制或数据耗尽。
 
-1. `bm25` 索引在整个语料库上运行 Block-WeakAnd，返回全局前 `bm25_limit` 名候选文档（例如全局 Top 100）。
-2. PostgreSQL 回表取出这 100 条堆表元组，并应用 `WHERE category = 'database'` 过滤条件。
-3. **注意事项**：如果全局 Top-100 文档中只有 3 篇满足 `category = 'database'`，那么即使表里还有数百篇 BM25 得分略低的 `'database'` 类别文档，查询也只会返回 3 行！
+`bm25.limit` 与索引的 `limit` 选项控制**首批扫描大小**，不限制结果总数。两者默认值均为 100，零值也选择 100。查询结果不再局限于首批 100 个候选中的匹配行。
 
-### 预过滤（`enable_prefilter = true`） {#pre-filtering-enable_prefilter--true}
+### 预过滤（`bm25.prefilter = true`） {#pre-filtering-enable_prefilter--true}
 
-启用预过滤后，`vchord_bm25` 会在将候选文档推入 Block-WeakAnd Top-K 堆**之前**，先行检查堆表可见性并评估过滤条件是否满足：
+预过滤在候选进入 Top-K 堆之前检查可见性和支持的查询谓词。被排除的候选不会抬高剪枝阈值。这可以减少强过滤条件下的无效排序工作，代价是在排序过程中增加回表检查。易变（volatile）谓词仍由执行器处理。
 
-1. 不满足过滤条件的文档绝不会进入 Top-K 堆，也不会抬高 Block-WeakAnd 的剪枝阈值 \(\theta\)。
-2. 索引扫描会持续推进，直到找齐 \(K\) 篇**既满足 `WHERE` 过滤条件**、又在所有匹配行中**拥有最高 BM25 得分**的文档。
+1.0.0 中，两种模式都支持按需续扫。应根据实际负载测量后选择；预过滤并不能消除所有无关倒排项的扫描。
 
 ### 启用预过滤 {#enabling-pre-filtering}
 
-在 **`v0.2.2` – `v0.3.0`** 中：
-
 ```sql
--- 在 v0.3.0 中默认启用；可在会话级动态切换：
-SET bm25_catalog.enable_prefilter = true;
-```
-
-在 **`main` 分支**中：
-
-```sql
--- 在当前会话中启用：
+-- 在当前会话覆盖索引默认值：
 SET bm25.prefilter = true;
 
--- 或在索引级别默认启用：
+-- 或设置索引默认值：
 ALTER INDEX documents_bm25_idx SET (prefilter = true);
 ```
 
-## 2. 面向高选择性分区键的部分 BM25 索引（Partial Index） {#2-partial-bm25-indexes-for-high-selectivity-partition-keys}
+显式 GUC 设置（包括 `false`）会覆盖索引选项。`RESET bm25.prefilter` 恢复配置默认值；只有 GUC 来源为内置默认值时，才使用索引选项。参阅 [GUC 优先级](/zh/docs/bm25/reference/gucs/#session-guc-parameters-main)。
 
-如果你经常按固定的一组分区键（例如 `status = 'published'` 或特定 `tenant_id`）进行过滤，可以创建**部分 `bm25` 索引（Partial Index）**：
+### 历史 0.1–0.3 版本的行为 {#historical-013-behavior}
+
+旧版以 `bm25_catalog.bm25_limit` 限制候选总数。后过滤时，如果 100 个候选中只有 3 行满足条件，即使表中还有其他匹配文档，也可能只返回 3 行。0.2.2 起可通过 `bm25_catalog.enable_prefilter` 启用预过滤。这些参数和候选截断行为均不适用于 1.0.0。
+
+## 2. 面向固定子集的部分 BM25 索引 {#2-partial-bm25-indexes-for-high-selectivity-partition-keys}
+
+对于已发布文档等固定子集，可以使用部分索引：
 
 ```sql
 CREATE INDEX documents_published_bm25
 ON documents
-USING bm25 (embedding bm25_ops)
+USING bm25 (vector bm25_ops)
 WHERE status = 'published';
 ```
 
-查询部分索引时，请在 `to_bm25query` 中指定该部分索引的名称，并在 SQL 中附上匹配的 `WHERE` 条件：
+在 `to_bm25query` 中引用同一个索引，并使用能够推导出索引谓词的 `WHERE` 条件：
 
 ```sql
 SELECT id, passage
 FROM documents
 WHERE status = 'published'
-ORDER BY embedding <&> to_bm25query('documents_published_bm25', tokenize('PostgreSQL BM25', 'my_tokenizer'))
+ORDER BY vector <&> to_bm25query(
+    to_tsvector('english', 'PostgreSQL BM25'), 'documents_published_bm25')
 LIMIT 10;
 ```
 
+部分索引拥有独立的语料统计，因此评分可能与全表索引不同。统计包含物理记录，以及合并前的 tombstone；参阅[索引维护](/zh/docs/bm25/usage/indexing/#growing-segments-and-maintenance-in-100)。
+
 ## 选择合适的过滤策略 {#choosing-the-right-filtering-strategy}
 
-| 过滤条件选择率 | 推荐策略 | 原因说明 |
+| 负载 | 建议起点 | 权衡 |
 | :--- | :--- | :--- |
-| **高匹配率（50%–100% 的行匹配）** | 后过滤（`enable_prefilter = false`）并适当调大 `bm25_limit` | 避免在 WAND 内层循环中频繁回表读取堆页；全局 Top-100 中即可轻松包含 10 条以上匹配行。 |
-| **中等匹配率（5%–50% 的行匹配）** | 预过滤（`enable_prefilter = true` / `bm25.prefilter = true`） | 确保在过滤后的子集上实现精确的 Top-K 召回，同时不扫描无关倒排项。 |
-| **固定租户 / 状态子集** | 部分 `bm25` 索引（`CREATE INDEX ... WHERE ...`）或表分区 | 索引体积更小，拥有针对该子集独立的 IDF 统计信息，且对其他分区零无效检查开销。 |
+| 大部分行满足条件 | 后过滤 | 避免在排序循环内检查谓词；需要时继续扫描。 |
+| 少量行满足条件 | 预过滤 | 避免不满足条件的行进入 Top-K 堆，但增加排序期间的回表检查。 |
+| 固定租户或状态子集 | 部分索引或表分区 | 语料更小、统计独立；查询必须指向正确的索引。 |
 {.wide .expand}
+
+SQL 过滤条件不能绕过[权限与 RLS 限制](/zh/docs/bm25/reference/migration/#schema-access)。当 RLS 适用于当前角色时，1.0.0 会拒绝 BM25 评分和原生索引扫描。

@@ -10,30 +10,47 @@ Modern retrieval pipelines combine **dense vector search** ([`vchord`](/docs/), 
 
 ## Schema Setup for Hybrid Search
 
+These examples use `vchord` 1.2.0, `vchord_bm25` 1.0.0, and `pg_tokenizer` 1.0.0. [Install and preload the libraries](/docs/bm25/getting-started/installation/) first.
+
 ```sql
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
 
-SET search_path TO "$user", public, bm25_catalog, tokenizer_catalog;
+SET search_path TO "$user", public, tokenizer_catalog;
 
 -- 1. Create a BM25 tokenizer
 SELECT create_tokenizer('bert', $$
 model = "bert_base_uncased"
 $$);
 
--- 2. Create a table storing both dense vectors and sparse bm25vectors
+-- 2. Create a table storing both dense vectors and positioned tsvectors
 CREATE TABLE chunks (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
     dense_emb vector(768),
-    bm25_emb bm25vector
+    bm25_emb tsvector,
+    colbert_emb vector[]
 );
+
+CREATE FUNCTION chunks_tokenize() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.bm25_emb := tokenizer_catalog.tokenize_to_tsvector(NEW.content, 'bert');
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER chunks_tokenize
+BEFORE INSERT OR UPDATE OF content ON chunks
+FOR EACH ROW EXECUTE FUNCTION chunks_tokenize();
 
 -- 3. Create VectorChord dense index (vchordrq) and BM25 lexical index (bm25)
 CREATE INDEX chunks_dense_idx ON chunks USING vchordrq (dense_emb vector_l2_ops);
 CREATE INDEX chunks_bm25_idx  ON chunks USING bm25 (bm25_emb bm25_ops);
 ```
+
+Store the tokenizer output in a regular column: `tokenize_to_tsvector` is `STABLE` and cannot be used in a generated column. Load document embeddings into `dense_emb` (768 dimensions) and, for reranking, `colbert_emb` (one vector per document token). The queries below use application-bound parameters: `$1` is the dense query vector, `$2` the query text, and `$3` the ColBERT query vectors.
 
 ## Method 1: Reciprocal Rank Fusion (RRF) in Pure SQL
 
@@ -47,19 +64,19 @@ where \(k\) is a smoothing constant (typically \(k = 60\)).
 WITH dense_results AS (
     SELECT
         id,
-        RANK() OVER (ORDER BY dense_emb <-> '[0.012, -0.034, ...]'::vector) AS dense_rank
+        RANK() OVER (ORDER BY dense_emb <-> $1::vector) AS dense_rank
     FROM chunks
-    ORDER BY dense_emb <-> '[0.012, -0.034, ...]'::vector
+    ORDER BY dense_emb <-> $1::vector
     LIMIT 100
 ),
 bm25_results AS (
     SELECT
         id,
         RANK() OVER (
-            ORDER BY bm25_emb <&> to_bm25query('chunks_bm25_idx', tokenize('PostgreSQL BM25 hybrid search', 'bert'))
+            ORDER BY bm25_emb <&> to_bm25query(tokenize_to_tsvector('PostgreSQL BM25 hybrid search', 'bert'), 'chunks_bm25_idx')
         ) AS bm25_rank
     FROM chunks
-    ORDER BY bm25_emb <&> to_bm25query('chunks_bm25_idx', tokenize('PostgreSQL BM25 hybrid search', 'bert'))
+    ORDER BY bm25_emb <&> to_bm25query(tokenize_to_tsvector('PostgreSQL BM25 hybrid search', 'bert'), 'chunks_bm25_idx')
     LIMIT 100
 ),
 fused AS (
@@ -97,7 +114,7 @@ WITH dense_candidates AS (
 ),
 bm25_candidates AS (
     SELECT id FROM chunks
-    ORDER BY bm25_emb <&> to_bm25query('chunks_bm25_idx', tokenize($2, 'bert'))
+    ORDER BY bm25_emb <&> to_bm25query(tokenize_to_tsvector($2, 'bert'), 'chunks_bm25_idx')
     LIMIT 50
 ),
 candidate_ids AS (

@@ -7,10 +7,10 @@ icon: fa-solid fa-sliders
 ---
 
 > [!IMPORTANT]
-> 当前源码面向 **0.4.0（尚未发布）**，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[0.4.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+> **1.0.0** 是 PGSTY 的首个正式版本，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[1.0.0 迁移指南](/zh/docs/bm25/reference/migration/)。
 
 
-## 稳定发布版（`v0.1.0` – `v0.3.0`）：`bm25_catalog.*` GUC 参数 {#stable-releases-v010--v030-bm25_catalog-gucs}
+## 历史版本（`v0.1.0` – `v0.3.0`）：`bm25_catalog.*` GUC 参数 {#stable-releases-v010--v030-bm25_catalog-gucs}
 
 在 `v0.1.0` 至 `v0.3.0` 版本中，所有会话级 GUC 参数均使用 `bm25_catalog.` 前缀，任何普通用户均可在会话或事务级别修改（`GucContext::Userset`）：
 
@@ -40,26 +40,28 @@ SET bm25_catalog.enable_index = false;
 
 ---
 
-## 新一代 `main` 分支：`bm25.*` GUC 参数与索引存储参数 {#next-gen-main-branch-bm25-gucs--index-reloptions}
+## 1.0.0：`bm25.*` GUC 参数与索引存储参数 {#next-gen-main-branch-bm25-gucs--index-reloptions}
 
-在 `main` 分支重构版本中，会话级 GUC 参数改用 `bm25.` 前缀，并与每个索引独立的存储参数（`WITH (...)`）配合工作：
+在 1.0.0 中，会话级 GUC 参数改用 `bm25.` 前缀，并与每个索引独立的存储参数（`WITH (...)`）配合工作：
 
-### 会话级 GUC 参数（`main`） {#session-guc-parameters-main}
+### 会话级 GUC 参数（1.0.0） {#session-guc-parameters-main}
 
 | 参数名称 | 类型 | 默认值 | 有效范围 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
 | `bm25.enable_scan` | `boolean` | `true` | `true` / `false` | 在查询规划器中启用或禁用 `bm25` 索引扫描。 |
-| `bm25.limit` | `integer` | `0` | `0` .. `65535` | 最大候选数。显式设置的值覆盖索引参数，显式零值会使索引扫描报错。`RESET` 才恢复索引回退值。 |
+| `bm25.limit` | `integer` | `100` | `0` .. `65535` | 首批扫描大小；零值自动选择 100。显式设置覆盖索引参数。扫描会按 SQL `LIMIT`、`OFFSET` 和后置过滤的需要继续取候选。 |
 | `bm25.prefilter` | `boolean` | `false` | `true` / `false` | 在 `bm25` 索引扫描期间启用预过滤（显式设置时覆盖索引自身的 `prefilter` 存储参数，包括 `false`）。 |
 {.wide .expand}
 
 `postgresql.conf`、`ALTER DATABASE`、`ALTER ROLE` 或客户端启动选项中的设置也会覆盖索引参数。`RESET` 会恢复这些配置默认值；只有 GUC 来源恢复为内置默认值时，才会回退到索引参数。
 
-### 索引存储参数（`main` 中的 `WITH (...)`） {#index-storage-parameters-with--in-main}
+### 索引存储参数（1.0.0 中的 `WITH (...)`） {#index-storage-parameters-with--in-main}
 
 | 存储参数 | 类型 | 默认值 | 有效范围 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `options` | `string` (TOML) | `k1 = 1.2, b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | 用于配置该索引 Okapi BM25 超参数 \(k_1\) 与 \(b\) 的 TOML 字符串。 |
-| `limit` | `integer` | `0` | `0` .. `65535` | 当 `bm25.limit` 保持默认来源（`RESET`）时使用的索引级回退检索上限，显式零值不触发回退。 |
+| `options` | `string` (TOML) | `k1 = 1.2`<br>`b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | 用于配置该索引 Okapi BM25 超参数 \(k_1\) 与 \(b\) 的 TOML 字符串。 |
+| `limit` | `integer` | `100` | `0` .. `65535` | 当 `bm25.limit` 来源为内置默认值时使用的首批大小。零值选择 100，不限制 SQL 返回行数。 |
 | `prefilter` | `boolean` | `false` | `true` / `false` | 索引级的默认预过滤设置。 |
+| `maintenance_min_rows` | `integer` | `1000` | `0` .. `2147483647` | 自动合并的最小增长记录数。实际门槛取该值与 `maintenance_scale_factor` × 封闭段记录数中的较大值。 |
+| `maintenance_scale_factor` | `real` | `0.1` | `0` .. `1` | VACUUM 合并的增长段/封闭段记录比，或 tombstone/总记录比门槛。旧快照可能延迟回收和下一次合并。 |
 {.wide .expand}

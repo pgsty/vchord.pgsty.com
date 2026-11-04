@@ -23,7 +23,7 @@ LIMIT 10;
 ```
 
 ```sql
--- main 分支（原生 tsvector）
+-- 1.0.0（原生 tsvector）
 SELECT
     id,
     passage,
@@ -55,7 +55,7 @@ $$\text{score}_{\text{operator}}(D, Q) = -\text{BM25}(D, Q) \le 0$$
 
 ## 调优 `bm25_limit` 与 SQL `LIMIT` {#tuning-bm25_limit-vs-sql-limit}
 
-由于 Block-WeakAnd 在索引扫描期间会维护一个有界 Top-K 最小堆，以激进地剪枝缺乏竞争力的倒排块，因此索引扫描器在扫描开始时就需要知道 \(K\)（即最多需要收集多少个候选文档）。
+Block-WeakAnd 使用有界 Top-K 堆对倒排块进行剪枝。1.0.0 中，该大小限制首批扫描，后续会按 PostgreSQL 的请求扩大批次并继续扫描；历史 0.1–0.3 版本则以此限制返回的候选总数。
 
 ### 在 `v0.1.0` – `v0.3.0` 中：`bm25_catalog.bm25_limit` {#in-v010--v030-bm25_catalogbm25_limit}
 
@@ -80,14 +80,14 @@ LIMIT 500;
 | `-1` | 禁用 Block-WeakAnd Top-K 剪枝，对索引中所有匹配的倒排项执行全量暴力扫描。 |
 {.wide .expand}
 
-### 在 `main` 分支中：`bm25.limit` 与索引 `limit` 存储参数 {#in-main-bm25limit-and-index-limit-reloption}
+### 在 1.0.0 中：`bm25.limit` 与索引 `limit` 存储参数 {#in-main-bm25limit-and-index-limit-reloption}
 
-在 `main` 分支中，实际生效的检索上限按以下优先级顺序决定：
+在 1.0.0 中，实际生效的首批扫描大小按以下优先级顺序决定：
 
 1. 显式设置的会话 GUC 参数 `bm25.limit`，包括零值。
 2. 否则使用索引存储参数 `WITH (limit = ...)`。
 
-两层默认值均为零，因此检索前必须设置正值。显式零值会报错，不触发回退。执行 `RESET "bm25.limit"` 可恢复索引默认值。
+两层首批大小默认均为 100，显式零值也选择 100。执行器仍需结果时会继续扫描，包括 SQL `LIMIT`、`OFFSET` 和后置过滤场景。此参数影响性能，不影响结果完整性。
 
 ```sql
 SET "bm25.limit" = 100;
@@ -96,7 +96,7 @@ SET "bm25.limit" = 100;
 `postgresql.conf`、`ALTER DATABASE`、`ALTER ROLE` 或客户端启动选项中的设置也会覆盖索引参数。`RESET` 会恢复这些配置默认值；只有 GUC 来源恢复为内置默认值时，才会回退到索引参数。
 
 > [!WARNING]
-> 请始终确保 `bm25_catalog.bm25_limit`（或 `bm25.limit`）**大于或等于** SQL 查询中的 `LIMIT` 值。如果 SQL 查询指定了 `LIMIT 200`，而 `bm25_limit` 仍为 `100`，则索引扫描在产出 100 行后就会停止。
+> 历史 0.3.x 中，需确保 `bm25_catalog.bm25_limit` **大于或等于** SQL `LIMIT`：参数为 100 时，请求 200 行可能被截断。1.0.0 的按需续扫不受此限制。
 
 ## 使用 `EXPLAIN` 验证查询计划 {#verifying-the-query-plan-with-explain}
 
@@ -106,7 +106,7 @@ SET "bm25.limit" = 100;
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT id
 FROM documents
-ORDER BY embedding <&> to_bm25query('documents_embedding_bm25', tokenize('PostgreSQL', 'my_tokenizer'))
+ORDER BY vector <&> to_bm25query(to_tsvector('english', 'PostgreSQL'), 'documents_bm25_idx')
 LIMIT 10;
 ```
 
@@ -116,6 +116,6 @@ LIMIT 10;
 -- v0.1 – v0.3
 SET bm25_catalog.enable_index = false;
 
--- main 分支
+-- 1.0.0
 SET bm25.enable_scan = false;
 ```

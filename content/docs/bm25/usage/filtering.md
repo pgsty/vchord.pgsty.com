@@ -6,80 +6,78 @@ weight: 30
 icon: fa-solid fa-filter
 ---
 
-Real-world applications frequently combine full-text BM25 ranking with structured relational filters (such as `category_id = 5`, `tenant_id = 'acme'`, or date ranges). `vchord_bm25` supports three strategies for filtered BM25 search.
+The examples below use the **1.0.0 native `tsvector` API**. Combine BM25 ranking with structured filters such as category, tenant, or date ranges. Use the same text search configuration for documents and queries.
 
 ## 1. Post-Filtering vs. Pre-Filtering
-
-When you execute a query with a `WHERE` clause and `ORDER BY embedding <&> to_bm25query(...) LIMIT K`:
 
 ```sql
 SELECT id, passage
 FROM documents
 WHERE category = 'database'
-ORDER BY embedding <&> to_bm25query('documents_embedding_bm25', tokenize('PostgreSQL BM25', 'my_tokenizer'))
+ORDER BY vector <&> to_bm25query(
+    to_tsvector('english', 'PostgreSQL BM25'), 'documents_bm25_idx')
 LIMIT 10;
 ```
 
-There are two ways `vchord_bm25` can evaluate the `WHERE` predicate:
+### Post-Filtering (`bm25.prefilter = false`) {#post-filtering-enable_prefilter--false}
 
-### Post-Filtering (`enable_prefilter = false`)
+The BM25 index supplies ranked candidates, and PostgreSQL applies the `WHERE` predicate. If the initial batch contains fewer than 10 qualifying rows, the scan continues in growing batches until the SQL limit is satisfied or the input is exhausted.
 
-1. The `bm25` index runs Block-WeakAnd over the entire corpus and returns the global Top-`bm25_limit` candidates (e.g., Top 100).
-2. PostgreSQL fetches those 100 heap tuples and applies `WHERE category = 'database'`.
-3. **Caveat**: If only 3 of the global Top-100 documents have `category = 'database'`, the query returns only 3 rows even if hundreds of other `'database'` documents exist with slightly lower BM25 scores!
+`bm25.limit` and the index's `limit` option control the **initial batch size**, not the result count. Both default to 100; zero also selects 100. A query is no longer limited to matches found in the first 100 candidates.
 
-### Pre-Filtering (`enable_prefilter = true`)
+### Pre-Filtering (`bm25.prefilter = true`) {#pre-filtering-enable_prefilter--true}
 
-When pre-filtering is enabled, `vchord_bm25` checks heap visibility and evaluates filter acceptability **before** pushing candidate documents into the Block-WeakAnd Top-K heap:
+Pre-filtering checks visibility and supported query predicates before admitting candidates into the Top-K heap. Rejected candidates do not raise the pruning threshold. This can reduce wasted ranking work for selective filters, at the cost of heap checks during ranking. Volatile predicates remain in the executor.
 
-1. Non-matching documents never enter the Top-K heap and never raise the Block-WeakAnd pruning threshold \(\theta\).
-2. The index scan continues until it finds \(K\) documents that both **match the `WHERE` filter** and have the **highest BM25 scores** among all matching rows.
+Both modes support continuing scans in 1.0.0. Choose between them by measuring your workload; pre-filtering does not eliminate all work on irrelevant postings.
 
 ### Enabling Pre-Filtering
 
-In **`v0.2.2` – `v0.3.0`**:
-
 ```sql
--- Enabled by default in v0.3.0; can be toggled per session:
-SET bm25_catalog.enable_prefilter = true;
-```
-
-In **`main` branch**:
-
-```sql
--- Enable per session:
+-- Override the index default for this session:
 SET bm25.prefilter = true;
 
--- Or enable by default on the index:
+-- Or set the index default:
 ALTER INDEX documents_bm25_idx SET (prefilter = true);
 ```
 
+An explicit GUC setting, including `false`, overrides the index option. `RESET bm25.prefilter` restores the configured default; the index option applies only when the GUC source is the built-in default. See [GUC precedence](/docs/bm25/reference/gucs/#session-guc-parameters-main).
+
+### Historical 0.1–0.3 Behavior
+
+Older releases use `bm25_catalog.bm25_limit` as a candidate cap. With post-filtering, a batch of 100 candidates containing only 3 qualifying rows can return just 3 rows despite more qualifying documents in the table. Prefiltering is available from 0.2.2 via `bm25_catalog.enable_prefilter`. These settings and the candidate-cap behavior do not apply to 1.0.0.
+
 ## 2. Partial BM25 Indexes for High-Selectivity Partition Keys
 
-If you frequently filter by a small set of known partition keys (for example, `status = 'published'` or specific `tenant_id` values), you can create **partial `bm25` indexes**:
+For a fixed subset such as published documents, use a partial index:
 
 ```sql
 CREATE INDEX documents_published_bm25
 ON documents
-USING bm25 (embedding bm25_ops)
+USING bm25 (vector bm25_ops)
 WHERE status = 'published';
 ```
 
-When querying a partial index, reference the partial index's name in `to_bm25query` and include the matching `WHERE` condition:
+Reference that same index in `to_bm25query` and include a `WHERE` condition that implies its predicate:
 
 ```sql
 SELECT id, passage
 FROM documents
 WHERE status = 'published'
-ORDER BY embedding <&> to_bm25query('documents_published_bm25', tokenize('PostgreSQL BM25', 'my_tokenizer'))
+ORDER BY vector <&> to_bm25query(
+    to_tsvector('english', 'PostgreSQL BM25'), 'documents_published_bm25')
 LIMIT 10;
 ```
 
+A partial index has its own corpus statistics, so scores can differ from an index over the full table. Statistics include physical records and tombstones until compaction; see [maintenance](/docs/bm25/usage/indexing/#growing-segments-and-maintenance-in-100).
+
 ## Choosing the Right Filtering Strategy
 
-| Filter Selectivity | Recommended Strategy | Why |
+| Workload | Starting Point | Tradeoff |
 | :--- | :--- | :--- |
-| **High selectivity (50%–100% rows match)** | Post-filtering (`enable_prefilter = false`) with slightly higher `bm25_limit` | Avoids heap fetches during the inner WAND loop; global Top-100 easily contains 10+ matching rows. |
-| **Medium selectivity (5%–50% rows match)** | Pre-filtering (`enable_prefilter = true` / `bm25.prefilter = true`) | Guarantees exact Top-K recall over filtered rows without scanning irrelevant postings. |
-| **Fixed tenant / status subset** | Partial `bm25` index (`CREATE INDEX ... WHERE ...`) or table partitioning | Smaller index size, dedicated corpus IDF statistics, and zero wasted checks on other partitions. |
+| Most rows pass the filter | Post-filtering | Avoids predicate checks inside the ranking loop; continues scanning when needed. |
+| Few rows pass the filter | Pre-filtering | Keeps rejected rows out of the Top-K heap, but adds heap checks during ranking. |
+| Fixed tenant or status subset | Partial index or table partitioning | Smaller corpus and independent statistics; queries must target the appropriate index. |
 {.wide .expand}
+
+SQL filters do not bypass the [permission and RLS restrictions](/docs/bm25/reference/migration/#schema-access). When RLS applies to the current role, 1.0.0 rejects BM25 scoring and native index scans.

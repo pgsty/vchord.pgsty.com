@@ -76,21 +76,23 @@ cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
 
-## Upgrading to 1.0.1 {#upgrade-101}
+## Upgrading to 1.1.0 {#upgrade-110}
 
-Install matching 1.0.1 library and SQL files on the primary and replicas, restart each server to reload the preloaded library, then run the following in each primary database as the extension owner or an administrator:
+Install matching 1.1.0 library and SQL files on the primary and replicas, restart each server to reload the preloaded library, then run the following in each primary database as the extension owner or an administrator:
 
 ```sql
-ALTER EXTENSION pg_tokenizer UPDATE TO '1.0.1';
+ALTER EXTENSION pg_tokenizer UPDATE TO '1.1.0';
 ```
 
-The upgrade path is available from 0.1.0, 0.1.1 and 1.0.0. It preserves catalog data, existing custom-model token IDs, and dependencies on the six-argument helper (including its function OID). Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. The standby cache signal becomes active after this SQL change commits and replays. Lindera's dictionary-ID migration requires re-tokenization as described in the [model notes](/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model).
+Upgrade directly from 1.0.0 to 1.1.0; older 0.1.0 and 0.1.1 installations use the chain through 1.0.0. The unpublished 1.0.1 candidate is not a migration step. It preserves catalog data, existing custom-model token IDs, and dependencies on the six-argument helper (including its function OID). Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. The standby cache signal becomes active after this SQL change commits and replays. Lindera's dictionary-ID migration requires re-tokenization as described in the [model notes](/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model).
 
-Before upgrading, qualify missing or ambiguous legacy `pg_dict` references; explicitly qualify custom dictionaries that deliberately shadow builtin names. Review the [new resource budgets](/docs/tokenizer/reference/#definition-caches) for bulk ingestion. The runtime schema layout remains unchanged: database owners still need CREATE on `tokenizer_catalog` for vocabulary tables. The new counter grants PUBLIC only SELECT; its internal trigger is SECURITY DEFINER with a fixed search_path and no public EXECUTE grant.
+Before upgrading, qualify missing or ambiguous legacy `pg_dict` references; explicitly qualify custom dictionaries that deliberately shadow builtin names. Review the [new resource budgets](/docs/tokenizer/reference/#definition-caches) for bulk ingestion. Registered vocabulary tables, their indexes and owned identity sequences move from `tokenizer_catalog` to `tokenizer_data`, preserving OIDs, owners, table/sequence ACLs, token IDs and dependencies. Update direct SQL references to the old vocabulary schema. Existing nonowner schema grants and grant options are copied to the data schema; catalog CREATE grants are revoked. An unrelated `tokenizer_data` schema or a missing/conflicting vocabulary object aborts the whole upgrade. The upgrader needs ownership rights on every vocabulary table; use a superuser when models have different owners. Finish long-running model-management transactions before migration; statements crossing the upgrade may return SQLSTATE `40001` and require a transaction retry. The new counter grants PUBLIC only SELECT; its internal trigger is SECURITY DEFINER with a fixed search_path and no public EXECUTE grant.
+
+For PGXN source-package requirements and publication steps, see the [release guide](https://github.com/pgsty/pg_tokenizer/blob/main/docs/08-release.md). A source ZIP and Makefile are prepared for PGXN; publication is a separate step.
 
 ### Database-owner permissions {#database-owner-permissions}
 
-Installation and upgrade grant `pg_database_owner` USAGE/CREATE on `tokenizer_catalog`, EXECUTE on its database-local functions, SELECT/INSERT/UPDATE/DELETE on catalog and model tables, and USAGE/SELECT on their sequences. Future objects created in that schema by the installing role receive the same table/sequence/function defaults; newly created custom models also explicitly grant access. The grants follow a database ownership change.
+Installation and upgrade grant `pg_database_owner` USAGE on `tokenizer_catalog`, USAGE/CREATE on `tokenizer_data`, EXECUTE on database-local management functions, SELECT/INSERT/UPDATE/DELETE on catalog and vocabulary tables, and USAGE/SELECT on their sequences. Newly created custom models explicitly grant access. The grants follow database ownership changes. Schema owners and roles with their privileges retain PostgreSQL's inherent owner powers. API functions remain in `tokenizer_catalog`; no data-schema search_path entry is required.
 
 A non-superuser database owner can create/drop its own custom models, analyzers, tokenizers, stopwords, and synonyms after an administrator installs the extension. Grants do not transfer table ownership: dropping a model created by a different role still needs that object's owner or an administrator. Other application roles require explicit grants; the extension does not give PUBLIC schema access or catalog write privileges. Functions continue to execute with the caller's privileges.
 

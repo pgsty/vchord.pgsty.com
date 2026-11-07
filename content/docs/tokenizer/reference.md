@@ -89,7 +89,7 @@ These functions are `STABLE` because they read tokenizer definitions from the ca
 
 ## Definition caches and resource budgets {#definition-caches}
 
-In 1.0.1, a transactional counter in `tokenizer_catalog.definition_version` is replicated with definition changes. Primary and hot-standby connections validate cached analyzers, tokenizers, models, stopwords and synonyms against their current SQL snapshot. Long-lived connections refresh after the commit is visible; promotion keeps this behavior. An old REPEATABLE READ snapshot or a lagging/paused replica still sees the old definition. Wait for the primary commit LSN to replay and begin a new snapshot when coordinating changes. Persisted vectors and indexes require explicit regeneration if output changes.
+In 1.1.0, a transactional counter in `tokenizer_catalog.definition_version` is replicated with definition changes. Primary and hot-standby connections validate cached analyzers, tokenizers, models, stopwords and synonyms against their current SQL snapshot. Long-lived connections refresh after the commit is visible; promotion keeps this behavior. An old REPEATABLE READ snapshot or a lagging/paused replica still sees the old definition. Wait for the primary commit LSN to replay and begin a new snapshot when coordinating changes. Persisted vectors and indexes require explicit regeneration if output changes.
 
 The version check reads one row per statement, rather than scanning definitions per token. Definition-changing transactions serialize on that row and add one heap/WAL update per modifying statement; vocabulary inserts do not. Catalog-writing functions are `PARALLEL UNSAFE`, while read-only analysis remains `PARALLEL SAFE`. Definition-changing API calls still reject `PREPARE TRANSACTION`.
 

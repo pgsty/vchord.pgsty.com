@@ -76,21 +76,23 @@ cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
 
-## 升级到 1.0.1 {#upgrade-101}
+## 升级到 1.1.0 {#upgrade-110}
 
-在主库和备库安装匹配的 1.0.1 共享库与 SQL 文件，分别重启以重新加载预加载库，然后由扩展拥有者或管理员在每个主库数据库执行：
+在主库和备库安装匹配的 1.1.0 共享库与 SQL 文件，分别重启以重新加载预加载库，然后由扩展拥有者或管理员在每个主库数据库执行：
 
 ```sql
-ALTER EXTENSION pg_tokenizer UPDATE TO '1.0.1';
+ALTER EXTENSION pg_tokenizer UPDATE TO '1.1.0';
 ```
 
-支持从 0.1.0、0.1.1 和 1.0.0 升级。迁移会保留目录数据、已有自定义词表 ID，以及原六参便捷函数的依赖关系（包括其函数 OID）。标准 `cargo pgrx install/package` 与 `tools/package.sh` 均会包含升级脚本；备库缓存失效信号在本次 SQL 升级提交并回放后生效。Lindera 词典版本变化引起的 ID 迁移须按照[模型说明](/zh/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model)重新分词。
+1.0.0 直接升级到 1.1.0；更早的 0.1.0 和 0.1.1 通过原有路径先经过 1.0.0。未发布的 1.0.1 候选不作为升级步骤。迁移会保留目录数据、已有自定义词表 ID，以及原六参便捷函数的依赖关系（包括其函数 OID）。标准 `cargo pgrx install/package` 与 `tools/package.sh` 均会包含升级脚本；备库缓存失效信号在本次 SQL 升级提交并回放后生效。Lindera 词典版本变化引起的 ID 迁移须按照[模型说明](/zh/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model)重新分词。
 
-升级前应明确限定缺失或有歧义的旧 `pg_dict` 名称，也应限定刻意覆盖内置词典的自定义词典。批量导入前检查[新增资源预算](/zh/docs/tokenizer/reference/#analysis-budgets)。运行时 schema 布局保持不变：数据库 owner 为创建词表仍需 `tokenizer_catalog` 的 CREATE 权限。新版本表只向 PUBLIC 开放 SELECT，内部触发器以 SECURITY DEFINER 和固定 search_path 运行，不向 PUBLIC 开放 EXECUTE。
+升级前应明确限定缺失或有歧义的旧 `pg_dict` 名称，也应限定刻意覆盖内置词典的自定义词典。批量导入前检查[新增资源预算](/zh/docs/tokenizer/reference/#analysis-budgets)。已登记的词表及其索引、身份序列从 `tokenizer_catalog` 移至 `tokenizer_data`，保留 OID、所有者、表与序列 ACL、词元 ID 和依赖关系。直接引用旧词表名的 SQL 需要修改。原有非 schema owner 的模式权限及授权选项复制到数据模式，目录模式的 CREATE 授权撤销。若存在无关的 `tokenizer_data` 模式，或已登记词表缺失、对象名冲突，整个升级回滚。升级者需要每张词表的所有者权限；若模型分属不同角色，应由超级用户升级。迁移前应结束耗时的模型管理事务；持有升级前快照的语句可能返回 SQLSTATE `40001`，此时重试整个事务。新版本表只向 PUBLIC 开放 SELECT，内部触发器以 SECURITY DEFINER 和固定 search_path 运行，不向 PUBLIC 开放 EXECUTE。
+
+PGXN 源码包要求与发布步骤见[发布指南](https://github.com/pgsty/pg_tokenizer/blob/main/docs/08-release.md)。项目已准备源码 ZIP 和供 PGXN 使用的 Makefile，上传发布仍是单独步骤。
 
 ### 数据库拥有者权限 {#database-owner-permissions}
 
-安装与升级向 `pg_database_owner` 授予 `tokenizer_catalog` 的 USAGE/CREATE、数据库内管理函数的 EXECUTE，目录表与模型表的 SELECT/INSERT/UPDATE/DELETE，以及序列的 USAGE/SELECT。安装角色以后在该模式中创建的表、序列和函数也有相同默认授权；新建自定义模型还会显式授权。授权随数据库拥有者变更而生效。
+安装与升级向 `pg_database_owner` 授予 `tokenizer_catalog` 的 USAGE、`tokenizer_data` 的 USAGE/CREATE、数据库内管理函数的 EXECUTE，目录表与词表的 SELECT/INSERT/UPDATE/DELETE，以及序列的 USAGE/SELECT。新建自定义模型会显式授权，授权随数据库拥有者变更而生效。模式所有者及拥有其权限的角色仍保留 PostgreSQL 固有的所有者权限。API 函数仍在 `tokenizer_catalog` 中，无需把数据模式加入 search_path。
 
 管理员安装扩展后，非超级用户的数据库拥有者可以创建、删除自己创建的模型、分析器、分词器、停用词及同义词。授权不转移对象所有权：删除其他角色创建的模型仍需原对象拥有者或管理员。其他应用角色需要显式授权；扩展不会向 PUBLIC 开放模式访问或目录写权限，函数继续以调用者权限执行。
 

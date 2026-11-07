@@ -91,7 +91,7 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 
 只有新增词元的写入会在每个模型上获取事务级咨询锁，并按 `COLLATE "C"` 排序新词元；同一模型的新增词元操作会在事务内串行化。`READ COMMITTED` 下，触发器会在等待词表写入后刷新快照；`REPEATABLE READ` 或 `SERIALIZABLE` 遇到冲突时可能返回 SQLSTATE `40001`，应用应重试整个事务。过滤条件同时作用于初始词表、回填和后续写入；不匹配行的既有 embedding 与词表条目不会自动删除。
 
-从 1.0.1 起，`tokenizer_catalog.definition_version` 中的一行事务性版本号与定义变更一同复制。主库和热备连接都在当前 SQL 快照下核对分析器、分词器、模型、停用词及同义词缓存；长连接在新提交对其快照可见时刷新，promotion 后也保持这一行为。旧的 REPEATABLE READ 快照、延迟或暂停回放的备库仍会读取旧定义。协调主备定义变更时，需要等待主库提交 LSN 回放完成并开始新快照。输出改变后，持久化向量和索引仍需显式重算或重建。
+从 1.1.0 起，`tokenizer_catalog.definition_version` 中的一行事务性版本号与定义变更一同复制。主库和热备连接都在当前 SQL 快照下核对分析器、分词器、模型、停用词及同义词缓存；长连接在新提交对其快照可见时刷新，promotion 后也保持这一行为。旧的 REPEATABLE READ 快照、延迟或暂停回放的备库仍会读取旧定义。协调主备定义变更时，需要等待主库提交 LSN 回放完成并开始新快照。输出改变后，持久化向量和索引仍需显式重算或重建。
 
 版本检查每条语句读取一行，不会逐词扫描定义表。修改定义的事务在版本行上串行化，每条修改语句增加一次 heap/WAL 更新；普通词表插入不更新版本行。写目录的函数均标记为 `PARALLEL UNSAFE`，只读分析保留 `PARALLEL SAFE`。修改定义的 API 仍不允许 `PREPARE TRANSACTION`。
 

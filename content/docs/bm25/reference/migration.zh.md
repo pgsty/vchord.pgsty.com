@@ -75,4 +75,4 @@ ALTER ROLE app_user SET search_path = public, search;
 
 站点继续保留 0.3.x 的 `pg_tokenizer` 整数数组工作流。对于 1.0.0，可以使用 `to_tsvector`，或 [pg_tokenizer](/zh/docs/tokenizer/) 1.0.0：`tokenizer_catalog.tokenize_to_tsvector(text, tokenizer)` 沿用同一模型，以词元 ID 作为词位；`tokenizer_catalog.analyze_to_tsvector(text, analyzer)` 使用文本分析器（例如 Jieba）的分词结果。两者均为 `STABLE`：请把结果存入 `tsvector` 列并为该列建索引，查询时使用同一个函数。词频改为来自 tsvector 中的位置，切换前请对比排序结果。
 
-统计语义、维护门槛、手动 `bm25_maintain()`、备库重试行为，见[索引与维护](/zh/docs/bm25/usage/indexing/#growing-segments-and-maintenance-in-100)。统计包含合并前的 tombstone，并在同一次执行中固定；标量评分为 parallel restricted。文档权重会被忽略；长文档受 [PostgreSQL tsvector 上限](https://www.postgresql.org/docs/18/textsearch-limitations.html)约束，词频受限时建议按段落切分。
+统计语义、维护门槛、手动 `bm25_maintain()`、备库重试行为，见[索引与维护](/zh/docs/bm25/usage/indexing/#growing-segments-and-maintenance-in-100)。统计包含合并前的 tombstone；活跃扫描保留其 preparation，但被淘汰的纯标量缓存条目可能在同一次执行中重新收集，`work_mem` 是软限制；标量评分为 parallel restricted。文档权重会被忽略；长文档受 [PostgreSQL tsvector 上限](https://www.postgresql.org/docs/18/textsearch-limitations.html)约束，词频受限时建议按段落切分。

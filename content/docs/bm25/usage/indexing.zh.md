@@ -93,9 +93,9 @@ EXECUTE FUNCTION documents_tokenize_trigger();
 
 ## 1.0.0 的增长段与维护 {#growing-segments-and-maintenance-in-100}
 
-1.0.0 通过尾页提示追加写入，新行立即可搜索。索引扫描与标量评分在同一次执行中共享统计（总量受 `work_mem` 限制），计数包含所有非 NULL 物理记录，**包括合并前的 tombstone**；返回结果时立即跳过 tombstone。WAND 根据平均文档长度的漂移调整上界，增长段存在时仍可剪枝。标量评分为 parallel restricted，以保持同一份统计快照。
+1.0.0 通过尾页提示追加写入，新行立即可搜索。索引扫描与标量评分在同一次执行中共享缓存统计。`work_mem` 是软限制：活跃原生扫描和最近使用的八个查询即使超额也会保留，其余条目按 LRU 淘汰；重新收集的条目可能看到同一语句执行期间的语料变化。同一 preparation 的词项共享两张只读长度归一化表，但增长段评分的内存仍与增长段大小成正比。计数包含所有非 NULL 物理记录，**包括合并前的 tombstone**；返回结果时立即跳过 tombstone。WAND 根据平均文档长度的漂移调整上界，增长段存在时仍可剪枝。标量评分为 parallel restricted；这些物理统计不是语料的 MVCC 快照。
 
-`VACUUM`（包括并行 VACUUM）可以在读写继续进行时合并段；单独的 `ANALYZE` 不执行重建。维护使用表上常规的 `ShareUpdateExclusiveLock` 和短暂的页锁。发布新段时同时记录回收视界，后续维护在旧快照全部结束后回收旧页。取消或崩溃遗留的未发布输出会在后续维护中清除，空闲空间映射也会修复。
+`VACUUM`（包括并行 VACUUM）可以在读写继续进行时合并段；单独的 `ANALYZE` 不执行重建。维护使用表上常规的 `ShareUpdateExclusiveLock` 和短暂的页锁。发布新段时同时记录回收视界，后续维护在旧快照全部结束后回收旧页。取消或崩溃遗留的未发布输出会在后续维护中清除，空闲空间映射也会修复。回收在同一条 WAL 中推进 graveyard 链头并标记旧页删除，因此陈旧 FSM 提示也不能让未摘链页提前复用。插入等待尾页时不持有 jump 锁，随后重新校验代际并尝试非阻塞获取尾页锁；成功后仍在追加一篇文档及扩展关系期间持有 jump。
 
 自动合并要求增长段记录数达到 `max(maintenance_min_rows, maintenance_scale_factor × 封闭段记录数)`，或 tombstone 数达到 `maintenance_scale_factor × 总记录数`。默认分别为 1000 行和 0.1，没有变化时不重写索引；可通过 `ALTER INDEX` 调整这两个参数。
 
@@ -107,7 +107,14 @@ SELECT bm25_maintain('documents_vector_bm25');
 
 `bm25_maintain(regclass)` 绕过门槛，发布了合并结果时返回 true；没有变化或旧代际尚不能回收时返回 false。需要表所有者权限，或 PostgreSQL 17+ 的 `MAINTAIN` 权限。它不会自行识别死亡堆元组，这仍需 `VACUUM`。维护运行期间持有表的 `ShareUpdateExclusiveLock`。
 
-实现只保留一个待回收代际。长快照会推迟旧页回收和下一次合并，因此增长段没有硬性大小上限；完全空闲的数据库也可能因事务号不前进而推迟回收。写入密集的表应调整 PostgreSQL 的 `autovacuum_vacuum_insert_threshold` 和 `autovacuum_vacuum_insert_scale_factor`。空闲页会复用，但未必截短文件，不能承诺固定的文件大小倍数。备库读者遇到主库已回收的页时返回 SQLSTATE `40001`；可以重试或启用 `hot_standby_feedback`，后者可能推迟主库回收。tombstone 本身不会取消备库查询：PostgreSQL 在回放其之前的堆页清理时已经处理了这类冲突。
+实现只保留一个待回收代际。长快照会推迟旧页回收和下一次合并，因此增长段没有硬性大小上限；完全空闲的数据库也可能因事务号不前进而推迟回收。写入密集的表应调整 PostgreSQL 的 `autovacuum_vacuum_insert_threshold` 和 `autovacuum_vacuum_insert_scale_factor`。空闲页会复用，但未必截短文件，不能承诺固定的文件大小倍数。备库读者遇到已回收页，或新代际发布后追加的增长页时，返回 SQLSTATE `40001`，应重试查询。`hot_standby_feedback` 以推迟主库回收为代价防止回收冲突，但不能防止后一种新增长页冲突。tombstone 本身不会取消备库查询：PostgreSQL 在回放其之前的堆页清理时已经处理了这类冲突。
+
+
+索引只有一个封闭段，每次合并都会将其与增长记录一起全量重写。每次非 ANALYZE 的 VACUUM 仍会扫描全部索引页和封闭文档链，再判断是否无需维护；仅凭本次删除数为零跳过，会遗漏插入驱动的合并及崩溃/FSM 修复。单篇大文档的追加或页 I/O 仍可能推迟发布。构建与合并的临时文件不受 PostgreSQL 的 `temp_file_limit` 和 `log_temp_files` 管理。VACUUM 报告的是估算索引计数；CREATE INDEX、REINDEX 和 ANALYZE 才更新目录统计。
+
+`bm25query` 保存 `regclass` OID。普通 `REINDEX` 保留它，`REINDEX ... CONCURRENTLY` 则替换它；视图、物化视图、规则和 SQL 标准函数体中的旧 OID 常量不会自动更新。并发重建前保存原始 DDL，完成后用新的 schema 限定名称重建这些定义；普通视图和函数可以使用 `CREATE OR REPLACE VIEW` 与 `CREATE OR REPLACE FUNCTION`。重建后的 `pg_get_viewdef()` 可能只剩悬空的数字 OID，不能据此恢复原绑定。文本函数体和预备语句会重新分析。
+
+显式使用 `to_bm25query(query_vector, pg_catalog.to_regclass('public.documents_vector_bm25'))` 可在执行时解析限定名称，跨并发 REINDEX 保持可用。代价是走标量排序，仍执行相同的 SELECT/RLS 检查，也不建立对该索引的存储依赖；重命名或删除会影响目标，名称缺失时返回 NULL。已有 OID 定义不会自动修复。此次回收/锁修复不改变格式 4，健康索引无需重建；若检测到 graveyard 页已被旧版本复用，会拒绝继续回收并要求 REINDEX。
 
 
 下文的 `bm25_catalog.segment_growing_max_page_size` 设置仅属于 0.3.x，不是 1.0.0 API 的一部分。

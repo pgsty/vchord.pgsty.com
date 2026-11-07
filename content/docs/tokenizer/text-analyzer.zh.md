@@ -90,9 +90,11 @@ regex = '''\w+'''
 
 | 参数 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| `mode` | `string` | `"search"` | `"full"`（调用标准 `jieba.cut` 分词）、`"precise"`（调用 `jieba.cut_all` 扫描句中所有可成词的词语）或 `"search"`（搜索引擎模式，调用 `jieba.cut_for_search` 对长词再次切分以提高检索召回率）。 |
-| `enable_hmm` | `bool` | `true` | 是否启用 HMM 新词发现能力（仅在 `"full"` 和 `"search"` 模式下生效）。 |
+| `mode` | `string` | `"search"` | `"full"`（调用 `jieba.cut_all`，输出所有匹配词语）、`"precise"`（调用标准 `jieba.cut`）或 `"search"`（搜索引擎模式，调用 `jieba.cut_for_search` 对长词再次切分以提高检索召回率）。 |
+| `enable_hmm` | `bool` | `true` | 是否在 `"precise"` 和 `"search"` 模式下启用 HMM 新词发现能力；`"full"` 模式忽略此选项。 |
 {.wide .expand}
+
+1.0.0 及更早版本将 `full` 与 `precise` 的实现对调。升级到 1.0.1 后，使用过任一模式的数据需要重新生成持久化结果，并重建依赖索引；默认 `search` 模式不受影响。
 
 ```toml
 [pre_tokenizer.jieba]
@@ -209,6 +211,8 @@ SELECT apply_text_analyzer('pgsql and postgresql have many indices', 'text_analy
 [[token_filters]]
 pg_dict = "english_stem"
 ```
+
+从 1.0.1 起，创建时会解析词典并保存带 schema 的名称；后续调用不再依赖会话 search_path，每批词元重新解析 OID，因此 DROP/CREATE 或 ALTER 后无需重连。词典改名或移到其他 schema 后需要修改分析器。升级仅在所有 schema 中恰好有一个同名词典时自动限定旧名称。缺失或有歧义的名称会阻止升级，包括自定义词典与内置词典同名的情况；须先明确选择自定义 schema 或 `pg_catalog`。SQL 升级前加载旧定义也遵循这一规则。外部词典文件变化仍遵循 PostgreSQL 原有的重新加载规则。
 
 ### `ngram` {#ngram}
 

@@ -90,9 +90,11 @@ Segments Chinese text into words using the [`jieba-rs`](https://docs.rs/jieba-rs
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `mode` | `string` | `"search"` | `"full"` (standard `jieba.cut`), `"precise"` (`jieba.cut_all` scanning all dictionary matches), or `"search"` (`jieba.cut_for_search` finer-grained segmentation for search recall). |
-| `enable_hmm` | `bool` | `true` | Enables HMM recognition for out-of-vocabulary words (`"full"` and `"search"` modes only). |
+| `mode` | `string` | `"search"` | `"full"` (`jieba.cut_all`, every dictionary match), `"precise"` (standard `jieba.cut`), or `"search"` (`jieba.cut_for_search` finer-grained segmentation for search recall). |
+| `enable_hmm` | `bool` | `true` | Enables HMM recognition for out-of-vocabulary words in `"precise"` and `"search"`; `"full"` ignores it. |
 {.wide .expand}
+
+Versions through 1.0.0 swapped `full` and `precise`. After upgrading to 1.0.1, regenerate persisted output produced with either mode and rebuild dependent indexes. The default `search` mode is unchanged.
 
 ```toml
 [pre_tokenizer.jieba]
@@ -209,6 +211,8 @@ Delegates token filtering to any existing [PostgreSQL Full-Text Search Dictionar
 [[token_filters]]
 pg_dict = "english_stem"
 ```
+
+Since 1.0.1, creation resolves the name and stores its schema-qualified form. Later calls use that name independently of the session search_path and resolve its OID once per batch, so DROP/CREATE and ALTER no longer require reconnecting. Renaming/moving the dictionary requires updating the analyzer. Upgrade qualifies a legacy name only when exactly one dictionary has that name across all schemas. Missing or ambiguous names stop the upgrade, including a custom dictionary sharing a builtin name; explicitly choose the custom schema or `pg_catalog` first. Legacy definitions loaded before the SQL upgrade follow the same rule. Changes to external dictionary files still follow PostgreSQL's normal reload rules.
 
 ### `ngram`
 

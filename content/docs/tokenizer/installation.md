@@ -76,21 +76,25 @@ cd pg_tokenizer
 cargo pgrx install --sudo --release
 ```
 
-## Upgrading to 1.0.0 {#upgrade-100}
+## Upgrading to 1.0.1 {#upgrade-101}
 
-After installing the 1.0.0 library and SQL files, restart PostgreSQL to load the new preloaded library, then update each database as the extension owner or an administrator:
+Install matching 1.0.1 library and SQL files on the primary and replicas, restart each server to reload the preloaded library, then run the following in each primary database as the extension owner or an administrator:
 
 ```sql
-ALTER EXTENSION pg_tokenizer UPDATE TO '1.0.0';
+ALTER EXTENSION pg_tokenizer UPDATE TO '1.0.1';
 ```
 
-The upgrade path is available from 0.1.0 and 0.1.1. It preserves catalog data, existing custom-model token IDs, and dependencies on the six-argument helper (including its function OID). Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. After the new library is loaded, committed definition changes invalidate backend-local caches; each lookup respects its SQL snapshot, and objects loaded from an older snapshot are discarded before a later statement or transaction reuses them. Lindera's dictionary-ID migration requires re-tokenization as described in the [model notes](/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model).
+The upgrade path is available from 0.1.0, 0.1.1 and 1.0.0. It preserves catalog data, existing custom-model token IDs, and dependencies on the six-argument helper (including its function OID). Standard `cargo pgrx install/package` and `tools/package.sh` include the migration scripts. The standby cache signal becomes active after this SQL change commits and replays. Lindera's dictionary-ID migration requires re-tokenization as described in the [model notes](/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model).
+
+Before upgrading, qualify missing or ambiguous legacy `pg_dict` references; explicitly qualify custom dictionaries that deliberately shadow builtin names. Review the [new resource budgets](/docs/tokenizer/reference/#definition-caches) for bulk ingestion. The runtime schema layout remains unchanged: database owners still need CREATE on `tokenizer_catalog` for vocabulary tables. The new counter grants PUBLIC only SELECT; its internal trigger is SECURITY DEFINER with a fixed search_path and no public EXECUTE grant.
 
 ### Database-owner permissions {#database-owner-permissions}
 
 Installation and upgrade grant `pg_database_owner` USAGE/CREATE on `tokenizer_catalog`, EXECUTE on its database-local functions, SELECT/INSERT/UPDATE/DELETE on catalog and model tables, and USAGE/SELECT on their sequences. Future objects created in that schema by the installing role receive the same table/sequence/function defaults; newly created custom models also explicitly grant access. The grants follow a database ownership change.
 
 A non-superuser database owner can create/drop its own custom models, analyzers, tokenizers, stopwords, and synonyms after an administrator installs the extension. Grants do not transfer table ownership: dropping a model created by a different role still needs that object's owner or an administrator. Other application roles require explicit grants; the extension does not give PUBLIC schema access or catalog write privileges. Functions continue to execute with the caller's privileges.
+
+Lindera dictionary and user-dictionary paths on the database server can be loaded only by superusers and roles with the privileges of `pg_read_server_files`; other roles can use `embedded://` dictionaries. The check applies when a model is created or first loaded from the catalog. A model already loaded or preloaded by the postmaster can be reused when its catalog definition matches.
 
 The cluster-wide `add_preload_model` and `remove_preload_model` functions are restricted to the extension owner and explicitly authorized administrators. `PUBLIC` and `pg_database_owner` have no EXECUTE grant on these two functions. Changes to preload files are not transactional and take effect on restart. Broken preload entries generate WARNING messages and are skipped instead of preventing startup; repair or remove the entry before expecting that model to be preloaded.
 

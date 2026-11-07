@@ -86,3 +86,18 @@ These functions are `STABLE` because they read tokenizer definitions from the ca
 | `text_analyzer` | String | Name of the `text_analyzer` used to extract vocabulary tokens. |
 | `filter` | String | Optional trusted SQL Boolean expression over source columns, without `WHERE` or `NEW.` (1.0.0). Only `TRUE` rows are used for training and embedding updates; `FALSE` and `NULL` rows are skipped. The vocabulary is append-only. |
 {.wide .expand}
+
+## Definition caches and resource budgets {#definition-caches}
+
+In 1.0.1, a transactional counter in `tokenizer_catalog.definition_version` is replicated with definition changes. Primary and hot-standby connections validate cached analyzers, tokenizers, models, stopwords and synonyms against their current SQL snapshot. Long-lived connections refresh after the commit is visible; promotion keeps this behavior. An old REPEATABLE READ snapshot or a lagging/paused replica still sees the old definition. Wait for the primary commit LSN to replay and begin a new snapshot when coordinating changes. Persisted vectors and indexes require explicit regeneration if output changes.
+
+The version check reads one row per statement, rather than scanning definitions per token. Definition-changing transactions serialize on that row and add one heap/WAL update per modifying statement; vocabulary inserts do not. Catalog-writing functions are `PARALLEL UNSAFE`, while read-only analysis remains `PARALLEL SAFE`. Definition-changing API calls still reject `PREPARE TRANSACTION`.
+
+| Session setting | Default | Budget |
+| --- | ---: | --- |
+| `pg_tokenizer.max_input_bytes` | 16,777,216 | Bytes in one analyzer input |
+| `pg_tokenizer.max_output_tokens` | 1,000,000 | Tokens or IDs in each stage |
+| `pg_tokenizer.max_output_bytes` | 67,108,864 | Token bytes plus String descriptors, ID bytes, character output or ngram offsets |
+| `pg_tokenizer.max_piece_bytes` | 1,048,576 | Input to one regex or opaque library/dictionary call |
+
+Exceeding a budget raises SQLSTATE `54000` without truncating output. These checks bound extension-owned stages, including ngram expansion and HF fixed padding, but do not impose a hard RSS limit: simultaneous buffers, cached models and library workspace add memory. Arbitrary HF normalizers/post-processors can allocate internally before output is checked. A single regex search, Jieba/Lindera/HF call or dictionary call can still delay cancellation. Use trusted model configurations and bounded documents; raising the limits increases memory exposure.

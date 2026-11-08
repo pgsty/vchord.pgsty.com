@@ -86,10 +86,12 @@ pg_config --sharedir
 wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip
 unzip postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
-# 3. 拷贝共享库 (.so) 与扩展控制/SQL 脚本文件
-sudo cp ./pg_tokenizer/pg_tokenizer.so $(pg_config --pkglibdir)
-sudo cp ./pg_tokenizer/pg_tokenizer.control ./pg_tokenizer/pg_tokenizer--*.sql $(pg_config --sharedir)/extension
+# 3. 安装共享库 (.so) 与扩展控制/SQL 脚本文件
+sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"
+sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control "$(pg_config --sharedir)/extension/"
 ```
+
+使用 `install` 替换共享库，避免就地截断 PostgreSQL 可能已经加载的文件。安装后重启 PostgreSQL，以加载安装的共享库。
 
 ## 方式四：从源码编译 {#method-4-build-from-source-cargo-pgrx}
 

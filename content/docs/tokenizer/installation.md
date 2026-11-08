@@ -68,6 +68,16 @@ Pre-built `.deb` and `.zip` release archives for selected PostgreSQL major versi
 sudo apt install ./postgresql-17-pg-tokenizer_*.deb
 ```
 
+After downloading a matching ZIP archive as `pg_tokenizer.zip`:
+
+```bash
+unzip pg_tokenizer.zip -d pg_tokenizer
+sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"
+sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control "$(pg_config --sharedir)/extension/"
+```
+
+Use `install` to replace the library without truncating a file that PostgreSQL may already have loaded. Restart PostgreSQL afterward to load the installed library, following the configuration steps above.
+
 ## From Source (`cargo-pgrx`)
 
 ```bash

@@ -68,6 +68,16 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 sudo apt install ./postgresql-17-pg-tokenizer_*.deb
 ```
 
+将匹配的 ZIP 归档下载为 `pg_tokenizer.zip` 后执行：
+
+```bash
+unzip pg_tokenizer.zip -d pg_tokenizer
+sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"
+sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control "$(pg_config --sharedir)/extension/"
+```
+
+使用 `install` 替换共享库，避免就地截断 PostgreSQL 可能已经加载的文件。安装后按上面的配置步骤重启 PostgreSQL，以加载安装的共享库。
+
 ## 从源码编译安装（`cargo-pgrx`） {#from-source}
 
 ```bash

@@ -86,10 +86,12 @@ pg_config --sharedir
 wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip
 unzip postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
-# 3. Copy the shared library (.so) and extension control/SQL files
-sudo cp ./pg_tokenizer/pg_tokenizer.so $(pg_config --pkglibdir)
-sudo cp ./pg_tokenizer/pg_tokenizer.control ./pg_tokenizer/pg_tokenizer--*.sql $(pg_config --sharedir)/extension
+# 3. Install the shared library (.so) and extension control/SQL files
+sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"
+sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control "$(pg_config --sharedir)/extension/"
 ```
+
+Use `install` to replace the library without truncating a file that PostgreSQL may already have loaded. Restart PostgreSQL afterward to load the installed library.
 
 ## Method 4: Build from Source {#method-4-build-from-source-cargo-pgrx}
 

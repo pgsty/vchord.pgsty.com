@@ -8,6 +8,8 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 
 ## Linux Packages via `pig` (Recommended)
 
+Version 1.1.0 release acceptance covers fresh installations on PostgreSQL 14–18. Upgrade compatibility, default-privilege migration and snapshots spanning an upgrade are outside this release's acceptance scope; see the [release notes](/blog/release/pg-tokenizer-1.1.0/).
+
 On EL 8/9/10, Debian 12/13, and Ubuntu 22.04/24.04/26.04 (PostgreSQL 14–18), you can install the native package built for your distribution and architecture from the [Pigsty repository](https://pigsty.io/ext/e/pg_tokenizer) (see the package matrix on [pgext.cloud](https://pgext.cloud/ext/pg_tokenizer)):
 
 ```bash
@@ -61,11 +63,11 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 
 ## From Debian Package or ZIP Archive
 
-Pre-built `.deb` and `.zip` release archives for selected PostgreSQL major versions and `x86_64`/`aarch64` architectures are available on the [`pgsty/pg_tokenizer` Releases page](https://github.com/pgsty/pg_tokenizer/releases/latest). Select a `.deb` matching the exact target Debian/Ubuntu release, PostgreSQL major version, and architecture. ZIP archives have no package-manager dependency metadata, so verify their shared-library compatibility with the target system's libc before installing; use a matching native package when one is available.
+The [pg_tokenizer 1.1.0 GitHub release](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.1.0) contains `.deb` and `.zip` archives for PostgreSQL 14–18 on `x86_64`/`aarch64`, built on Ubuntu 24.04. Draft assets become publicly available when the release is published. Select a package matching the target distribution, PostgreSQL major version, and architecture; use the Pigsty repository for other native distribution builds. ZIP archives have no package-manager dependency metadata, so verify shared-library compatibility with the target system's libc before installing.
 
 ```bash
-# Debian / Ubuntu
-sudo apt install ./postgresql-17-pg-tokenizer_*.deb
+# Ubuntu 24.04, PostgreSQL 17, amd64
+sudo apt install ./postgresql-17-pg-tokenizer_1.1.0-1_amd64.deb
 ```
 
 After downloading a matching ZIP archive as `pg_tokenizer.zip`:
@@ -83,10 +85,13 @@ Use `install` to replace the library without truncating a file that PostgreSQL m
 ```bash
 git clone https://github.com/pgsty/pg_tokenizer.git
 cd pg_tokenizer
-cargo pgrx install --sudo --release
+git checkout v1.1.0
+cargo pgrx install --sudo --release --pg-config "$(command -v pg_config)" --features lindera-ipadic
 ```
 
 ## Upgrading to 1.1.0 {#upgrade-110}
+
+The following is reference material, not an upgrade acceptance statement for this release. Default-privilege migration and transactions retaining a snapshot across an upgrade need separate validation.
 
 Install matching 1.1.0 library and SQL files on the primary and replicas, restart each server to reload the preloaded library, then run the following in each primary database as the extension owner or an administrator:
 

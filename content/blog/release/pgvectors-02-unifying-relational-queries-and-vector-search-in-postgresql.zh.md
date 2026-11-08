@@ -7,6 +7,7 @@ tags:
   - "release"
   - "vectorsearch"
 upstream_link: "https://blog.vectorchord.ai/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql"
+release_url: "https://github.com/tensorchord/pgvecto.rs/releases/tag/v0.2.0"
 upstream_copyright: "© 2024 Ce Gao (TensorChord Inc.)"
 aliases:
   - "/blog/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/"
@@ -14,6 +15,8 @@ aliases:
 authors: ["ce-gao"]
 images: ["/blog/covers/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql.png"]
 ---
+
+**GitHub 发布记录：** [pgvecto.rs v0.2.0](https://github.com/tensorchord/pgvecto.rs/releases/tag/v0.2.0)。
 
 我们很高兴地宣布发布 [pgvecto.rs](/zh/docs/vectors/) 0.2，这是弥合 PostgreSQL 中关系型查询与向量搜索之间鸿沟的重要里程碑。此次更新将两者的强大能力融为一体，不仅提升了执行效率，还支持在 PostgreSQL 内部直接运行复杂的混合查询。
 

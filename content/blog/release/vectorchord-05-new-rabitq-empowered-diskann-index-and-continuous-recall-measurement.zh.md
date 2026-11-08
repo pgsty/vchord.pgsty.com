@@ -8,6 +8,7 @@ tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement"
+release_url: "https://github.com/supervc-stack/VectorChord/releases/tag/0.5.0"
 upstream_copyright: "© 2025 xieydd (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement/"
@@ -15,6 +16,8 @@ aliases:
 authors: ["xieydd"]
 images: ["/blog/covers/vectorchord-05-new-rabitq-empowered-diskann-index-and-continuous-recall-measurement.png"]
 ---
+
+**GitHub 发布记录：** [VectorChord 0.5.0](https://github.com/supervc-stack/VectorChord/releases/tag/0.5.0)。
 
 我们非常激动地宣布发布 **VectorChord 0.5**！此次发布标志着我们在提供更灵活、更强大、更可控的向量搜索能力这一使命上迈出了重要一步。在 0.5 版本中，我们引入了两项重大更新：**对 DiskANN 图索引的实验性支持**，以及全新的**用于主动监控 IVF+RaBitQ 索引健康状况的召回率评估工具**。
 

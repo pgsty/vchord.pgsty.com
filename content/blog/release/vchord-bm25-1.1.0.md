@@ -12,6 +12,7 @@ tags:
   - "vchord_bm25"
   - "bm25"
   - "full-text-search"
+release_url: "https://github.com/pgsty/vchord_bm25/releases/tag/1.1.0"
 upstream_source: ""
 upstream_link: ""
 ---

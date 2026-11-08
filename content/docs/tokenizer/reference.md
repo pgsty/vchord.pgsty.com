@@ -93,6 +93,8 @@ In 1.1.0, a transactional counter in `tokenizer_catalog.definition_version` is r
 
 The version check reads one row per statement, rather than scanning definitions per token. Definition-changing transactions serialize on that row and add one heap/WAL update per modifying statement; vocabulary inserts do not. Catalog-writing functions are `PARALLEL UNSAFE`, while read-only analysis remains `PARALLEL SAFE`. Definition-changing API calls still reject `PREPARE TRANSACTION`.
 
+Read-only transactions can be prepared. At `PREPARE TRANSACTION`, the preparing backend clears derived objects and validation state, so later queries reload under their own snapshots even if another connection rolls back the prepared transaction and a different definition reuses its version number.
+
 | Session setting | Default | Budget |
 | --- | ---: | --- |
 | `pg_tokenizer.max_input_bytes` | 16,777,216 | Bytes in one analyzer input |

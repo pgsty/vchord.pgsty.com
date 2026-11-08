@@ -8,6 +8,8 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 
 ## 通过 `pig` 安装原生 Linux 软件包（推荐） {#linux-packages-via-pig}
 
+1.1.0 的发布验收范围是 PostgreSQL 14–18 上的全新安装。升级兼容、默认权限迁移与跨升级旧快照不在本轮验收范围内，详见[发布说明](/zh/blog/release/pg-tokenizer-1.1.0/)。
+
 在 EL 8/9/10、Debian 12/13 与 Ubuntu 22.04/24.04/26.04（支持 PostgreSQL 14–18）上，可以从 [Pigsty 软件仓库](https://pigsty.cc/ext/e/pg_tokenizer)安装与目标发行版、CPU 架构匹配的原生软件包（完整包可用性矩阵见 [pgext.cloud](https://pgext.cloud/ext/pg_tokenizer)）：
 
 ```bash
@@ -61,11 +63,11 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 
 ## 从 Debian 软件包或 ZIP 归档包安装 {#from-debian-package-or-zip-archive}
 
-[`pgsty/pg_tokenizer` Releases 页面](https://github.com/pgsty/pg_tokenizer/releases/latest)提供面向部分 PostgreSQL 主版本及 `x86_64`/`aarch64` 架构的 `.deb` 与 `.zip` 发行归档。`.deb` 必须匹配目标 Debian/Ubuntu 发行版、PostgreSQL 主版本和架构；ZIP 不包含软件包管理器依赖元数据，安装前必须自行验证共享库与目标系统 libc 的兼容性，目标平台有原生包时应优先使用原生包。
+[pg_tokenizer 1.1.0 GitHub Release](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.1.0) 提供在 Ubuntu 24.04 上构建、覆盖 PostgreSQL 14–18 及 `x86_64`/`aarch64` 的 `.deb` 与 `.zip` 归档。草稿正式发布后，附件才会向公众开放。软件包必须匹配目标发行版、PostgreSQL 主版本和架构；其他发行版的原生包请使用 Pigsty 软件仓库。ZIP 不包含软件包管理器依赖元数据，安装前必须自行验证共享库与目标系统 libc 的兼容性。
 
 ```bash
-# Debian / Ubuntu
-sudo apt install ./postgresql-17-pg-tokenizer_*.deb
+# Ubuntu 24.04、PostgreSQL 17、amd64
+sudo apt install ./postgresql-17-pg-tokenizer_1.1.0-1_amd64.deb
 ```
 
 将匹配的 ZIP 归档下载为 `pg_tokenizer.zip` 后执行：
@@ -83,10 +85,13 @@ sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.c
 ```bash
 git clone https://github.com/pgsty/pg_tokenizer.git
 cd pg_tokenizer
-cargo pgrx install --sudo --release
+git checkout v1.1.0
+cargo pgrx install --sudo --release --pg-config "$(command -v pg_config)" --features lindera-ipadic
 ```
 
 ## 升级到 1.1.0 {#upgrade-110}
+
+以下内容保留作为参考，不代表本轮已经完成升级验收。默认权限迁移及持有跨升级快照的事务需要单独验证。
 
 在主库和备库安装匹配的 1.1.0 共享库与 SQL 文件，分别重启以重新加载预加载库，然后由扩展拥有者或管理员在每个主库数据库执行：
 

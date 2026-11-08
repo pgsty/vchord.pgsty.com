@@ -8,6 +8,7 @@ tags:
   - "postgresql"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm"
+release_url: "https://github.com/supervc-stack/VectorChord/releases/tag/0.2.0"
 upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm/"
@@ -15,6 +16,8 @@ aliases:
 authors: ["jinjing-zhou"]
 images: ["/blog/covers/vectorchord-02-60k-dimensional-vectors-50-faster-indexing-with-arm.png"]
 ---
+
+**GitHub release:** [VectorChord 0.2.0](https://github.com/supervc-stack/VectorChord/releases/tag/0.2.0).
 
 Today, we’re thrilled to share VectorChord 0.2—a release shaped by community feedback and designed to tackle the evolving challenges of vector search in PostgreSQL.
 

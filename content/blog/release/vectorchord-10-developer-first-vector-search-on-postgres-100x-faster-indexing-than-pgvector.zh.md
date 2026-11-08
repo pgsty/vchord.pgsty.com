@@ -7,6 +7,7 @@ tags:
   - "release"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector"
+release_url: "https://github.com/supervc-stack/VectorChord/releases/tag/1.0.0"
 upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector/"
@@ -14,6 +15,8 @@ aliases:
 authors: ["jinjing-zhou"]
 images: ["/blog/covers/vectorchord-10-developer-first-vector-search-on-postgres-100x-faster-indexing-than-pgvector.png"]
 ---
+
+**GitHub 发布记录：** [VectorChord 1.0.0](https://github.com/supervc-stack/VectorChord/releases/tag/1.0.0)。
 
 两年前，当我们发布第一篇 [pgvecto.rs](/zh/docs/vectors/) 博客文章时，我们下了一个赌注：**Postgres 是进行向量搜索的最佳场所**。从那时起，我们一直围绕这个信念持续迭代——从支持过滤向量搜索的 VBASE，到更长维度的向量支持，再到 RaBitQ 量化方案以及对磁盘友好的索引布局。
 

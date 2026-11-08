@@ -8,6 +8,7 @@ tags:
   - "pgvector"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-04-faster-postgresql-vector-search-with-advanced-io-and-prefiltering"
+release_url: "https://github.com/supervc-stack/VectorChord/releases/tag/0.4.0"
 upstream_copyright: "© 2025 Jinjing Zhou (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-04-faster-postgresql-vector-search-with-advanced-io-and-prefiltering/"
@@ -15,6 +16,8 @@ aliases:
 authors: ["jinjing-zhou"]
 images: ["/blog/covers/vectorchord-04-faster-postgresql-vector-search-with-advanced-io-and-prefiltering.png"]
 ---
+
+**GitHub release:** [VectorChord 0.4.0](https://github.com/supervc-stack/VectorChord/releases/tag/0.4.0).
 
 We're excited to announce the release of **VectorChord 0.4**, a significant update that enhances high-performance vector search within PostgreSQL. We believe this release pushes the boundaries of what's possible for vector search in PostgreSQL, introducing key architectural improvements designed to lower latency and increase throughput for demanding, real-world workloads.
 

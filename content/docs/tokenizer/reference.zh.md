@@ -95,6 +95,8 @@ upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/
 
 版本检查每条语句读取一行，不会逐词扫描定义表。修改定义的事务在版本行上串行化，每条修改语句增加一次 heap/WAL 更新；普通词表插入不更新版本行。写目录的函数均标记为 `PARALLEL UNSAFE`，只读分析保留 `PARALLEL SAFE`。修改定义的 API 仍不允许 `PREPARE TRANSACTION`。
 
+只读事务仍可 prepare。执行 `PREPARE TRANSACTION` 时，原连接会清空派生对象与校验状态；即使另一连接回滚该预备事务，随后其他配置复用了同一个版本号，后续查询也会按自己的快照重新加载。
+
 ## 分析资源预算 {#analysis-budgets}
 
 | 会话参数 | 默认值 | 预算范围 |

@@ -12,6 +12,7 @@ tags:
   - "vchord_bm25"
   - "bm25"
   - "full-text-search"
+release_url: "https://github.com/pgsty/vchord_bm25/releases/tag/untagged-91021a74541d24785df1"
 upstream_source: ""
 upstream_link: ""
 ---
@@ -19,9 +20,11 @@ upstream_link: ""
 **vchord_bm25 1.0.0** is the first release maintained by PGSTY in [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) under the AGPL-3.0 license. It replaces the custom `bm25vector` data type and fixed `bm25_catalog` schema from 0.3.x with native PostgreSQL `tsvector` indexing, reworks the Block-WeakAnd (WAND) scan and storage engine for continuing scans and concurrent `VACUUM`, and enforces table privileges and Row-Level Security (RLS) across both indexed scans and scalar scoring.
 
 > [!NOTE] Extension & Release Links
-> - **GitHub Release**: [`pgsty/vchord_bm25 1.0.0`](https://github.com/pgsty/vchord_bm25/releases/tag/1.0.0) · [Source Repository](https://github.com/pgsty/vchord_bm25)
+> - **GitHub Release draft**: [`pgsty/vchord_bm25 1.0.0`](https://github.com/pgsty/vchord_bm25/releases/tag/untagged-91021a74541d24785df1) · [Source Repository](https://github.com/pgsty/vchord_bm25)
 > - **Extension Catalog**: [pgext.cloud (`vchord_bm25`)](https://pgext.cloud/e/vchord_bm25) · [Pigsty Extension Page (`pigsty.io`)](https://pigsty.io/ext/e/vchord_bm25/)
 > - **Binary Packages**: [RPM / DEB Repository Setup](/download/) · [SBOM & License Inventory](/docs/about/sbom/)
+
+The 1.0.0 GitHub entry remains a draft and requires repository access. For the published release, see [vchord_bm25 1.1.0](/blog/release/vchord-bm25-1.1.0/).
 
 ## Changes in 1.0.0 {#changes}
 

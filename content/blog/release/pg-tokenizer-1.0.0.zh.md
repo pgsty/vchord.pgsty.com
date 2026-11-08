@@ -11,6 +11,7 @@ tags:
   - "release"
   - "pg_tokenizer"
   - "full-text-search"
+release_url: "https://github.com/pgsty/pg_tokenizer/releases/tag/v1.0.0"
 upstream_source: ""
 upstream_link: ""
 ---
@@ -20,7 +21,7 @@ upstream_link: ""
 现有 `tokenize(text, tokenizer_name)` 接口仍返回 `INT[]`。使用历史 `vchord_bm25` 0.3.x `bm25vector` 工作流的应用可以保留原接口；使用 GIN/GiST 或 [`vchord_bm25` 1.0.0](/zh/blog/release/vchord-bm25-1.0.0/) 接口的应用可以使用新的 `tsvector` 函数。`pg_tokenizer` 不依赖 BM25 或向量检索扩展。
 
 > [!NOTE] 扩展主页与发布链接
-> - **GitHub Release**：[`pgsty/pg_tokenizer 1.0.0`](https://github.com/pgsty/pg_tokenizer/releases/tag/1.0.0) · [源码仓库](https://github.com/pgsty/pg_tokenizer)
+> - **GitHub Release**：[`pgsty/pg_tokenizer 1.0.0`](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.0.0) · [源码仓库](https://github.com/pgsty/pg_tokenizer)
 > - **扩展目录主页**：[pgext.cloud (`pg_tokenizer`)](https://pgext.cloud/e/pg_tokenizer) · [Pigsty 扩展页面 (`pigsty.cc`)](https://pigsty.cc/ext/e/pg_tokenizer/)
 > - **二进制软件包**：[RPM / DEB 软件源配置](/zh/download/) · [SBOM 与许可证清单](/zh/docs/about/sbom/)
 

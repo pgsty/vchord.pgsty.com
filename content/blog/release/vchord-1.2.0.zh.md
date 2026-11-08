@@ -12,6 +12,7 @@ tags:
   - "vchord"
   - "vectorchord"
   - "vector-database"
+release_url: "https://github.com/pgsty/vchord/releases/tag/1.2.0"
 upstream_source: ""
 upstream_link: ""
 ---

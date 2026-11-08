@@ -8,6 +8,7 @@ tags:
   - "vector-database"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults"
+release_url: "https://github.com/supervc-stack/VectorChord/releases/tag/1.1.0"
 upstream_copyright: "© 2026 Junyu Chen (TensorChord Inc.)"
 aliases:
   - "/blog/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults/"
@@ -15,6 +16,8 @@ aliases:
 authors: ["junyu-chen"]
 images: ["/blog/covers/vectorchord-11-native-48-bit-vector-types-and-per-index-query-defaults.png"]
 ---
+
+**GitHub 发布记录：** [VectorChord 1.1.0](https://github.com/supervc-stack/VectorChord/releases/tag/1.1.0)。
 
 值此马年新春开启之际，我们非常高兴地宣布发布 VectorChord 1.1。
 

@@ -8,6 +8,7 @@ tags:
   - "multivector"
   - "vectorchord"
 upstream_link: "https://blog.vectorchord.ai/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql"
+release_url: "https://github.com/supervc-stack/VectorChord/releases/tag/0.3.0"
 upstream_copyright: "© 2025 Keming Yang, Jinjing Zhou (TensorChord Inc.)"
 math: true
 aliases:
@@ -16,6 +17,8 @@ aliases:
 authors: ["keming", "jinjing-zhou"]
 images: ["/blog/covers/vectorchord-03-bringing-efficient-multi-vector-contextual-late-interaction-in-postgresql.png"]
 ---
+
+**GitHub release:** [VectorChord 0.3.0](https://github.com/supervc-stack/VectorChord/releases/tag/0.3.0).
 
 We're thrilled to announce the release of **VectorChord 0.3**, a major milestone that significantly boosts the performance and applicability of advanced vector search techniques directly within your Postgres database! Building on our 0.2 release, which brought ARM support and faster indexing, version 0.3 tackles one of the biggest hurdles in modern retrieval: **efficient multi-vector search with late interaction**.
 

@@ -11,6 +11,7 @@ tags:
   - "release"
   - "pg_tokenizer"
   - "full-text-search"
+release_url: "https://github.com/pgsty/pg_tokenizer/releases/tag/v1.0.0"
 upstream_source: ""
 upstream_link: ""
 ---
@@ -20,7 +21,7 @@ upstream_link: ""
 The existing `tokenize(text, tokenizer_name)` interface still returns `INT[]`. Applications using the historical `vchord_bm25` 0.3.x `bm25vector` workflow can retain that interface; applications using GIN/GiST or the [`vchord_bm25` 1.0.0](/blog/release/vchord-bm25-1.0.0/) API can use the new `tsvector` functions. `pg_tokenizer` does not require either BM25 or vector-search extensions.
 
 > [!NOTE] Extension & Release Links
-> - **GitHub Release**: [`pgsty/pg_tokenizer 1.0.0`](https://github.com/pgsty/pg_tokenizer/releases/tag/1.0.0) · [Source Repository](https://github.com/pgsty/pg_tokenizer)
+> - **GitHub Release**: [`pgsty/pg_tokenizer 1.0.0`](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.0.0) · [Source Repository](https://github.com/pgsty/pg_tokenizer)
 > - **Extension Catalog**: [pgext.cloud (`pg_tokenizer`)](https://pgext.cloud/e/pg_tokenizer) · [Pigsty Extension Page (`pigsty.io`)](https://pigsty.io/ext/e/pg_tokenizer/)
 > - **Binary Packages**: [RPM / DEB Repository Setup](/download/) · [SBOM & License Inventory](/docs/about/sbom/)
 

@@ -66,9 +66,9 @@ Download release archives for your PostgreSQL major version (`14`–`18`) and CP
 curl -LO https://github.com/pgsty/vchord_bm25/releases/download/1.1.0/postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
 sudo apt-get install ./postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
 
-# Install pg_tokenizer 1.0.0 (example for PostgreSQL 16 on x86_64)
-curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
+# Install pg_tokenizer 1.1.0 (Ubuntu 24.04, PostgreSQL 16, x86_64)
+curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.1.0/postgresql-16-pg-tokenizer_1.1.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-pg-tokenizer_1.1.0-1_amd64.deb
 ```
 
 ### Manual ZIP installation
@@ -83,8 +83,8 @@ pg_config --sharedir
 # Example: /usr/pgsql-16/share
 
 # 2. Download and extract the release archive
-wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip
-unzip postgresql-16-pg-tokenizer_1.0.0_x86_64-linux-gnu.zip -d pg_tokenizer
+wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.1.0/postgresql-16-pg-tokenizer_1.1.0_x86_64-linux-gnu.zip
+unzip postgresql-16-pg-tokenizer_1.1.0_x86_64-linux-gnu.zip -d pg_tokenizer
 
 # 3. Install the shared library (.so) and extension control/SQL files
 sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"

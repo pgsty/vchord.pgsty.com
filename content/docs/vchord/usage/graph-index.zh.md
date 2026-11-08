@@ -65,10 +65,22 @@ $$);
 
 部分索引可用于查询条件蕴含索引谓词的向量查询。不含可用向量排序或球面条件的查询（如 `COUNT(*)`）会使用其他执行计划。`CREATE INDEX`、`REINDEX` 与 `VACUUM` 会向 PostgreSQL 报告元组数和页数统计；单独执行 `ANALYZE` 不会重建图。
 
+### 维护与重建 {#maintenance}
+
+拟发布的 1.3.0 在 `VACUUM` 中采用有界的局部修复。邻接表还有空位时，即使已有附近的存活邻居，也会继续沿删除桥寻找存活出口。修复沿用既有度数限制和剪枝策略，不保证所有删除模式下的全图连通性或召回率不变。如果图入口在扩展预算内找不到任何存活路径，则保留删除的导航顶点，并警告用户提高 `maintenance_work_mem` 后重试。
+
+保持 autovacuum 开启，用于死元组清理、空间复用和冻结。在大量或成片删除后，用精确查询作为基准测量召回率。如果召回下降或索引膨胀，可从表数据在线重建索引：
+
+```sql
+REINDEX INDEX CONCURRENTLY items_embedding_idx;
+```
+
+此命令须在事务块外执行。并发重建允许读写继续，但需要新索引的磁盘空间，并增加 CPU、I/O 和 WAL 开销。长事务可能延迟完成；新索引生效之前，查询继续使用旧索引。重建恢复的是新建 ANN 索引的质量，不保证精确搜索的召回。参阅 PostgreSQL 的[并发重建说明](https://www.postgresql.org/docs/18/sql-reindex.html#SQL-REINDEX-CONCURRENTLY)。
+
 <a id="result-order"></a>
 
 > [!WARNING] 结果顺序
-> `vchordg` 在返回结果的同时仍在继续搜索，后找到的行可能比已返回的行更近，因此 `ORDER BY ... LIMIT` 的结果不一定严格按距离升序排列。调大 `vchordg.ef_search` 能减少这种情况，但不能完全避免。对于 `halfvec` 列，索引比较的是向量的半精度副本，距离相差约 0.0001 以内的两行也可能顺序颠倒。需要严格顺序时，请在外层查询中对候选结果重新排序；召回率仍取决于候选数量与搜索参数。该问题记录于 [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17)。
+> `vchordg` 在返回结果的同时仍在继续搜索，后找到的行可能比已返回的行更近，因此 `ORDER BY ... LIMIT` 的结果不一定严格按距离升序排列。调大 `vchordg.ef_search` 能减少这种情况，但不能完全避免：在 10 万行、768 维的测试中，默认 `ef_search = 64` 时约 2.5% 的 `LIMIT 10` 查询出现某行排在比它近 0.1% 以上的行之前，差距最大约 38%；`ef_search = 128` 时只剩下面所说的半精度换位。带 `WHERE` 过滤的查询会在索引中读得更深，出现得更频繁。对于 `halfvec` 列，索引比较的是向量的半精度副本，距离相差约 0.0001 以内的两行也可能顺序颠倒。这是近似检索的固有行为，按设计保留并在此说明，参见 [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17)。需要严格顺序时，请在外层查询中对候选结果重新排序；召回率仍取决于候选数量与搜索参数。
 >
 > ```sql
 > WITH candidates AS MATERIALIZED (

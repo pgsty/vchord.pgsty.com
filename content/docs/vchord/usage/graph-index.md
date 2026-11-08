@@ -65,10 +65,22 @@ Sphere filters compare the radius in the distance operator's units: Euclidean di
 
 Partial indexes are supported for vector queries whose predicates imply the index predicate. Queries without a usable vector ordering or sphere condition, such as `COUNT(*)`, use other plans. `CREATE INDEX`, `REINDEX`, and `VACUUM` report tuple and page statistics to PostgreSQL; `ANALYZE` alone does not rebuild the graph.
 
+### Maintenance and rebuilding {#maintenance}
+
+The planned 1.3.0 release uses bounded local repair during `VACUUM`. When a neighbour list has spare capacity, it also follows deleted bridges even if a nearby live neighbour already exists. Repair keeps the existing degree limit and pruning strategy; it does not guarantee connectivity or unchanged recall after every deletion pattern. If the entry point cannot find any live route within the expansion budget, deleted navigation vertices are retained and a warning recommends retrying with more `maintenance_work_mem`.
+
+Keep autovacuum enabled for dead-row cleanup, space reuse and freezing. After large or clustered deletes, measure recall against an exact query. If recall degrades or the index has accumulated excess space, rebuild it from the table:
+
+```sql
+REINDEX INDEX CONCURRENTLY items_embedding_idx;
+```
+
+Run this outside a transaction block. Concurrent rebuilding permits reads and writes, but needs space for the replacement index and adds CPU, I/O and WAL work. Long-running transactions can delay completion; queries continue using the old index until the replacement becomes valid. Rebuilding restores the quality of a fresh ANN index, not an exact-search guarantee. See PostgreSQL's [concurrent reindex documentation](https://www.postgresql.org/docs/18/sql-reindex.html#SQL-REINDEX-CONCURRENTLY).
+
 <a id="result-order"></a>
 
 > [!WARNING] Result order
-> `vchordg` keeps searching while it returns rows, so a row found later can be closer than one already returned. As a result, `ORDER BY ... LIMIT` output is not always in ascending distance order. A larger `vchordg.ef_search` makes this rarer but does not rule it out. With `halfvec` columns, rows whose distances differ by about 0.0001 or less can also be swapped, because the index compares half-precision copies of the vectors. When strict order matters, re-sort the candidates in an outer query. Recall still depends on the number of candidates and the search parameters. This is tracked in [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17).
+> `vchordg` keeps searching while it returns rows, so a row found later can be closer than one already returned. As a result, `ORDER BY ... LIMIT` output is not always in ascending distance order. A larger `vchordg.ef_search` makes this rarer but does not rule it out: in a 100,000-row, 768-dimension test with the default `ef_search = 64`, about 2.5% of `LIMIT 10` queries returned a row ahead of one more than 0.1% closer, by up to about 38%, while `ef_search = 128` left only the half-precision swaps described below. Queries with a `WHERE` filter read further into the index and are affected more often. With `halfvec` columns, rows whose distances differ by about 0.0001 or less can also be swapped, because the index compares half-precision copies of the vectors. This is expected of approximate search and is documented rather than changed; see [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17). When strict order matters, re-sort the candidates in an outer query. Recall still depends on the number of candidates and the search parameters.
 >
 > ```sql
 > WITH candidates AS MATERIALIZED (

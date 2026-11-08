@@ -17,7 +17,7 @@ upstream_source: ""
 upstream_link: ""
 ---
 
-**vchord 1.2.0** 是 PGSTY 在 [`pgsty/vchord`](https://github.com/pgsty/vchord) 维护的首个正式版本，采用 AGPL-3.0 许可证发布。它支持从 `vchord 0.2.0` 至 `1.1.1` 直接原地升级（`ALTER EXTENSION vchord UPDATE TO '1.2.0'`，无需重建现有索引），修复了 `vchordrq` 与 `vchordg` 的多处查询正确性问题，改进了 `VACUUM` 顶点可见性、统计信息上报、内外索引构建与量化类型校验，并补齐了缓存预热与查询采样的权限检查。
+**vchord 1.2.0** 是 PGSTY 在 [`pgsty/vchord`](https://github.com/pgsty/vchord) 维护的首个正式版本，采用 AGPL-3.0 许可证发布。它支持从 `vchord 0.2.0` 至 `1.1.1` 直接原地升级（`ALTER EXTENSION vchord UPDATE TO '1.2.0'`；需要 REINDEX 的例外见下文），修复了 `vchordrq` 与 `vchordg` 的多处查询正确性问题，改进了 `VACUUM` 顶点可见性、统计信息上报、内外索引构建与量化类型校验，并补齐了缓存预热与查询采样的权限检查。
 
 > [!NOTE] 扩展主页与发布链接
 > - **GitHub Release**：[`pgsty/vchord 1.2.0`](https://github.com/pgsty/vchord/releases/tag/1.2.0) · [源码仓库](https://github.com/pgsty/vchord)
@@ -31,10 +31,11 @@ upstream_link: ""
 | 多向量 MaxSim（`@#`） | 只探测部分分区且 `maxsim_refine = 0`、`maxsim_threshold = 0` 时，未出现在某个查询词元候选集中的文档改用该候选集中的最差距离填补缺失值，不再因取 `-Infinity` 而错误排在最前面。 |
 | 球面过滤与构造器 | `vchordg` 球面范围操作符（`<<->>`、`<<=>>`、`<<#>>`）改为按操作符距离单位而非内部平方距离比较半径，并设置 `xs_recheck = true`；全部 6 个 `sphere(center, real)` 构造器在扩展创建时绑定复合返回类型，不再受调用者 `search_path` 影响。 |
 | `read_stream` 重排序 | 在 PostgreSQL 17/18 上启用 `vchordrq.io_rerank = 'read_stream'` 时，若并发 `VACUUM` 使基表页面可见项减少，缓冲区守卫（buffer guard）仍与剩余候选项保持严格对齐。 |
-| `VACUUM` 与统计信息 | `vchordg` 在 `VACUUM` 后排除已删除顶点，同时在入口顶点被删除时仍允许借道遍历以保证剩余顶点可达；`vchordrq` 与 `vchordg` 在 `CREATE INDEX`、`REINDEX` 和 `VACUUM` 后上报真实行数与页数，不再将 `pg_class.reltuples` 重置为 `0`；单独执行 `ANALYZE` 不再触发索引清理。 |
+| `VACUUM` 与统计信息 | `vchordg` 在 `VACUUM` 后排除已删除顶点，同时在入口顶点被删除时仍允许借道遍历，避免仅因入口被删除而中断搜索；`vchordrq` 与 `vchordg` 在 `CREATE INDEX`、`REINDEX` 和 `VACUUM` 后上报真实行数与页数，不再将 `pg_class.reltuples` 重置为 `0`；单独执行 `ANALYZE` 不再触发索引清理。 |
 | 优化器与并行建索引 | `vchordg` 支持部分索引 `WHERE` 谓词，并在无向量排序/过滤条件（如 `SELECT COUNT(*)`）时施加 `disable_cost`；`vchordrq` 代价估算纳入 `LIMIT`、过滤选择率与 `probes` 预算；表级 `parallel_workers` 等存储选项不再阻碍并行构建索引。 |
 | 内外索引构建校验 | 内部 k-means 采样仅读取 MVCC 可见元组，并在 `lists > samples` 时校验 `maintenance_work_mem` 预算；外部质心树构建校验树深度（`2..=9` 层）、拒绝环路与不可达节点，且当存在 `>= 2` 个 `parent IS NULL` 顶层质心时自动合成根节点。 |
 | 量化数据类型 | `rabitq4` 与 `rabitq8` 严格限制 `1..=65535` 维度与编码范围（`0..=15` / `0..=255`）；`quantize_to_rabitq*` 拒绝非有限值溢出，而输入函数仍接受历史备份中的 `NaN`/`Inf` 元数据以保证 `pg_restore` 兼容；`halfvec` 距离按 `f32` 累加；量化 L2 距离在 `sqrt` 前将微小的负舍入残差截断为 `0`。 |
+| 检索默认值 | 1.2.0 tag 与正式包中的 `vchordrq.epsilon` 和索引级 `epsilon` 默认值均为 `1.9`。调高该值会精排更多向量，有助于改善召回率与距离排序。 |
 | 召回率评估与权限加固 | `vchordrq_evaluate_query_recall` 对 `@#` 查询要求 `exact_search => true`，按多级索引层数自动生成默认 `accu_probes`，并在评估后精确还原 `vchordrq.*` GUC；`vchordrq_prewarm`、`vchordg_prewarm` 与查询采样强制检查表拥有者或表级 `SELECT` 权限。 |
 | 构建与平台支持 | 升级至 `pgrx 0.19.3`，支持 Linux x86_64 与 aarch64 上的 PostgreSQL 14–18，并提供从 `0.2.0` 至 `1.1.1` 的完整升级脚本与兼容符号。 |
 {.wide .expand}
@@ -48,7 +49,7 @@ upstream_link: ""
 
 ## 索引维护、`VACUUM` 与优化器代价估算 {#maintenance-and-planner}
 
-- **`vchordg` 的 `VACUUM` 可见性与入口顶点可达性**：`VACUUM` 在 `vchordg` 索引中标记已删除的基表 TID 后，图搜索会在返回结果时过滤掉已删除顶点；即便图的入口顶点（entry point）本身已被删除，搜索仍允许借道遍历其邻接边，无需 `REINDEX` 即可保证其余存活顶点可达。
+- **`vchordg` 的 `VACUUM` 可见性与入口顶点可达性**：`VACUUM` 在 `vchordg` 索引中标记已删除的基表 TID 后，图搜索会在返回结果时过滤掉已删除顶点；即便图的入口顶点（entry point）本身已被删除，搜索仍允许借道遍历其邻接边，避免仅因入口被删除而中断搜索。大范围删除后的图结构仍可能退化，召回不足时需要重建索引。
 - **`vchordg` 部分索引与 `COUNT(*)` 保护**：`vchordg` 现支持部分索引谓词（`CREATE INDEX ... USING vchordg (...) WHERE ...`），并在扫描不包含任何向量排序或过滤条件时附加 `disable_cost` 惩罚代价，防止优化器为普通 `SELECT COUNT(*)` 选择图索引扫描。
 - **准确的 `reltuples` / `relpages` 统计信息与 `ANALYZE` 行为**：此前 `ambuild` 与 `amvacuumcleanup` 返回全零的统计计数，导致执行 `CREATE INDEX`、`REINDEX` 或 `VACUUM` 后 `pg_class.reltuples` 被清零。现在 `vchordrq` 与 `vchordg` 均会统计并上报真实的索引元组数与页面数；单独执行 `ANALYZE`（`analyze_only = true`）时 `amvacuumcleanup` 会直接返回，不再无谓触发索引清理与压缩。
 - **并行索引构建规划**：此前当基表配置了 `ALTER TABLE items SET (parallel_workers = 4)` 等表级存储选项时，`amoptions` 校验会误拒表级选项，导致并行建索引无法启动并行工作进程。修复后，`vchordrq` 与 `vchordg` 仅校验索引自身的存储参数，并行建索引可正常按表级或系统级参数规划工作进程。
@@ -81,20 +82,25 @@ upstream_link: ""
 
 ## 已知问题 {#known-issues}
 
-`1.2.0` 的软件包验收发现两种结果顺序与距离不一致的情况，已记录于 [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17)，计划在后续版本处理。召回率不受影响。
+以下情况中，结果顺序可能与距离不一致。这是近似检索的固有行为，按设计保留并在文档中说明，测试数据见 [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17)。
 
-- `vchordg` 在返回结果的同时仍在继续搜索，`ORDER BY ... LIMIT` 的结果可能不按距离排序。调大 `vchordg.ef_search` 能减少这种情况，但不能完全避免。
+- `vchordg` 在返回结果的同时仍在继续搜索，`ORDER BY ... LIMIT` 的结果可能不按距离排序。调大 `vchordg.ef_search` 能减少这种情况，但不能完全避免；在 768 维测试中，默认 `ef_search = 64` 时约 2.5% 的 `LIMIT 10` 查询出现某行排在明显更近的行之前，带过滤的查询更常见。
+- `vchordrq` 在 RaBitQ 距离下界被突破时，可能把一行排在距离略近的另一行之前。显式设置 `vchordrq.epsilon = 2.5` 时，同一测试中约 0.5–2.5% 的 `LIMIT 10` 查询受影响，距离差在 1% 以内；调高 `epsilon` 可进一步减少。
 - 对于 `halfvec` 列，距离相差约 0.0001 以内的两行可能顺序颠倒。涉及 `vchordrq` 的 `halfvec_cosine_ops`，以及 `vchordg` 的所有 `halfvec` 操作符类。
 
 需要严格顺序时，请在外层查询中对候选结果重新排序，参见[图索引：结果顺序](/zh/docs/vchord/usage/graph-index/#result-order)。其他已知问题见 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.2.0)。
 
 ## 升级至 1.2.0 与软件包获取 {#upgrade-and-packages}
 
-`vchord 1.2.0` 与 `0.2.0` 至 `1.1.1` 创建的磁盘索引完全兼容。安装对应 PostgreSQL 版本的 `1.2.0` 软件包后，重启 PostgreSQL 以通过 `shared_preload_libraries` 加载新版动态库，随后在数据库中执行：
+1.2.0 正式版的默认值为 `vchordrq.epsilon = 1.9`；上述 `2.5` 测量值不代表默认设置。
+
+`vchord 1.2.0` 保留了 `0.2.0` 至 `1.1.1` 的索引磁盘格式，但格式兼容不会修复旧的量化元数据：由 1.1.1 创建、包含零向量或一维向量的索引可能保留 NaN 元数据，需在安装包含相应编码修复的版本后执行 `REINDEX`。`rabitq4`/`rabitq8` 的对应编码修复包含在拟发布的 1.3.0 中：由 1.2.0 或更早版本创建的受影响索引，需要在安装该修复后重建。仅使用未修复的 1.2.0 编码器重建它们并不足够。
+
+安装对应 PostgreSQL 版本的 `1.2.0` 软件包后，重启 PostgreSQL 以通过 `shared_preload_libraries` 加载新版动态库，随后在数据库中执行：
 
 ```sql
 ALTER EXTENSION vchord UPDATE TO '1.2.0';
-SELECT vchord_version();
+SELECT extversion FROM pg_extension WHERE extname = 'vchord';
 -- 1.2.0
 ```
 

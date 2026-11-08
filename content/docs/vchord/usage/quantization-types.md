@@ -45,6 +45,13 @@ The `rabitq4` and `rabitq8` data types accept at most 65,535 dimensions. Codes m
 
 Version 1.2.0 fixes numeric edge cases for zero vectors, constant vectors, and half-precision calculations. Quantized L2 estimates are clamped to nonnegative values so rounding errors do not produce NaN when taking the square root. Cosine distance for a zero vector remains mathematically undefined.
 
+For `halfvec`, ANN routing can use lower precision to improve throughput. On ARM CPUs with FP16 and FHM, IVF centroid selection and graph pruning round L2 differences to `f16`, then multiply and accumulate in `f32`. This introduces at most about 0.1% relative error in squared distance from difference rounding, plus `f32` summation error; it is not a bound on recall loss. Overflowing differences trigger a retry with `f32` differences. Final reranking and SQL sphere predicates retain their existing precision. Other CPUs use the existing `f32` reduction. Measure recall when choosing probes and search breadth, particularly for nearly tied neighbors.
+
+> [!NOTE] Unreleased 1.3.0 candidate
+> The candidate defines RaBitQ cosine distances with zero or non-finite norms as `NaN`. Cosine indexes skip vectors without a valid direction, and a zero or non-finite cosine query returns no index rows. Rebuild affected old indexes after installing the corrected encoder; an extension catalog update alone does not rewrite stored metadata.
+>
+> Same-type assignment and cast enforcement for `rabitq4(n)` / `rabitq8(n)` is deferred: this candidate keeps the existing cast catalog and expression-index matching. Input paths such as `COPY` validate dimensions, but a SQL literal or same-type assignment can still bypass the declared dimension. Do not rely on the typmod alone to validate those writes.
+
 <a id="Reference"></a>
 ## Reference
 

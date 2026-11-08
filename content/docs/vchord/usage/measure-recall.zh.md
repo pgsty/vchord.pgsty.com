@@ -189,7 +189,7 @@ SELECT AVG(recall_value) FROM (
     - `query: text`，待评估召回率的查询语句
     - `exact_search: boolean`，是否使用精确基准真相代替估算的基准真相
     - `accu_probes: text`，用于生成估算基准真相的 `vchordrq.probes`
-    - `accu_epsilon: real`，用于生成估算基准真相的 `vchordrq.epsilon`
+    - `accu_epsilon: real`，用于生成估算基准真相的 `vchordrq.epsilon`（默认 `1.9`；为获得更准确的估算，应传入不低于被评估查询所用 `vchordrq.epsilon` 的值，例如 `4.0`）
 - 示例：
     - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$);`
     - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$, exact_search => true);`

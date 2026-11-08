@@ -189,7 +189,7 @@ Query sampling is not supported by `vchordg` or multi-vector queries. MaxSim rec
     - `query: text`, the query whose recall is evaluated
     - `exact_search: boolean`, use ground truth instead of estimated ground truth
     - `accu_probes: text`, `vchordrq.probes` for estimated ground truth
-    - `accu_epsilon: real`, `vchordrq.epsilon` for estimated ground truth
+    - `accu_epsilon: real`, `vchordrq.epsilon` for estimated ground truth (default `1.9`; pass a value no lower than the `vchordrq.epsilon` being evaluated, such as `4.0`, for a tighter estimate)
 - Example:
     - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$);`
     - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$, exact_search => true);`

@@ -17,7 +17,7 @@ upstream_source: ""
 upstream_link: ""
 ---
 
-**vchord 1.2.0** is the first release maintained by PGSTY in [`pgsty/vchord`](https://github.com/pgsty/vchord) under the AGPL-3.0 license. It supports direct in-place upgrades from `vchord 0.2.0` through `1.1.1` (`ALTER EXTENSION vchord UPDATE TO '1.2.0'` without reindexing), fixing query-correctness bugs in `vchordrq` and `vchordg`, `VACUUM` vertex visibility and catalog statistics, internal and external index-build checks, quantization edge cases, and privilege checks for prewarming and query sampling.
+**vchord 1.2.0** is the first release maintained by PGSTY in [`pgsty/vchord`](https://github.com/pgsty/vchord) under the AGPL-3.0 license. It supports direct in-place upgrades from `vchord 0.2.0` through `1.1.1` (`ALTER EXTENSION vchord UPDATE TO '1.2.0'`; see the REINDEX exception below), fixing query-correctness bugs in `vchordrq` and `vchordg`, `VACUUM` vertex visibility and catalog statistics, internal and external index-build checks, quantization edge cases, and privilege checks for prewarming and query sampling.
 
 > [!NOTE] Extension & Release Links
 > - **GitHub Release**: [`pgsty/vchord 1.2.0`](https://github.com/pgsty/vchord/releases/tag/1.2.0) · [Source Repository](https://github.com/pgsty/vchord)
@@ -35,6 +35,7 @@ upstream_link: ""
 | Planner & parallel builds | `vchordg` honors partial index `WHERE` predicates and adds `disable_cost` for non-vector scans (such as `SELECT COUNT(*)`); `vchordrq` cost estimation accounts for `LIMIT`, filter selectivity, and `probes` depth; table options like `parallel_workers` no longer block parallel index builds. |
 | Internal & external builds | Internal k-means sampling reads only MVCC-visible rows and checks `maintenance_work_mem` when `lists > samples`; external centroid builds validate tree depth (`2..=9`), reject cycles and unreachable nodes, and synthesize a root when `>= 2` top-level centroids have `parent IS NULL`. |
 | Quantization types | `rabitq4` and `rabitq8` enforce `1..=65535` dimensions and code ranges (`0..=15` / `0..=255`); `quantize_to_rabitq*` rejects non-finite overflow while input functions accept legacy `NaN`/`Inf` metadata for `pg_restore`; `halfvec` distances accumulate in `f32`; quantized L2 clamps negative rounding residuals to `0` before `sqrt`. |
+| Search defaults | The 1.2.0 tag and packages retain `1.9` for `vchordrq.epsilon` and the `epsilon` index option. A higher value reranks more vectors and can improve recall and distance ordering. |
 | Recall & privileges | `vchordrq_evaluate_query_recall` requires `exact_search => true` for `@#`, derives multi-level default `accu_probes`, and restores `vchordrq.*` GUCs; `vchordrq_prewarm`, `vchordg_prewarm`, and query sampling enforce table ownership or `SELECT` privileges. |
 | Build & platform support | Upgraded to `pgrx 0.19.3` for PostgreSQL 14–18 on Linux x86_64 and aarch64, with full in-place upgrade scripts from `0.2.0` through `1.1.1`. |
 {.wide .expand}
@@ -48,7 +49,7 @@ upstream_link: ""
 
 ## Index maintenance, `VACUUM`, and planner cost estimation {#maintenance-and-planner}
 
-- **`vchordg` `VACUUM` visibility and entry-point reachability**: After `VACUUM` marks deleted heap TIDs in a `vchordg` index, graph searches exclude deleted vertices from returned results while still traversing through the graph's entry point if that entry point was deleted, keeping surviving vertices reachable without a `REINDEX`.
+- **`vchordg` `VACUUM` visibility and entry-point reachability**: After `VACUUM` marks deleted heap TIDs in a `vchordg` index, graph searches exclude deleted vertices from returned results while still traversing through the graph's entry point if that entry point was deleted, so deleting the entry point alone does not stop traversal. Larger deletion patterns can still degrade graph connectivity and require a rebuild if recall becomes insufficient.
 - **`vchordg` partial indexes and `COUNT(*)` protection**: `vchordg` now supports partial index predicates (`CREATE INDEX ... USING vchordg (...) WHERE ...`) and adds PostgreSQL's `disable_cost` penalty whenever a scan has no vector ordering or filter clauses, preventing the planner from choosing a graph index for plain `SELECT COUNT(*)` queries.
 - **Accurate `reltuples` / `relpages` statistics and `ANALYZE` no-op**: Previously, `ambuild` and `amvacuumcleanup` returned zeroed `IndexBuildResult` / `IndexVacuumInfo` counters, which caused `CREATE INDEX`, `REINDEX`, and `VACUUM` to overwrite `pg_class.reltuples` with `0`. Both `vchordrq` and `vchordg` now report actual indexed tuple and page counts. When `ANALYZE` runs (`analyze_only = true`), `amvacuumcleanup` returns immediately without running index compaction or page cleanup.
 - **Parallel index build planning**: Setting table storage options such as `ALTER TABLE items SET (parallel_workers = 4)` previously caused `amoptions` validation to reject the table's reloptions when planning parallel index builds. Both `vchordrq` and `vchordg` now validate only index-level reloptions so parallel worker planning proceeds normally.
@@ -81,20 +82,25 @@ upstream_link: ""
 
 ## Known issues {#known-issues}
 
-Package QA for `1.2.0` found two cases where results can come back out of distance order. Both are tracked in [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17) for a later release. Recall is not affected.
+Results can come back out of distance order in the cases below. This is expected of approximate search and is documented rather than changed; see [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17) for measurements.
 
-- `vchordg` can return `ORDER BY ... LIMIT` rows out of distance order, because it keeps searching while it returns rows. A larger `vchordg.ef_search` makes this rarer but does not rule it out.
+- `vchordg` can return `ORDER BY ... LIMIT` rows out of distance order, because it keeps searching while it returns rows. A larger `vchordg.ef_search` makes this rarer but does not rule it out; with the default `ef_search = 64`, about 2.5% of `LIMIT 10` queries in a 768-dimension test returned a row ahead of a clearly closer one, and filtered queries were affected more often.
+- `vchordrq` can return a row ahead of a slightly closer one when a RaBitQ lower bound is exceeded. With `vchordrq.epsilon = 2.5` explicitly set, this affected about 0.5–2.5% of `LIMIT 10` queries in the same test, with distances within 1%; a higher `epsilon` makes it rarer.
 - On `halfvec` columns, rows whose distances differ by about 0.0001 or less can be swapped. This affects `vchordrq` with `halfvec_cosine_ops` and `vchordg` with any `halfvec` operator class.
 
 When strict order matters, re-sort the candidates in an outer query; see [Graph Index: Result order](/docs/vchord/usage/graph-index/#result-order). The [GitHub release](https://github.com/pgsty/vchord/releases/tag/1.2.0) lists the other known issues.
 
 ## Upgrading to 1.2.0 and packages {#upgrade-and-packages}
 
-`vchord 1.2.0` is binary- and on-disk-compatible with indexes created in `0.2.0` through `1.1.1`. Install the `1.2.0` package for your PostgreSQL version, restart PostgreSQL so the updated `vchord.so` is loaded via `shared_preload_libraries`, and run:
+The 1.2.0 release default is `vchordrq.epsilon = 1.9`; the measurements above at `2.5` do not describe the default.
+
+`vchord 1.2.0` preserves the on-disk format of indexes created in `0.2.0` through `1.1.1`. Format compatibility does not repair old quantization metadata: indexes built with 1.1.1 that contain zero or one-dimensional vectors can retain NaN metadata and need `REINDEX` after installing a version with the relevant encoder fix. For `rabitq4`/`rabitq8` indexes, the corresponding fix is in the planned 1.3.0 release: affected indexes built with 1.2.0 or earlier need rebuilding after installing that encoder fix. Rebuilding them with the unchanged 1.2.0 encoder is insufficient.
+
+Install the `1.2.0` package for your PostgreSQL version, restart PostgreSQL so the updated `vchord.so` is loaded via `shared_preload_libraries`, and run:
 
 ```sql
 ALTER EXTENSION vchord UPDATE TO '1.2.0';
-SELECT vchord_version();
+SELECT extversion FROM pg_extension WHERE extname = 'vchord';
 -- 1.2.0
 ```
 

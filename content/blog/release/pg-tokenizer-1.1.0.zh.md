@@ -46,6 +46,7 @@ GitHub Release 按草稿准备；草稿正式发布后，下载附件才会向�
 | 原生全文检索 | 在转换为 `tsvector` 前聚合重复词素。 |
 | Jieba | `full` 与 `precise` 使用对应的正确算法，默认 `search` 模式不变。 |
 | 打包安装 | 修正共享库安装示例，提供兼容 PGXN 的源码归档，并验证实际 DEB 与 ZIP 制品。 |
+{.wide .expand}
 
 ## 分析资源预算 {#analysis-budgets}
 
@@ -57,6 +58,7 @@ GitHub Release 按草稿准备；草稿正式发布后，下载附件才会向�
 | `pg_tokenizer.max_output_tokens` | 1,000,000 |
 | `pg_tokenizer.max_output_bytes` | 64 MiB |
 | `pg_tokenizer.max_piece_bytes` | 1 MiB |
+{.wide .expand}
 
 这些预算不构成第三方库内部的硬内存上限，也不保证取消延迟上限。应加载可信的模型配置，并在应用层限制文档大小。[Issue #13](https://github.com/pgsty/pg_tokenizer/issues/13) 继续跟踪这一限制；详细口径见[资源预算参考](/zh/docs/tokenizer/reference/#analysis-budgets)。
 

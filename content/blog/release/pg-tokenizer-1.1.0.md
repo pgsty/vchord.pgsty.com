@@ -46,6 +46,7 @@ Read-only transactions can still be prepared. Definition-changing APIs continue 
 | Native full-text search | Repeated lexemes are aggregated before conversion to `tsvector`. |
 | Jieba | `full` and `precise` select the intended algorithms; the default `search` mode is unchanged. |
 | Packaging | Safe shared-library installation examples, a PGXN-compatible source archive, and tests of the actual DEB and ZIP contents. |
+{.wide .expand}
 
 ## Analysis budgets {#analysis-budgets}
 
@@ -57,6 +58,7 @@ The following session-settable limits reject oversized input or output with SQLS
 | `pg_tokenizer.max_output_tokens` | 1,000,000 |
 | `pg_tokenizer.max_output_bytes` | 64 MiB |
 | `pg_tokenizer.max_piece_bytes` | 1 MiB |
+{.wide .expand}
 
 These budgets do not impose a hard memory limit or a bounded cancellation latency inside third-party libraries. Load trusted model configurations and bound documents in the application. [Issue #13](https://github.com/pgsty/pg_tokenizer/issues/13) remains open for this limitation; see the [resource-budget reference](/docs/tokenizer/reference/#definition-caches).
 

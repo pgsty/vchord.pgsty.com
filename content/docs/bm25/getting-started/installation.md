@@ -6,7 +6,7 @@ icon: fa-solid fa-download
 ---
 
 > [!IMPORTANT]
-> **1.0.0** is the first PGSTY release, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [1.0.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+> **1.1.0** is the current PGSTY release. It keeps the native `tsvector` API and format 4 introduced in 1.0.0, so healthy 1.0.0 indexes can be upgraded in place without a rebuild. Examples labeled 0.3.x use the historical `bm25vector` API and still require the [migration guide](/docs/bm25/reference/migration/) before changing binaries.
 
 
 `vchord_bm25` supports **PostgreSQL 14, 15, 16, 17, and 18** on Linux (`x86_64` and `aarch64`) and macOS.
@@ -63,8 +63,8 @@ Download release archives for your PostgreSQL major version (`14`–`18`) and CP
 
 ```bash
 # Install vchord_bm25 (example for PostgreSQL 16 on x86_64)
-curl -LO https://github.com/pgsty/vchord_bm25/releases/download/1.0.0/postgresql-16-vchord-bm25_1.0.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-vchord-bm25_1.0.0-1_amd64.deb
+curl -LO https://github.com/pgsty/vchord_bm25/releases/download/1.1.0/postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
 
 # Install pg_tokenizer 1.0.0 (example for PostgreSQL 16 on x86_64)
 curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
@@ -130,9 +130,9 @@ SELECT pg_backend_pid();
 
 ## Configure PostgreSQL & Enable Extensions
 
-### 1. Shared Preload Libraries (Required for 1.0.0) {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
+### 1. Shared Preload Libraries (Required for 1.1.0) {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
 
-1.0.0 requires `vchord_bm25` in `shared_preload_libraries`. Preserve other required libraries. `pg_tokenizer` is optional for the native `to_tsvector` workflow; if you install it for custom tokenization, add it to the same setting before PostgreSQL starts:
+1.1.0 requires `vchord_bm25` in `shared_preload_libraries`. Preserve other required libraries. `pg_tokenizer` is optional for the native `to_tsvector` workflow; if you install it for custom tokenization, add it to the same setting before PostgreSQL starts:
 
 ```ini
 shared_preload_libraries = 'vchord_bm25'

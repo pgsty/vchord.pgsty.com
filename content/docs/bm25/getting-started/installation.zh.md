@@ -6,7 +6,7 @@ icon: fa-solid fa-download
 ---
 
 > [!IMPORTANT]
-> **1.0.0** 是 PGSTY 的首个正式版本，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[1.0.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+> **1.1.0** 是当前 PGSTY 版本，沿用 1.0.0 引入的原生 `tsvector` API 与格式 4，健康的 1.0.0 索引可以原地升级且无需重建。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版；更换动态库前请阅读[迁移指南](/zh/docs/bm25/reference/migration/)。
 
 
 `vchord_bm25` 支持 Linux（`x86_64` 与 `aarch64`）及 macOS 平台上的 **PostgreSQL 14、15、16、17 和 18**。
@@ -63,8 +63,8 @@ psql -h localhost -p 5432 -U postgres
 
 ```bash
 # 安装 vchord_bm25（以 x86_64 上的 PostgreSQL 16 为例）
-curl -LO https://github.com/pgsty/vchord_bm25/releases/download/1.0.0/postgresql-16-vchord-bm25_1.0.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-vchord-bm25_1.0.0-1_amd64.deb
+curl -LO https://github.com/pgsty/vchord_bm25/releases/download/1.1.0/postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
+sudo apt-get install ./postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
 
 # 安装 pg_tokenizer 1.0.0（以 x86_64 上的 PostgreSQL 16 为例）
 curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.0.0/postgresql-16-pg-tokenizer_1.0.0-1_amd64.deb
@@ -130,9 +130,9 @@ SELECT pg_backend_pid();
 
 ## 配置 PostgreSQL 并启用扩展 {#configure-postgresql--enable-extensions}
 
-### 1. 配置 `shared_preload_libraries`（1.0.0 必需） {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
+### 1. 配置 `shared_preload_libraries`（1.1.0 必需） {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
 
-1.0.0 必须通过 `shared_preload_libraries` 预加载 `vchord_bm25`。请保留其他所需扩展；原生 `to_tsvector` 工作流不需要 `pg_tokenizer`，如果安装它来使用自定义分词，则应在 PostgreSQL 启动前将其加入同一设置：
+1.1.0 必须通过 `shared_preload_libraries` 预加载 `vchord_bm25`。请保留其他所需扩展；原生 `to_tsvector` 工作流不需要 `pg_tokenizer`，如果安装它来使用自定义分词，则应在 PostgreSQL 启动前将其加入同一设置：
 
 ```ini
 shared_preload_libraries = 'vchord_bm25'

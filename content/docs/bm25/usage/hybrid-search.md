@@ -10,7 +10,7 @@ Modern retrieval pipelines combine **dense vector search** ([`vchord`](/docs/), 
 
 ## Schema Setup for Hybrid Search
 
-These examples use `vchord` 1.2.0, `vchord_bm25` 1.0.0, and `pg_tokenizer` 1.0.0. [Install and preload the libraries](/docs/bm25/getting-started/installation/) first.
+These examples use `vchord` 1.2.0, `vchord_bm25` 1.1.0, and `pg_tokenizer` 1.0.0. [Install and preload the libraries](/docs/bm25/getting-started/installation/) first.
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;

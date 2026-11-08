@@ -10,7 +10,7 @@ icon: fa-solid fa-code-merge
 
 ## 混合检索表结构准备 {#schema-setup-for-hybrid-search}
 
-以下示例使用 `vchord` 1.2.0、`vchord_bm25` 1.0.0 和 `pg_tokenizer` 1.0.0。请先[安装并预加载动态库](/zh/docs/bm25/getting-started/installation/)。
+以下示例使用 `vchord` 1.2.0、`vchord_bm25` 1.1.0 和 `pg_tokenizer` 1.0.0。请先[安装并预加载动态库](/zh/docs/bm25/getting-started/installation/)。
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;

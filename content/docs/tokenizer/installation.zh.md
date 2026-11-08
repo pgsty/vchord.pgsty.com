@@ -49,6 +49,8 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 
 `pg_tokenizer` 没有必需的 PostgreSQL 扩展依赖。`vchord_bm25` 是可选组件：其 0.3.x 接口通过 `bm25vector` 消费 `INT[]`，1.0.0 接口可以直接消费原生 `tsvector`。`pg_tokenizer` 动态库必须在 PostgreSQL 启动前通过 `shared_preload_libraries` 预加载；如果希望省略模式限定调用函数，再将 `tokenizer_catalog` 加入 `search_path`：
 
+以下示例假设没有其他预加载库。若 `shared_preload_libraries` 已有配置，添加 `pg_tokenizer.so` 时应保留原有条目。
+
 ```bash
 psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer.so';"
 psql -U postgres -c "ALTER SYSTEM SET search_path TO \"\$user\", public, tokenizer_catalog;"

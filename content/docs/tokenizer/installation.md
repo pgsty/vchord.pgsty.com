@@ -49,6 +49,8 @@ CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 
 `pg_tokenizer` has no required PostgreSQL extension dependency. `vchord_bm25` is optional: its 0.3.x API consumes `INT[]` values through `bm25vector`, while its 1.0.0 API can consume native `tsvector` values. The `pg_tokenizer` library must be loaded through `shared_preload_libraries` before PostgreSQL starts; include `tokenizer_catalog` in `search_path` if you want to call the functions without schema qualification:
 
+The example assumes no other preloaded libraries. Preserve any existing entries in `shared_preload_libraries` when adding `pg_tokenizer.so`.
+
 ```bash
 psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer.so';"
 psql -U postgres -c "ALTER SYSTEM SET search_path TO \"\$user\", public, tokenizer_catalog;"

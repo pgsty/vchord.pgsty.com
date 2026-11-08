@@ -24,7 +24,7 @@ upstream_link: ""
 > - **文档**：[安装指南](/zh/docs/tokenizer/installation/) · [SQL 参考](/zh/docs/tokenizer/reference/) · [模型](/zh/docs/tokenizer/models/)
 > - **源码**：[仓库](https://github.com/pgsty/pg_tokenizer) · [版本化发布说明](https://github.com/pgsty/pg_tokenizer/blob/v1.1.0/docs/release-notes/1.1.0.md)
 
-GitHub Release 按草稿准备；草稿正式发布后，下载附件才会向公众开放。
+GitHub Release 已创建为[草稿](https://github.com/pgsty/pg_tokenizer/releases/tag/untagged-186df53073a5ceea4a79)，需要仓库访问权限；草稿正式发布后，下载附件才会向公众开放。
 
 ## 定义缓存与两阶段事务 {#definition-caches}
 

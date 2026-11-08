@@ -24,7 +24,7 @@ upstream_link: ""
 > - **Documentation**: [Installation](/docs/tokenizer/installation/) · [SQL reference](/docs/tokenizer/reference/) · [Models](/docs/tokenizer/models/)
 > - **Source**: [Repository](https://github.com/pgsty/pg_tokenizer) · [Versioned release notes](https://github.com/pgsty/pg_tokenizer/blob/v1.1.0/docs/release-notes/1.1.0.md)
 
-The GitHub release is prepared as a draft. Its download assets become publicly available when the draft is published.
+The GitHub release is available as a [draft](https://github.com/pgsty/pg_tokenizer/releases/tag/untagged-186df53073a5ceea4a79), which requires repository access. Its download assets become publicly available when the draft is published.
 
 ## Definition caches and prepared transactions {#definition-caches}
 

@@ -27,4 +27,4 @@ aliases:
 
 [`pgsty/vchord.pgsty.com`](https://github.com/pgsty/vchord.pgsty.com) 中的文档内容与站点适配成果采用 **[知识共享署名 4.0 国际许可协议（`CC-BY-4.0`）](https://creativecommons.org/licenses/by/4.0/)** 授权，上游内容改编自 [`tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) 与 [`blog.vectorchord.ai`](https://blog.vectorchord.ai/)。
 
-本站所使用的文档主题 **[OINK `v1.5.0`](https://github.com/pgsty/oink)** 采用 **[Apache 许可证 2.0（`Apache-2.0`）](https://www.apache.org/licenses/LICENSE-2.0)** 授权。
+本站所使用的文档主题 **[OINK `v1.5.1`](https://github.com/pgsty/oink)** 采用 **[Apache 许可证 2.0（`Apache-2.0`）](https://www.apache.org/licenses/LICENSE-2.0)** 授权。

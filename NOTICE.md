@@ -23,7 +23,7 @@ Pages derived from upstream include `upstream_link` in their front matter so OIN
 
 ## Site Theme and Pigsty Contributions
 
-- **Theme**: [OINK `v1.5.0`](https://github.com/pgsty/oink) (`Apache-2.0`)
+- **Theme**: [OINK `v1.5.1`](https://github.com/pgsty/oink) (`Apache-2.0`)
 - **Site Content & Adaptations**: © 2023–2026 TensorChord Inc. & PGSTY PTE. LTD., licensed under [Creative Commons Attribution 4.0 International (`CC-BY-4.0`)](LICENSE).
 
 ## Independence and Trademarks

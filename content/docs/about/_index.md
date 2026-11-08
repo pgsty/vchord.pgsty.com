@@ -19,7 +19,7 @@ cascade:
 
 **Vchord (`vchord`)** is a PostgreSQL extension designed for scalable, high-performance, and disk-friendly vector similarity search, developed as the architectural successor to [`pgvecto.rs`](/docs/vectors/).
 
-This repository (`pgsty/vchord.pgsty.com`) and website (`https://vchord.pgsty.com/`) provide a complete, fast, local-first documentation and technical blog reference for [`pgsty/vchord`](https://github.com/pgsty/vchord), [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25), and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer), maintained by the [Pigsty](https://pigsty.io/) community using the [OINK 1.5.0](https://oink.pgsty.com/) documentation framework.
+This repository (`pgsty/vchord.pgsty.com`) and website (`https://vchord.pgsty.com/`) provide a complete, fast, local-first documentation and technical blog reference for [`pgsty/vchord`](https://github.com/pgsty/vchord), [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25), and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer), maintained by the [Pigsty](https://pigsty.io/) community using the [OINK 1.5.1](https://oink.pgsty.com/) documentation framework.
 
 > [!NOTE]
 > **`pgsty/vchord`, `pgsty/vchord_bm25`, and `pgsty/pg_tokenizer` are community-maintained forks of `tensorchord/VectorChord`, `supervc-stack/VectorChord-bm25`, and `supervc-stack/pg_tokenizer.rs`.** They are not affiliated with, endorsed by, or sponsored by TensorChord Inc. See [Attribution](/docs/about/attribution/) and [Trademark Policy](/docs/about/trademark/) for details.

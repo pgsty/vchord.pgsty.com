@@ -31,6 +31,8 @@ Pre-filtering checks visibility and supported query predicates before admitting 
 
 Both modes support continuing scans in 1.0.0. Choose between them by measuring your workload; pre-filtering does not eliminate all work on irrelevant postings.
 
+In 1.1.0, `WHERE vector @@ ...` is still an executor filter rather than a native BM25 scan key. A highly selective or empty full-text match can therefore walk the zero-score tail; add a GIN index when that predicate should drive the plan.
+
 ### Enabling Pre-Filtering
 
 ```sql
@@ -80,4 +82,4 @@ A partial index has its own corpus statistics, so scores can differ from an inde
 | Fixed tenant or status subset | Partial index or table partitioning | Smaller corpus and independent statistics; queries must target the appropriate index. |
 {.wide .expand}
 
-SQL filters do not bypass the [permission and RLS restrictions](/docs/bm25/reference/migration/#schema-access). When RLS applies to the current role, 1.0.0 rejects BM25 scoring and native index scans.
+SQL filters do not bypass the [permission and RLS restrictions](/docs/bm25/reference/migration/#schema-access). When RLS applies to the current role, 1.1.0 rejects BM25 scoring and native index scans.

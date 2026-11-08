@@ -18,7 +18,7 @@ cascade:
 ---
 
 > [!IMPORTANT]
-> **1.0.0** 是 PGSTY 的首个正式版本，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[1.0.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+> **1.1.0** 是当前 PGSTY 版本，沿用 1.0.0 引入的原生 `tsvector` API 与格式 4，健康的 1.0.0 索引无需重建。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版；更换动态库前请阅读[迁移指南](/zh/docs/bm25/reference/migration/)。
 
 
 **`vchord_bm25`**（由 Pigsty 在 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 维护）是一个使用 Rust（`pgrx`）构建的原生 PostgreSQL 扩展，在 PostgreSQL 内部实现了 **Okapi BM25** 相关性排序算法以及 **Block-WeakAnd（Block-Max WAND）** Top-K 索引扫描访问方法。
@@ -39,7 +39,7 @@ cascade:
 查阅完整的 SQL 数据类型、操作符、内置函数、会话 GUC 运行时参数、版本演进历史以及 BEIR 标准数据集基准测试报告。
 {{< /card >}}
   {{< card link="/zh/docs/bm25/reference/migration/" title="0.3.x 至 1.0.0 迁移指南" icon="fa-solid fa-right-left" >}}
-遵循分步实操指南，将现有 `bm25vector` + `pg_tokenizer`（`0.3.x`）生产部署平滑迁移至 `1.0.0` 原生 `tsvector` 索引架构。
+遵循分步实操指南，将现有 `bm25vector` + `pg_tokenizer`（`0.3.x`）生产部署平滑迁移至 `1.0.0` 及后续版本的原生 `tsvector` 索引架构。
 {{< /card >}}
   {{< card link="/zh/docs/tokenizer/" title="pg_tokenizer 文档" icon="fa-solid fa-language" >}}
 配置模块化文本分析器、Snowball 词干提取、停用词、同义词、HuggingFace 词表模型、结巴中文（Jieba）与日文 Lindera 分词。

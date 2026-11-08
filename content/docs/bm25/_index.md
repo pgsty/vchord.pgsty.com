@@ -18,7 +18,7 @@ cascade:
 ---
 
 > [!IMPORTANT]
-> **1.0.0** is the first PGSTY release, with native `tsvector` and a new index format. Examples labeled 0.3.x use the historical `bm25vector` API. In-place upgrades are blocked; read the [1.0.0 migration guide](/docs/bm25/reference/migration/) before changing binaries.
+> **1.1.0** is the current PGSTY release. It keeps the native `tsvector` API and format 4 introduced in 1.0.0, so healthy 1.0.0 indexes do not need a rebuild. Examples labeled 0.3.x use the historical `bm25vector` API; read the [migration guide](/docs/bm25/reference/migration/) before changing binaries.
 
 
 **`vchord_bm25`** (maintained by Pigsty at [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)) is a native PostgreSQL extension built in Rust (`pgrx`) that implements the **Okapi BM25** ranking algorithm and the **Block-WeakAnd (Block-Max WAND)** Top-K index scan access method inside PostgreSQL.
@@ -39,7 +39,7 @@ Fuse sparse BM25 lexical search with [`vchord`](/docs/vchord/) dense vector and 
 Consult the complete reference for SQL types, operators, functions, session GUC parameters, API version history, and BEIR benchmark evaluations.
 {{< /card >}}
   {{< card link="/docs/bm25/reference/migration/" title="0.3.x to 1.0.0 Migration" icon="fa-solid fa-right-left" >}}
-Follow the step-by-step migration guide from the historical `bm25vector` + `pg_tokenizer` (`0.3.x`) workflow to the native `tsvector` engine in `1.0.0`.
+Follow the step-by-step migration guide from the historical `bm25vector` + `pg_tokenizer` (`0.3.x`) workflow to the native `tsvector` engine in `1.0.0` and later releases.
 {{< /card >}}
   {{< card link="/docs/tokenizer/" title="pg_tokenizer Documentation" icon="fa-solid fa-language" >}}
 Configure modular text analyzers, Snowball stemmers, stopwords, synonyms, HuggingFace vocabularies, Chinese Jieba, and Japanese Lindera segmentation.

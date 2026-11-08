@@ -12,7 +12,7 @@ tags:
   - "vchord_bm25"
   - "bm25"
   - "full-text-search"
-release_url: "https://github.com/pgsty/vchord_bm25/releases/tag/untagged-91021a74541d24785df1"
+release_url: "https://github.com/pgsty/vchord_bm25/releases/tag/untagged-e766a17dbd8365cfa7be"
 upstream_source: ""
 upstream_link: ""
 ---
@@ -20,7 +20,7 @@ upstream_link: ""
 **vchord_bm25 1.0.0** 是 PGSTY 在 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 维护的首个正式版本，采用 AGPL-3.0 许可证发布。它使用 PostgreSQL 原生 `tsvector` 索引替代 0.3.x 的自定义 `bm25vector` 类型与固定 `bm25_catalog` 模式，重新设计了支持按需续扫与并发 `VACUUM` 维护的 Block-WeakAnd（WAND）存储引擎，并在索引扫描与标量评分两条路径上加入了表/列权限检查与行级安全策略（RLS）防护。
 
 > [!NOTE] 扩展主页与发布链接
-> - **GitHub Release 草稿**：[`pgsty/vchord_bm25 1.0.0`](https://github.com/pgsty/vchord_bm25/releases/tag/untagged-91021a74541d24785df1) · [源码仓库](https://github.com/pgsty/vchord_bm25)
+> - **GitHub Release 草稿**：[`pgsty/vchord_bm25 1.0.0`](https://github.com/pgsty/vchord_bm25/releases/tag/untagged-e766a17dbd8365cfa7be) · [源码仓库](https://github.com/pgsty/vchord_bm25)
 > - **扩展目录主页**：[pgext.cloud (`vchord_bm25`)](https://pgext.cloud/e/vchord_bm25) · [Pigsty 扩展页面 (`pigsty.cc`)](https://pigsty.cc/ext/e/vchord_bm25/)
 > - **二进制软件包**：[RPM / DEB 软件源配置](/zh/download/) · [SBOM 与许可证清单](/zh/docs/about/sbom/)
 

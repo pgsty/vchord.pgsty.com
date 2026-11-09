@@ -73,7 +73,9 @@ SELECT * from vchordrq_sampled_queries('items_embedding_idx');
 -- public      | items_embedding_idx | items      | embedding   | <->      | [0.5,0.25,1]
 ```
 
-读取已记录的查询向量需要索引所属表的所有者权限、表级 `SELECT` 权限，或 `pg_read_all_stats` 权限。两个采样函数均遵循此规则。`vchordrq_sampled_queries` 视图会隐藏调用者无权访问的索引；查询该视图还需具有视图本身的 `SELECT` 权限。
+1.3.0 中，读取查询采样需要超级用户或 `pg_read_all_stats` 权限。表所有者和 `SELECT` 权限不足以读取采样：查询向量可能包含其他用户的输入，甚至跨越行级安全（RLS）策略。两个采样函数均强制检查此权限；`vchordrq_sampled_queries` 视图对其他角色返回空结果，查询该视图还需具有视图本身的 `SELECT` 权限。预热仍按表所有者或 `SELECT` 权限授权。
+
+查询采样默认关闭，属于本机非事务性诊断数据，不是审计日志：查询事务回滚后，样本仍可能保留。普通事务提交索引或数据库删除后会尽力清理样本；失败的 DDL 和 SAVEPOINT 回滚不会删除样本。提交后崩溃或通过 `COMMIT PREPARED` 提交删除可能留下不可达样本；`PREPARE TRANSACTION` 不会提前清理。`REINDEX CONCURRENTLY` 会更换索引 OID，采样历史随之重置。采样机制不提供保留期限或安全擦除保证。
 
 要测量已记录查询的平均召回率，您可以构造目标查询语句并调用评估函数：
 

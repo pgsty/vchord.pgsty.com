@@ -390,3 +390,9 @@ When there are more lists than sampled vectors, the required centroid allocation
   - `SET vchordrq.max_scan_tuples = 999` indicates the index scan returns at most \(999\) tuples.
   - `SET vchordrq.max_scan_tuples = -1` indicates no limit on the number of tuples.
 - Note: This parameter has no effect when set to `-1`.
+
+## Interrupted maintenance and recovery
+
+In 1.3.0, a new vector page and its incoming link are published in one WAL record before the page enters the free-space map. This closes the publication window without changing the index format or forcing a WAL flush for each page.
+
+Complete crash-safe reclamation of maintenance pages is still deferred. Interrupted maintenance can leave unused pages that ordinary VACUUM does not reclaim. Use `REINDEX INDEX CONCURRENTLY index_name` to rebuild from the table when reclaiming that space; allow for its extra disk space and build cost. ANN approximation does not excuse lost committed data or structural corruption.

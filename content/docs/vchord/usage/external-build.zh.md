@@ -45,6 +45,8 @@ build.external.table = 'public.t_build'
 $$);
 ```
 
+1.3.0 要求 `build.external.table` 使用 `schema.table` 格式，例如 `public.t_build`。索引构建使用受限的 `search_path`，未限定 schema 的名称会被拒绝，不会自动假定为 `public`。如果现有索引的配置保存了未限定名称，请在 `REINDEX` 前将其 `options` 更新为限定名称；现有查询不受影响。标识符沿用不带引号的语法，并转换为小写。
+
 <a id="Format"></a>
 ## 表结构格式 {#format}
 

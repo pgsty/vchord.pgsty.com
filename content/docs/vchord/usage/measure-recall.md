@@ -73,7 +73,9 @@ SELECT * from vchordrq_sampled_queries('items_embedding_idx');
 -- public      | items_embedding_idx | items      | embedding   | <->      | [0.5,0.25,1]
 ```
 
-Reading recorded query vectors requires ownership of the indexed table, table-level `SELECT`, or the privileges of `pg_read_all_stats`. This applies to both sampling functions. The `vchordrq_sampled_queries` view omits indexes the caller cannot access; querying the view also requires `SELECT` on the view itself.
+In 1.3.0, reading recorded query vectors requires superuser or `pg_read_all_stats` privileges. Table ownership and `SELECT` do not authorize sample access: query vectors can reveal other users’ inputs, including across row-level security (RLS) policies. Both sampling functions enforce this rule; the `vchordrq_sampled_queries` view returns no rows to other roles and also requires `SELECT` on the view itself. Prewarm continues to use table ownership or `SELECT`.
+
+Sampling is disabled by default and stores local, nontransactional diagnostics, not an audit log. A query can remain sampled after its transaction aborts. Ordinary committed index/database drops trigger best-effort cleanup; failed DDL and SAVEPOINT rollback preserve samples. A crash after commit or a drop committed through `COMMIT PREPARED` can leave unreachable samples; `PREPARE TRANSACTION` does not delete them. `REINDEX CONCURRENTLY` creates a new index OID and resets its sample history. Samples are not a retention or secure-erasure guarantee.
 
 To measure the recall of the recorded queries, you can construct the target query statement.
 

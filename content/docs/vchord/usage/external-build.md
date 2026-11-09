@@ -45,6 +45,8 @@ build.external.table = 'public.t_build'
 $$);
 ```
 
+In 1.3.0, `build.external.table` must use `schema.table`, for example `public.t_build`. Index builds use a restricted `search_path`; unqualified names are rejected instead of assuming `public`. If an existing index stores an unqualified name, update its `options` with the qualified name before `REINDEX`. Existing queries remain usable. Identifiers use the existing unquoted syntax and are folded to lowercase.
+
 <a id="Format"></a>
 ## Format
 

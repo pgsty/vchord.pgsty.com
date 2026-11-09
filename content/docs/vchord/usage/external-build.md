@@ -45,7 +45,28 @@ build.external.table = 'public.t_build'
 $$);
 ```
 
-In 1.3.0, `build.external.table` must use `schema.table`, for example `public.t_build`. Index builds use a restricted `search_path`; unqualified names are rejected instead of assuming `public`. If an existing index stores an unqualified name, update its `options` with the qualified name before `REINDEX`. Existing queries remain usable. Identifiers use the existing unquoted syntax and are folded to lowercase.
+In 1.3.0, `build.external.table` must use `schema.table`, for example `public.t_build`. Index builds use a restricted `search_path`; unqualified names are rejected instead of assuming `public`. Existing queries remain usable until an operation needs to rebuild or replace the index. This includes `REINDEX` (with or without `CONCURRENTLY`), `TRUNCATE`, `VACUUM FULL`, `CLUSTER`, column-type changes that rebuild indexes, and restoring the index from a dump. Update a legacy index before rebuilding it, preserving any other settings in its `options`:
+
+```sql
+ALTER INDEX my_index SET (options = $$
+[build.external]
+table = 'public.t_build'
+$$);
+```
+
+Use this query to find external-build options that need review before upgrading:
+
+```sql
+SELECT c.oid::regclass AS index_name, o.option_value
+FROM pg_class AS c
+JOIN pg_am AS am ON am.oid = c.relam
+CROSS JOIN LATERAL pg_options_to_table(c.reloptions) AS o
+WHERE am.amname = 'vchordrq'
+  AND o.option_name = 'options'
+  AND o.option_value LIKE '%external%';
+```
+
+Review the returned TOML options, including both `build.external.table = ...` and `[build.external]` forms. Each external table must name both a schema and a table. Identifiers use the existing unquoted syntax and are folded to lowercase.
 
 <a id="Format"></a>
 ## Format

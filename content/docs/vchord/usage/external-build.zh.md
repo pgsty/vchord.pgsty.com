@@ -45,7 +45,28 @@ build.external.table = 'public.t_build'
 $$);
 ```
 
-1.3.0 要求 `build.external.table` 使用 `schema.table` 格式，例如 `public.t_build`。索引构建使用受限的 `search_path`，未限定 schema 的名称会被拒绝，不会自动假定为 `public`。如果现有索引的配置保存了未限定名称，请在 `REINDEX` 前将其 `options` 更新为限定名称；现有查询不受影响。标识符沿用不带引号的语法，并转换为小写。
+1.3.0 要求 `build.external.table` 使用 `schema.table` 格式，例如 `public.t_build`。索引构建使用受限的 `search_path`，未限定 schema 的名称会被拒绝，不会自动假定为 `public`。在需要重建或替换索引之前，已有索引仍可用于查询；相关操作包括带或不带 `CONCURRENTLY` 的 `REINDEX`、`TRUNCATE`、`VACUUM FULL`、`CLUSTER`、会重建索引的列类型变更，以及从转储恢复索引。升级前请先更新旧索引的配置，并保留 `options` 中的其他设置：
+
+```sql
+ALTER INDEX my_index SET (options = $$
+[build.external]
+table = 'public.t_build'
+$$);
+```
+
+可以用下面的查询找出需要检查的外部构建配置：
+
+```sql
+SELECT c.oid::regclass AS index_name, o.option_value
+FROM pg_class AS c
+JOIN pg_am AS am ON am.oid = c.relam
+CROSS JOIN LATERAL pg_options_to_table(c.reloptions) AS o
+WHERE am.amname = 'vchordrq'
+  AND o.option_name = 'options'
+  AND o.option_value LIKE '%external%';
+```
+
+请检查返回的 TOML 配置，包括 `build.external.table = ...` 和 `[build.external]` 两种写法；外部表名都必须同时包含 schema 和 table。标识符沿用不带引号的语法，并转换为小写。
 
 <a id="Format"></a>
 ## 表结构格式 {#format}

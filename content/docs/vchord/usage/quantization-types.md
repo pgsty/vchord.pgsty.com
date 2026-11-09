@@ -50,7 +50,7 @@ For `halfvec`, ANN routing can use lower precision to improve throughput. On ARM
 > [!NOTE] Unreleased 1.3.0 candidate
 > The candidate defines RaBitQ cosine distances with zero or non-finite norms as `NaN`. Cosine indexes skip vectors without a valid direction, and a zero or non-finite cosine query returns no index rows. Rebuild affected old indexes after installing the corrected encoder; an extension catalog update alone does not rewrite stored metadata.
 >
-> Same-type assignment and cast enforcement for `rabitq4(n)` / `rabitq8(n)` is deferred: this candidate keeps the existing cast catalog and expression-index matching. Input paths such as `COPY` validate dimensions, but a SQL literal or same-type assignment can still bypass the declared dimension. Do not rely on the typmod alone to validate those writes.
+> Dimension enforcement for `rabitq4(n)` / `rabitq8(n)` is deferred: this candidate keeps the existing cast catalog and expression-index matching. SQL literals, same-type assignment, `COPY` and binary input do not check the declared dimension, so rows accepted by `INSERT` remain restorable from a dump. A `vchordrq` or `vchordg` index on the column rejects values of another dimension. Validate dimensions when writing to unindexed columns; do not rely on the typmod alone.
 
 <a id="Reference"></a>
 ## Reference

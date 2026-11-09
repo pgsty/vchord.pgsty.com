@@ -69,6 +69,8 @@ Partial indexes are supported for vector queries whose predicates imply the inde
 
 The planned 1.3.0 release uses bounded local repair during `VACUUM`. When a neighbour list has spare capacity, it also follows deleted bridges even if a nearby live neighbour already exists. Repair keeps the existing degree limit and pruning strategy; it does not guarantee connectivity or unchanged recall after every deletion pattern. If the entry point cannot find any live route within the expansion budget, deleted navigation vertices are retained and a warning recommends retrying with more `maintenance_work_mem`.
 
+In 1.3.0, a new vertex page and the link from its predecessor are written in one WAL record before the page can enter the free-space map. After crash recovery, the free-space map therefore cannot hand out a vertex page that `VACUUM` does not reach. An interrupted insertion can still leave an unused page; `REINDEX INDEX CONCURRENTLY` reclaims it.
+
 Keep autovacuum enabled for dead-row cleanup, space reuse and freezing. After large or clustered deletes, measure recall against an exact query. If recall degrades or the index has accumulated excess space, rebuild it from the table:
 
 ```sql

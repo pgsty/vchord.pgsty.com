@@ -77,7 +77,7 @@ Not all parameters support this feature. See [Reference](#reference) for all sup
 
 - Description: Fallback value of [`vchordrq.epsilon`](/docs/vchord/usage/indexing/#search-parameters-vchordrq-epsilon).
 - Type: real
-- Default: `2.5` in the planned 1.3.0 release; `1.9` through 1.2.0.
+- Default: `1.9`, unchanged in the planned 1.3.0 release.
 - Domain: `[0.0, 4.0]`
 
 <a id="maxsim-refine"></a>

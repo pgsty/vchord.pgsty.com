@@ -355,8 +355,8 @@ When there are more lists than sampled vectors, the required centroid allocation
 - Description: Even after pruning, the number of retrieved vectors remains substantial. The index employs the RaBitQ algorithm to quantize vectors into bit vectors, which require just \(\frac{1}{32}\) the memory of single-precision floating-point vectors. Most computations are integer-based, leading to faster processing. Unlike conventional quantization algorithms, RaBitQ estimates not only distances but also their lower bounds. The index computes the lower bound for each vector and dynamically adjusts the number of vectors needing recalculated distances, based on the query count, thus balancing performance and accuracy. The GUC parameter `vchordrq.epsilon` controls the conservativeness of the lower bounds of distances. The higher the value, the higher the accuracy, but the worse the performance. The default value tends to favor higher accuracy than needed for most use cases, so you can try lowering this parameter to achieve better performance.
 - Type: real
 - Default:
-    - `2.5` in the planned 1.3.0 release; `1.9` through 1.2.0.
-    - Increasing it can improve recall and reduce distance-order inversions at the cost of reranking more vectors. Existing explicit session and per-index settings remain effective.
+    - `1.9`, unchanged in the planned 1.3.0 release.
+    - Higher values, such as `2.5`, can improve recall and reduce distance-order inversions at the cost of reranking more vectors. Measure recall and latency on your workload before increasing it. Explicit session and per-index settings remain effective.
     - This parameter supports [fallback](/docs/vchord/usage/fallback-parameters/).
 - Domain: `[0.0, 4.0]`
 - Example:

@@ -77,7 +77,7 @@ SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 
 - 说明：[`vchordrq.epsilon`](/zh/docs/vchord/usage/indexing/#search-parameters-vchordrq-epsilon) 的回退值。
 - 类型：实数（real）
-- 默认值：拟发布的 1.3.0 为 `2.5`；1.2.0 及此前版本为 `1.9`。
+- 默认值：`1.9`，拟发布的 1.3.0 保持不变。
 - 取值范围：`[0.0, 4.0]`
 
 <a id="maxsim-refine"></a>

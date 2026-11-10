@@ -9,7 +9,7 @@ sections:
   - cta
 
 hero:
-  eyebrow: vchord 1.2.0 · PostgreSQL 14–18 · Successor to pgvecto.rs
+  eyebrow: vchord 1.3.0 · PostgreSQL 14–18 · Successor to pgvecto.rs
   title_lines:
     - Scalable Vector Search
     - Built for PostgreSQL
@@ -42,8 +42,8 @@ hero:
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
-    label: What's new in vchord 1.2
-    url: /blog/release/vchord-1.2.0/
+    label: What's new in vchord 1.3
+    url: /blog/release/vchord-1.3.0/
 
 metrics:
   eyebrow: Proven at 100M+ Scale
@@ -181,7 +181,7 @@ suite:
   columns: 3
   items:
     - title: vchord Documentation
-      meta: Core Vector Engine · v1.2.0
+      meta: Core Vector Engine · v1.3.0
       icon: fa-solid fa-layer-group
       class: td-landing-card--core
       desc: Core disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, featuring vchordrq IVF indexes, vchordg graph indexes, and MaxSim.
@@ -252,7 +252,7 @@ faq:
         and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)—so the PostgreSQL community can continue relying on them.
     - question: What is PGSTY's maintenance scope, roadmap, and security policy?
       answer: >-
-        PGSTY maintains open-source supply-chain continuity, testing and packaging **`vchord` (`v1.2.0`)**, **`vchord_bm25` (`v1.0.0`)**,
+        PGSTY maintains open-source supply-chain continuity, testing and packaging **`vchord` (`v1.3.0`)**, **`vchord_bm25` (`v1.0.0`)**,
         and **`pg_tokenizer` (`v1.0.0`)** on a unified **`pgrx 0.19.3`** baseline for **PostgreSQL 14–18**. Pre-built native RPM and DEB
         packages are published across [16 mainstream Linux OS and CPU targets](/download/), with dependency and license inventories documented
         in the [SBOM](/docs/about/sbom/). We do **not** commit to developing new features—roadmap items will be handled on a best-effort basis
@@ -261,7 +261,7 @@ faq:
       answer: >-
         [`vchord`](https://github.com/pgsty/vchord) and [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) are distributed under the
         [**GNU AGPL v3.0**](/docs/about/license/) license, while [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) is distributed under
-        **Apache-2.0**. `vchord 1.2.0` and `pg_tokenizer 1.0.0` provide in-place `ALTER EXTENSION ... UPDATE` scripts from earlier releases,
+        **Apache-2.0**. `vchord 1.3.0` and `pg_tokenizer 1.0.0` provide in-place `ALTER EXTENSION ... UPDATE` scripts from earlier releases,
         while `vchord_bm25 1.0.0` uses native `tsvector` and requires following the [migration guide](/docs/bm25/reference/migration/) from 0.3.x.
         See [Attribution & Provenance](/docs/about/attribution/).
     - question: How does vchord relate to pgvector and pgvecto.rs?

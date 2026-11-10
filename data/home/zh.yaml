@@ -9,7 +9,7 @@ sections:
   - cta
 
 hero:
-  eyebrow: vchord 1.2.0 · PostgreSQL 14–18 · pgvecto.rs 的继任者
+  eyebrow: vchord 1.3.0 · PostgreSQL 14–18 · pgvecto.rs 的继任者
   title_lines:
     - 可扩展的向量检索
     - 为 PostgreSQL 而生
@@ -42,8 +42,8 @@ hero:
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
-    label: 了解 vchord 1.2 新特性
-    url: /blog/release/vchord-1.2.0/
+    label: 了解 vchord 1.3 新特性
+    url: /blog/release/vchord-1.3.0/
 
 metrics:
   eyebrow: 亿级规模生产验证
@@ -181,7 +181,7 @@ suite:
   columns: 3
   items:
     - title: vchord 文档
-      meta: 核心向量引擎 · v1.2.0
+      meta: 核心向量引擎 · v1.3.0
       icon: fa-solid fa-layer-group
       class: td-landing-card--core
       desc: 新一代可扩展、磁盘友好型 PostgreSQL 向量检索核心扩展，提供 RaBitQ 量化的 vchordrq 倒排索引、vchordg 高吞吐图索引与 MaxSim 多向量检索。
@@ -250,7 +250,7 @@ faq:
         与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)——以确保 PostgreSQL 开源生态中这一优秀的检索套件能够长期存续。
     - question: PGSTY 社区的维护承诺、路线图与安全策略是什么？
       answer: >-
-        PGSTY 社区维护开源软件供应链，基于统一的 **`pgrx 0.19.3`** 基线面向 **PostgreSQL 14–18** 测试并构建 **`vchord`（`v1.2.0`）**、**`vchord_bm25`（`v1.0.0`）**
+        PGSTY 社区维护开源软件供应链，基于统一的 **`pgrx 0.19.3`** 基线面向 **PostgreSQL 14–18** 测试并构建 **`vchord`（`v1.3.0`）**、**`vchord_bm25`（`v1.0.0`）**
         与 **`pg_tokenizer`（`v1.0.0`）**，并在 [16 个主流 Linux 发行版与 CPU 架构目标](/zh/download/)上发布预编译原生 RPM/DEB 软件包，完整依赖与许可证清单记录于
         [SBOM 页面](/zh/docs/about/sbom/)。需要说明的是，我们**不承诺任何新功能的开发**，相关功能需求与演进路线图将视维护团队的精力余量来响应；
         但如果您发现任何**安全漏洞或严重缺陷**，欢迎随时通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 提交给我们。
@@ -258,7 +258,7 @@ faq:
       answer: >-
         [`vchord`](https://github.com/pgsty/vchord) 与 [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) 均遵循
         [**GNU AGPL v3.0**](/zh/docs/about/license/) 开源许可证发布，[`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 采用 **Apache-2.0** 许可证。
-        `vchord 1.2.0` 与 `pg_tokenizer 1.0.0` 提供从旧版本的就地 `ALTER EXTENSION ... UPDATE` 升级脚本；`vchord_bm25 1.0.0` 改用原生 `tsvector`，需要按照[迁移指南](/zh/docs/bm25/reference/migration/)从历史 0.3.x 格式迁移。详见[署名与来源说明](/zh/docs/about/attribution/)。
+        `vchord 1.3.0` 与 `pg_tokenizer 1.0.0` 提供从旧版本的就地 `ALTER EXTENSION ... UPDATE` 升级脚本；`vchord_bm25 1.0.0` 改用原生 `tsvector`，需要按照[迁移指南](/zh/docs/bm25/reference/migration/)从历史 0.3.x 格式迁移。详见[署名与来源说明](/zh/docs/about/attribution/)。
     - question: vchord 与 pgvector、pgvecto.rs 是什么关系？
       answer: >-
         **`vchord`** 是 [`pgvecto.rs`](/zh/docs/vectors/) 的下一代架构继任者，围绕 SIGMOD'24 **RaBitQ** 量化算法以及

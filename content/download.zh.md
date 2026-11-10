@@ -13,6 +13,8 @@ body_class: td-download-page
 
 Vchord 扩展套件（**`vchord`**、**`vchord_bm25`** 与 **`pg_tokenizer`**）已面向 **16 个 Linux 发行版与 CPU 架构目标**（`el8`、`el9`、`el10`、`d12`、`d13`、`u22`、`u24`、`u26` × `x86_64` / `aarch64`）以及 **PostgreSQL 14、15、16、17、18** 五个大版本构建并发布原生 RPM 与 DEB 软件包（共计 240 个预编译二进制包）。
 
+**vchord 1.3.0** 已在 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.3.0) 提供 PostgreSQL 14–18、x86_64/aarch64 的 Linux ZIP 与 Debian 包（glibc 2.35+）。下方发行版软件源表格仍对应 1.2.0。升级前请阅读[发布说明](/zh/blog/release/vchord-1.3.0/)。
+
 {{< cards >}}
 {{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v1.2.0" >}}
 新一代可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供 RaBitQ 量化的 `vchordrq` 倒排索引、`vchordg` 高吞吐图索引与 MaxSim（`@#`）多向量检索，全面支持 PostgreSQL 14–18。

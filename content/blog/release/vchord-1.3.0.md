@@ -1,6 +1,6 @@
 ---
 title: "vchord 1.3.0: Recovery and Operational Hardening"
-date: 2026-11-09
+date: 2026-11-10
 description: "vchord 1.3.0 hardens index-page publication and diagnostic-data access while keeping approximate search tradeoffs explicit."
 author: "[Ruohang Feng](https://vonng.com/en/) · [PGSTY](https://pgsty.com)"
 authors:
@@ -14,6 +14,10 @@ tags:
 ---
 
 **vchord 1.3.0** continues the PGSTY-maintained release line for PostgreSQL 14–18. It keeps the `vchordrq.epsilon` default at `1.9` and focuses this release on recovery ordering, diagnostic-data permissions, and upgrade-safe operational behavior.
+
+Download the [1.3.0 release](https://github.com/pgsty/vchord/releases/tag/1.3.0): Linux ZIP archives and Debian packages for PostgreSQL 14–18 on x86_64/aarch64, built on Ubuntu 22.04 (glibc 2.35 or newer). Each asset has a SHA256 checksum.
+
+Install the matching library and SQL files, restart PostgreSQL, then run `ALTER EXTENSION vchord UPDATE TO '1.3.0';` in each database using the extension. Upgrades from 1.1.1 and 1.2.0 are tested. Read the compatibility notes below before upgrading.
 
 ## Changes
 

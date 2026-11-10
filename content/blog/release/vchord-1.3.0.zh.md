@@ -1,6 +1,6 @@
 ---
 title: "vchord 1.3.0：恢复安全与运维加固"
-date: 2026-11-09
+date: 2026-11-10
 description: "vchord 1.3.0 加固索引页发布和诊断数据访问，同时明确近似搜索的取舍。"
 author: "[Ruohang Feng](https://vonng.com/en/) · [PGSTY](https://pgsty.com)"
 authors:
@@ -14,6 +14,10 @@ tags:
 ---
 
 **vchord 1.3.0** 延续 PGSTY 对 PostgreSQL 14–18 的维护版本线。`vchordrq.epsilon` 默认值保持 `1.9`；本版本重点处理恢复顺序、诊断数据权限和升级后的运维行为。
+
+[下载 1.3.0 正式版本](https://github.com/pgsty/vchord/releases/tag/1.3.0)：提供 PostgreSQL 14–18、x86_64/aarch64 的 Linux ZIP 与 Debian 包，基于 Ubuntu 22.04 构建，要求 glibc 2.35 或更新版本。每个资产均提供 SHA256 校验文件。
+
+安装对应 PostgreSQL 大版本的动态库与 SQL 文件并重启 PostgreSQL，然后在每个使用扩展的数据库执行 `ALTER EXTENSION vchord UPDATE TO '1.3.0';`。已验证从 1.1.1 和 1.2.0 升级；升级前请阅读下面的兼容性说明。
 
 ## 变更
 

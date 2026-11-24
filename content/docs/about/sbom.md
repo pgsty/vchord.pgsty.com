@@ -14,12 +14,12 @@ This page provides the **Software Bill of Materials (SBOM)** for the three core 
 
 | **Extension** | **Repository** | **Version** | **License** | **Rust / `pgrx`** | **PG Support** | **Workspace Crates** | **Locked Packages** |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **[`vchord`](/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 15 | 243 |
+| **[`vchord`](/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.5.0` | `AGPL-3.0-only` | `2024` / `=0.20.1` | `pg15`–`pg19` | 15 | 245 |
 | **[`vchord_bm25`](/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.0.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 8 | 194 |
 | **[`pg_tokenizer`](/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
 {.wide .expand}
 
-The release test and package matrix covers PostgreSQL 14–18. The optional `pg19` feature in `vchord` and `vchord_bm25` is for development validation; pgrx binding availability does not imply release support.
+The vchord 1.5.0 Linux build matrix covers PostgreSQL 15–19. The release tag records every resolved dependency. [Cargo.lock](https://github.com/pgsty/vchord/blob/1.5.0/Cargo.lock)
 
 ---
 
@@ -52,30 +52,29 @@ The release test and package matrix covers PostgreSQL 14–18. The optional `pg1
 
 | **Crate** | **Locked Version** | **SPDX License** | **Scope** | **Purpose** | **Upstream Repository** |
 |:---|:---:|:---|:---:|:---|:---|
-| `pgrx` | `0.19.3` | `MIT` | Runtime (`cshim`) | Rust framework for PostgreSQL extensions (`pg14`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `pgrx-pg-sys` | `0.19.3` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `rusqlite` | `0.41.1` | `MIT` | Runtime (`bundled`) | Embedded SQLite engine (`libsqlite3-sys 0.39.1`) used for external centroid/index import | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
-| `mimalloc` | `0.1.52` | `MIT` | Runtime (`x86_64`/`aarch64`) | High-performance allocator (`libmimalloc-sys 0.1.49`, `local_dynamic_tls`) on Linux & macOS | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
+| `pgrx` | `0.20.1` | `MIT` | Runtime (`cshim`) | Rust framework for PostgreSQL extensions (`pg15`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx-pg-sys` | `0.20.1` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `rusqlite` | `0.43.0` | `MIT` | Runtime (`bundled`) | Embedded SQLite engine (`libsqlite3-sys 0.40.0`) for recording sampled queries | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
+| `mimalloc` | `0.1.52` | `MIT` | Runtime (`x86_64`/`aarch64`) | High-performance allocator (`libmimalloc-sys 0.1.49`, `local_dynamic_tls`) on Linux | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
 | `rayon` | `1.12.0` | `MIT OR Apache-2.0` | Runtime | Data-parallel work-stealing thread pool for K-means and parallel index builds | [rayon-rs/rayon](https://github.com/rayon-rs/rayon) |
 | `crossbeam-channel` | `0.5.17` | `MIT OR Apache-2.0` | Runtime | Multi-producer multi-consumer channels for parallel build coordination | [crossbeam-rs/crossbeam](https://github.com/crossbeam-rs/crossbeam) |
-| `zerocopy` | `0.8.63` | `BSD-2-Clause OR Apache-2.0 OR MIT` | Runtime | Safe zero-copy byte reinterpretation for on-disk PostgreSQL index pages | [google/zerocopy](https://github.com/google/zerocopy) |
+| `zerocopy` | `0.8.64` | `BSD-2-Clause OR Apache-2.0 OR MIT` | Runtime | Safe zero-copy byte reinterpretation for on-disk PostgreSQL index pages | [google/zerocopy](https://github.com/google/zerocopy) |
 | `half` | `2.7.1` | `MIT OR Apache-2.0` | Runtime | IEEE 754 half-precision (`f16`) floating-point implementation for `halfvec` | [VoidStarKat/half-rs](https://github.com/VoidStarKat/half-rs) |
-| `rand` | `0.10.3` | `MIT OR Apache-2.0` | Runtime | Random number generation for K-means seeding and random rotations | [rust-random/rand](https://github.com/rust-random/rand) |
+| `rand` | `0.10.4` | `MIT OR Apache-2.0` | Runtime | Random number generation for K-means seeding and random rotations | [rust-random/rand](https://github.com/rust-random/rand) |
 | `rand_chacha` | `0.10.0` | `MIT OR Apache-2.0` | Runtime | Deterministic ChaCha CSPRNG for reproducible orthogonal matrix generation | [rust-random/rand](https://github.com/rust-random/rand) |
-| `bumpalo` | `3.20.3` | `MIT OR Apache-2.0` | Runtime | Fast bump arena allocator for per-scan temporary allocations | [fitzgen/bumpalo](https://github.com/fitzgen/bumpalo) |
+| `bumpalo` | `3.20.4` | `MIT OR Apache-2.0` | Runtime | Fast bump arena allocator for per-scan temporary allocations | [fitzgen/bumpalo](https://github.com/fitzgen/bumpalo) |
 | `arrayvec` | `0.7.8` | `MIT OR Apache-2.0` | Runtime | Stack-allocated vectors with fixed capacity | [bluss/arrayvec](https://github.com/bluss/arrayvec) |
 | `dary_heap` | `0.3.9` | `MIT OR Apache-2.0` | Runtime | Cache-friendly *d*-ary priority queue for candidate traversal | [hanmertens/dary_heap](https://github.com/hanmertens/dary_heap) |
 | `min-max-heap` | `1.3.0` | `MIT OR Apache-2.0` | Runtime | Double-ended priority queue for bounded beam search in `vchordg` | [tov/min-max-heap-rs](https://github.com/tov/min-max-heap-rs) |
 | `wyhash` | `0.6.0` | `MIT OR Apache-2.0` | Runtime | Fast non-cryptographic hashing for visited-vertex deduplication | [eldruin/wyhash-rs](https://github.com/eldruin/wyhash-rs) |
-| `pin-project` | `1.1.13` | `Apache-2.0 OR MIT` | Runtime | Safe pinned struct projections for stateful index scan coroutines | [taiki-e/pin-project](https://github.com/taiki-e/pin-project) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | Runtime | Serialization framework for index reloptions (`options = $$...$$`) | [serde-rs/serde](https://github.com/serde-rs/serde) |
-| `toml` | `1.1.8` | `MIT OR Apache-2.0` | Runtime | TOML parser for `vchordrq` and `vchordg` index build options | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2+spec-1.1.0` | `MIT OR Apache-2.0` | Runtime | TOML parser for `vchordrq` and `vchordg` index build options | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | Runtime | Declarative range and structural validation for index options | [Keats/validator](https://github.com/Keats/validator) |
 | `humansize` | `2.1.3` | `MIT OR Apache-2.0` | Runtime | Human-readable byte formatting for diagnostics | [LeopoldArkham/humansize](https://github.com/LeopoldArkham/humansize) |
 | `paste` | `1.0.15` | `MIT OR Apache-2.0` | Macro | Identifier concatenation macro for operator boilerplate generation | [dtolnay/paste](https://github.com/dtolnay/paste) |
 | `seq-macro` | `0.3.6` | `MIT OR Apache-2.0` | Macro | Compile-time loop unrolling for SIMD kernels | [dtolnay/seq-macro](https://github.com/dtolnay/seq-macro) |
-| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.9` | `MIT OR Apache-2.0` | Proc-macro | Syntax parsing and token generation for `simd_macros` | [dtolnay/syn](https://github.com/dtolnay/syn) |
-| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.7` / `0.40.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | Build (`xtask`) | Build CLI parsing, ELF/Mach-O symbol inspection, and SQL entity graph generation (`pgrx-sql-entity-graph 0.19.3`) | [clap-rs/clap](https://github.com/clap-rs/clap) |
+| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.10` | `MIT OR Apache-2.0` | Proc-macro | Syntax parsing and token generation for `simd_macros` | [dtolnay/syn](https://github.com/dtolnay/syn) |
+| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.9` / `0.41.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | Build (`xtask`) | Build CLI parsing, ELF/Mach-O symbol inspection, and SQL entity graph generation (`pgrx-sql-entity-graph 0.20.1`) | [clap-rs/clap](https://github.com/clap-rs/clap) |
 {.wide .expand}
 
 ---

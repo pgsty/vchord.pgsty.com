@@ -14,7 +14,7 @@ aliases:
 
 `VectorChord`、`VectorChord-bm25` 与 `pg_tokenizer.rs` 的原开发公司 **TensorChord Inc.** 已清算并停止对上游仓库的日常维护。应原作者请求，**[PGSTY](https://pigsty.cc/)** 社区正式接手维护这三个扩展：
 
-- **供应链持续性与版本适配**：PGSTY 社区持续维护代码仓库，已将三个扩展统一升级至 **`pgrx 0.19.3`** 基线（支持 `pg14`–`pg19` 特性），并针对 **PostgreSQL**（`PG 14–18`）测试与打包扩展套件。主流 [16 个 Linux 发行版与架构目标](/zh/download/)均提供预构建原生 RPM/DEB 软件包，完整的依赖项与开源许可证盘点详见[软件物料清单 (SBOM)](/zh/docs/about/sbom/)。
+- PGSTY 负责测试和打包这三个扩展。vchord 1.5.0 使用 pgrx 0.20.1，支持 PostgreSQL 15–19 的 x86_64 和 aarch64。[下载](/zh/download/) · [软件物料清单](/zh/docs/about/sbom/)
 - **功能演进路线图**：我们不承诺任何新功能的开发，新功能需求与演进路线图将视维护团队的精力余量来响应。
 - **安全问题反馈**：如果您发现任何安全问题或严重缺陷，非常欢迎通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 提交给我们。
 

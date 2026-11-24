@@ -57,6 +57,8 @@ Based on our experimental results, the QPS speedup at different selectivity is a
 
 <img src="/docs/images/prefilter.png" alt="Prefilter on LAION-5m" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 
+An RQ index with filter keys can prune candidates using the key itself. A scan stops when the caller’s LIMIT is satisfied or expands up to `vchordrq.max_probes`. A later round can return a closer row. With `vchordrq.prefilter` enabled, eligible nonvolatile `EXISTS` and `IN (SELECT ...)` subplans can run before reranking. PostgreSQL evaluates subplans containing aggregates or volatile functions.
+
 <a id="Reference"></a>
 ## Reference
 

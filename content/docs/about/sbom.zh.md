@@ -14,12 +14,12 @@ aliases:
 
 | **扩展名称** | **代码仓库** | **版本** | **许可证** | **Rust / `pgrx`** | **PG 支持** | **内部 Crate** | **锁定包数** |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **[`vchord`](/zh/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.2.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 15 | 243 |
+| **[`vchord`](/zh/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.5.0` | `AGPL-3.0-only` | `2024` / `=0.20.1` | `pg15`–`pg19` | 15 | 245 |
 | **[`vchord_bm25`](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.0.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 8 | 194 |
 | **[`pg_tokenizer`](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
 {.wide .expand}
 
-正式版本的测试与打包矩阵覆盖 PostgreSQL 14–18。`vchord` 和 `vchord_bm25` 的可选 `pg19` 特性用于开发验证；pgrx 提供绑定不代表扩展已正式支持。
+vchord 1.5.0 的 Linux 构建矩阵覆盖 PostgreSQL 15–19。完整依赖版本见发布标签对应的 [Cargo.lock](https://github.com/pgsty/vchord/blob/1.5.0/Cargo.lock)。
 
 ---
 
@@ -52,30 +52,29 @@ aliases:
 
 | **Crate 名称** | **锁定版本** | **SPDX 许可证** | **作用范围** | **功能用途** | **上游仓库** |
 |:---|:---:|:---|:---:|:---|:---|
-| `pgrx` | `0.19.3` | `MIT` | 运行时 (`cshim`) | PostgreSQL 扩展 Rust 开发框架（支持 `pg14`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `pgrx-pg-sys` | `0.19.3` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `rusqlite` | `0.41.1` | `MIT` | 运行时 (`bundled`) | 内嵌 SQLite 引擎（`libsqlite3-sys 0.39.1`），用于外部预计算聚类中心与索引导入 | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
-| `mimalloc` | `0.1.52` | `MIT` | 运行时 (`x86_64`/`aarch64`) | Linux 与 macOS 平台高性能内存分配器（`libmimalloc-sys 0.1.49`，启用 `local_dynamic_tls`） | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
+| `pgrx` | `0.20.1` | `MIT` | 运行时 (`cshim`) | PostgreSQL 扩展 Rust 开发框架（支持 `pg15`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx-pg-sys` | `0.20.1` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `rusqlite` | `0.43.0` | `MIT` | 运行时 (`bundled`) | 内嵌 SQLite 引擎（`libsqlite3-sys 0.40.0`），用于记录采样查询 | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
+| `mimalloc` | `0.1.52` | `MIT` | 运行时 (`x86_64`/`aarch64`) | Linux 平台高性能内存分配器（`libmimalloc-sys 0.1.49`，启用 `local_dynamic_tls`） | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
 | `rayon` | `1.12.0` | `MIT OR Apache-2.0` | 运行时 | 数据并行工作窃取线程池，用于并行 K-means 训练与索引构建 | [rayon-rs/rayon](https://github.com/rayon-rs/rayon) |
 | `crossbeam-channel` | `0.5.17` | `MIT OR Apache-2.0` | 运行时 | 多生产者多消费者并发通道，用于并行索引构建协调 | [crossbeam-rs/crossbeam](https://github.com/crossbeam-rs/crossbeam) |
-| `zerocopy` | `0.8.63` | `BSD-2-Clause OR Apache-2.0 OR MIT` | 运行时 | 面向 PostgreSQL 磁盘索引页面的安全零拷贝字节转换 | [google/zerocopy](https://github.com/google/zerocopy) |
+| `zerocopy` | `0.8.64` | `BSD-2-Clause OR Apache-2.0 OR MIT` | 运行时 | 面向 PostgreSQL 磁盘索引页面的安全零拷贝字节转换 | [google/zerocopy](https://github.com/google/zerocopy) |
 | `half` | `2.7.1` | `MIT OR Apache-2.0` | 运行时 | IEEE 754 半精度浮点数（`f16`）算术支持，用于 `halfvec` | [VoidStarKat/half-rs](https://github.com/VoidStarKat/half-rs) |
-| `rand` | `0.10.3` | `MIT OR Apache-2.0` | 运行时 | K-means 初始中心采样与随机旋转矩阵生成 | [rust-random/rand](https://github.com/rust-random/rand) |
+| `rand` | `0.10.4` | `MIT OR Apache-2.0` | 运行时 | K-means 初始中心采样与随机旋转矩阵生成 | [rust-random/rand](https://github.com/rust-random/rand) |
 | `rand_chacha` | `0.10.0` | `MIT OR Apache-2.0` | 运行时 | 确定性 ChaCha 随机数生成器，保证正交旋转矩阵可复现 | [rust-random/rand](https://github.com/rust-random/rand) |
-| `bumpalo` | `3.20.3` | `MIT OR Apache-2.0` | 运行时 | 高速 Bump Arena 内存池，用于单次扫描期间的临时内存分配 | [fitzgen/bumpalo](https://github.com/fitzgen/bumpalo) |
+| `bumpalo` | `3.20.4` | `MIT OR Apache-2.0` | 运行时 | 高速 Bump Arena 内存池，用于单次扫描期间的临时内存分配 | [fitzgen/bumpalo](https://github.com/fitzgen/bumpalo) |
 | `arrayvec` | `0.7.8` | `MIT OR Apache-2.0` | 运行时 | 固定容量栈上向量容器 | [bluss/arrayvec](https://github.com/bluss/arrayvec) |
 | `dary_heap` | `0.3.9` | `MIT OR Apache-2.0` | 运行时 | 缓存友好的 *d*-叉优先队列，用于候选集遍历 | [hanmertens/dary_heap](https://github.com/hanmertens/dary_heap) |
 | `min-max-heap` | `1.3.0` | `MIT OR Apache-2.0` | 运行时 | 双端最小-最大堆，用于 `vchordg` 有界波束搜索 | [tov/min-max-heap-rs](https://github.com/tov/min-max-heap-rs) |
 | `wyhash` | `0.6.0` | `MIT OR Apache-2.0` | 运行时 | 高速非加密哈希算法，用于图遍历已访问顶点去重 | [eldruin/wyhash-rs](https://github.com/eldruin/wyhash-rs) |
-| `pin-project` | `1.1.13` | `Apache-2.0 OR MIT` | 运行时 | 面向有状态索引扫描迭代器的安全 Pin 投影宏 | [taiki-e/pin-project](https://github.com/taiki-e/pin-project) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | 运行时 | 索引 `options` 参数结构化反序列化框架 | [serde-rs/serde](https://github.com/serde-rs/serde) |
-| `toml` | `1.1.8` | `MIT OR Apache-2.0` | 运行时 | `vchordrq` 与 `vchordg` 索引构建选项的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2+spec-1.1.0` | `MIT OR Apache-2.0` | 运行时 | `vchordrq` 与 `vchordg` 索引构建选项的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | 运行时 | 索引配置参数的范围与合法性校验 | [Keats/validator](https://github.com/Keats/validator) |
 | `humansize` | `2.1.3` | `MIT OR Apache-2.0` | 运行时 | 字节体积的人类可读格式化输出 | [LeopoldArkham/humansize](https://github.com/LeopoldArkham/humansize) |
 | `paste` | `1.0.15` | `MIT OR Apache-2.0` | 宏 | 标识符拼接宏，用于生成多类型距离操作符绑定 | [dtolnay/paste](https://github.com/dtolnay/paste) |
 | `seq-macro` | `0.3.6` | `MIT OR Apache-2.0` | 宏 | 编译期循环展开宏，用于 SIMD 内核生成 | [dtolnay/seq-macro](https://github.com/dtolnay/seq-macro) |
-| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.9` | `MIT OR Apache-2.0` | 过程宏 | `simd_macros` 语法树解析与代码生成 | [dtolnay/syn](https://github.com/dtolnay/syn) |
-| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.7` / `0.40.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | 构建 (`xtask`) | 构建命令行解析、ELF/Mach-O 符号检查与 SQL 实体图生成（`pgrx-sql-entity-graph 0.19.3`） | [clap-rs/clap](https://github.com/clap-rs/clap) |
+| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.10` | `MIT OR Apache-2.0` | 过程宏 | `simd_macros` 语法树解析与代码生成 | [dtolnay/syn](https://github.com/dtolnay/syn) |
+| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.9` / `0.41.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | 构建 (`xtask`) | 构建命令行解析、ELF/Mach-O 符号检查与 SQL 实体图生成（`pgrx-sql-entity-graph 0.20.1`） | [clap-rs/clap](https://github.com/clap-rs/clap) |
 {.wide .expand}
 
 ---

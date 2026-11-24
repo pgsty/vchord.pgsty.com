@@ -57,6 +57,8 @@ SET vchordrq.prefilter = on;
 
 <img src="/docs/images/prefilter.png" alt="Prefilter on LAION-5m" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 
+带键 RQ 索引可直接用过滤键缩小候选集。凑足 `LIMIT` 所需的行后扫描即可停止，否则继续扩容，直至达到 `vchordrq.max_probes`。下一轮可能返回更近的行。启用 `vchordrq.prefilter` 时，符合条件的非易失 `EXISTS` 或 `IN (SELECT ...)` 可在重排前求值。包含聚合或易失函数的子计划留给 PostgreSQL 执行。
+
 <a id="Reference"></a>
 ## 参考 {#reference}
 

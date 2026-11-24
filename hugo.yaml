@@ -30,9 +30,6 @@ frontmatter:
 #=======================================#
 module:
   proxy: direct
-  hugoVersion:
-    extended: true
-    min: "0.168.0"
   imports:
     - path: github.com/pgsty/oink
 
@@ -46,17 +43,17 @@ languages:
     weight: 1
     title: Vchord
     params:
-      description: "Scalable, fast, and disk-friendly vector & BM25 search for PostgreSQL — successor to pgvecto.rs, maintained by Pigsty."
-      upstream_copyright: "© 2023–Present TensorChord Inc."
+      description: "Scalable, disk-friendly vector and BM25 search extensions for PostgreSQL — successor to pgvecto.rs, maintained by PGSTY."
+      upstream_copyright: "© 2023–2026 TensorChord Inc."
       ui:
         command_palette:
           commands:
             - id: quick_start
               title: Quick Start
-              description: Launch vchord with Docker or PostgreSQL packages in minutes
+              description: Install vchord with packages and run your first vector similarity query
               url: /docs/vchord/getting-started/overview/
               icon: fa-solid fa-bolt
-              keywords: [start, quickstart, docker, install, vchord, vchordrq]
+              keywords: [start, quickstart, pig, install, vchord, vchordrq]
             - id: indexing_guide
               title: Indexing Guide
               description: Choose between vchordrq (disk-friendly RaBitQ IVF) and vchordg (high-QPS graph)
@@ -225,10 +222,10 @@ languages:
           commands:
             - id: quick_start
               title: 快速开始
-              description: 使用 Docker 或 PostgreSQL 软件包在几分钟内启动 vchord
+              description: 使用软件包安装 vchord 并运行首个向量相似性查询
               url: /zh/docs/vchord/getting-started/overview/
               icon: fa-solid fa-bolt
-              keywords: [start, quickstart, docker, install, vchord, vchordrq, 快速开始, 安装]
+              keywords: [start, quickstart, pig, install, vchord, vchordrq, 快速开始, 安装]
             - id: indexing_guide
               title: 索引指南
               description: 在 vchordrq（磁盘友好型 RaBitQ IVF）与 vchordg（高 QPS 图索引）之间选型
@@ -438,9 +435,9 @@ outputs:
 # Site parameters
 #=======================================#
 params:
-  description: "vchord is a scalable, fast, and disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, maintained by the Pigsty community."
+  description: "vchord is a scalable, disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, maintained by PGSTY."
   logo: img/vchord.svg
-  version: 1.2.0
+  version: 1.3.0
   copyright:
     authors: '[TensorChord](https://github.com/tensorchord) & [PGSTY](https://pigsty.io/) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)'
     from_year: 2023

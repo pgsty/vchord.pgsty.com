@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 EXTENSIONS = ("vchord", "vchord_bm25", "pg_tokenizer")
-RELEASE_VERSIONS = {"vchord": "1.2.0", "vchord_bm25": "1.0.0", "pg_tokenizer": "1.0.0"}
+RELEASE_VERSIONS = {"vchord": "1.5.0", "vchord_bm25": "1.0.0", "pg_tokenizer": "1.0.0"}
 
 
 
@@ -26,7 +26,7 @@ def parse_pgext_markdown(path: Path) -> dict[str, str]:
     version_match = re.search(r"\|\s*\*\*EXT\*\*\s*\|[^|]+\|\s*`([^`]+)`\s*\|", text)
     version = version_match.group(1) if version_match else ""
     target_version = RELEASE_VERSIONS.get(path.stem, version)
-    if version and target_version and version != target_version:
+    if path.stem != "vchord" and version and target_version and version != target_version:
         text = re.sub(
             rf"{re.escape(version)}-\d+PIGSTY",
             f"{target_version}-1PIGSTY",
@@ -100,11 +100,11 @@ body_class: td-download-page
 
 Pre-built native RPM and DEB packages for the Vchord extension suite (**`vchord`**, **`vchord_bm25`**, and **`pg_tokenizer`**) are published across **16 Linux OS / CPU architecture targets** (`el8`, `el9`, `el10`, `d12`, `d13`, `u22`, `u24`, `u26` × `x86_64` / `aarch64`) for **PostgreSQL 14, 15, 16, 17, and 18** (240 binary packages in total).
 
-**vchord 1.3.0** is available from the [GitHub release](https://github.com/pgsty/vchord/releases/tag/1.3.0) as Linux ZIP and Debian packages for PostgreSQL 14–18 on x86_64/aarch64 (glibc 2.35+). The distribution-repository tables below still describe 1.2.0. See the [upgrade notes](/blog/release/vchord-1.3.0/).
+**vchord 1.5.0** is available from the [GitHub release](https://github.com/pgsty/vchord/releases/tag/1.5.0) as Linux ZIP and Debian packages for PostgreSQL 15–19 on x86_64/aarch64 (glibc 2.35+). The distribution-repository tables below still describe 1.2.0. See the [upgrade notes](/blog/release/vchord-1.5.0/).
 
 {{{{< cards >}}}}
 {{{{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v{RELEASE_VERSIONS['vchord']}" >}}}}
-Scalable, fast, and disk-friendly vector similarity search extension built on `pgvector`, providing RaBitQ-compressed `vchordrq` (IVF) and `vchordg` (graph) indexes, multi-vector MaxSim (`@#`), and sphere search across PostgreSQL 14–18.
+Scalable, fast, and disk-friendly vector similarity search extension built on `pgvector`, providing RaBitQ-compressed `vchordrq` (IVF) and `vchordg` (graph) indexes, multi-vector MaxSim (`@#`), and sphere search across PostgreSQL 15–19.
 {{{{< /card >}}}}
 {{{{< card title="vchord_bm25" link="#vchord_bm25" icon="fa-solid fa-magnifying-glass" badge="v{RELEASE_VERSIONS['vchord_bm25']}" >}}}}
 Native Okapi BM25 full-text ranking index extension powered by Block-WeakAnd block-level WAND pruning and the `<&>` operator, delivering high-throughput lexical Top-K retrieval and hybrid search across PostgreSQL 14–18.
@@ -245,7 +245,7 @@ docker run -d \\
 
 | **Type** | **Name / Pattern** | **Version** | **PostgreSQL** | **Dependencies** | **Repository** | **License / Lang** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`vchord`](/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | [`vector`](/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}}}} |
+| {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`vchord`](/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | [`vector`](/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_$v` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
 {{.packages .wide .expand}}
@@ -335,11 +335,11 @@ body_class: td-download-page
 
 Vchord 扩展套件（**`vchord`**、**`vchord_bm25`** 与 **`pg_tokenizer`**）已面向 **16 个 Linux 发行版与 CPU 架构目标**（`el8`、`el9`、`el10`、`d12`、`d13`、`u22`、`u24`、`u26` × `x86_64` / `aarch64`）以及 **PostgreSQL 14、15、16、17、18** 五个大版本构建并发布原生 RPM 与 DEB 软件包（共计 240 个预编译二进制包）。
 
-**vchord 1.3.0** 已在 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.3.0) 提供 PostgreSQL 14–18、x86_64/aarch64 的 Linux ZIP 与 Debian 包（glibc 2.35+）。下方发行版软件源表格仍对应 1.2.0。升级前请阅读[发布说明](/zh/blog/release/vchord-1.3.0/)。
+**vchord 1.5.0** 已在 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.5.0) 提供 PostgreSQL 15–19、x86_64/aarch64 的 Linux ZIP 与 Debian 包（glibc 2.35+）。下方发行版软件源表格仍对应 1.2.0。升级前请阅读[发布说明](/zh/blog/release/vchord-1.5.0/)。
 
 {{{{< cards >}}}}
 {{{{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v{RELEASE_VERSIONS['vchord']}" >}}}}
-新一代可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供 RaBitQ 量化的 `vchordrq` 倒排索引、`vchordg` 高吞吐图索引与 MaxSim（`@#`）多向量检索，全面支持 PostgreSQL 14–18。
+新一代可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供 RaBitQ 量化的 `vchordrq` 倒排索引、`vchordg` 高吞吐图索引与 MaxSim（`@#`）多向量检索，全面支持 PostgreSQL 15–19。
 {{{{< /card >}}}}
 {{{{< card title="vchord_bm25" link="#vchord_bm25" icon="fa-solid fa-magnifying-glass" badge="v{RELEASE_VERSIONS['vchord_bm25']}" >}}}}
 PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-WeakAnd 块级剪枝索引（`USING bm25`）与 `<&>` 操作符加速 Top-K 词法检索，可与 `vchord` 无缝构建混合检索，全面支持 PostgreSQL 14–18。
@@ -480,7 +480,7 @@ docker run -d \\
 
 | **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **软件仓库** | **许可证 / 语言** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`vchord`](/zh/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | [`vector`](/zh/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}}}} |
+| {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`vchord`](/zh/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | [`vector`](/zh/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}}}} |
 | {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_$v` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
 | {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
 {{.packages .wide .expand}}

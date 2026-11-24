@@ -13,11 +13,11 @@ body_class: td-download-page
 
 Vchord 扩展套件（**`vchord`**、**`vchord_bm25`** 与 **`pg_tokenizer`**）已面向 **16 个 Linux 发行版与 CPU 架构目标**（`el8`、`el9`、`el10`、`d12`、`d13`、`u22`、`u24`、`u26` × `x86_64` / `aarch64`）以及 **PostgreSQL 14、15、16、17、18** 五个大版本构建并发布原生 RPM 与 DEB 软件包（共计 240 个预编译二进制包）。
 
-**vchord 1.3.0** 已在 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.3.0) 提供 PostgreSQL 14–18、x86_64/aarch64 的 Linux ZIP 与 Debian 包（glibc 2.35+）。下方发行版软件源表格仍对应 1.2.0。升级前请阅读[发布说明](/zh/blog/release/vchord-1.3.0/)。
+**vchord 1.5.0** 已在 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.5.0) 提供 PostgreSQL 15–19、x86_64/aarch64 的 Linux ZIP 与 Debian 包（glibc 2.35+）。下方发行版软件源表格仍对应 1.2.0。升级前请阅读[发布说明](/zh/blog/release/vchord-1.5.0/)。
 
 {{< cards >}}
-{{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v1.2.0" >}}
-新一代可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供 RaBitQ 量化的 `vchordrq` 倒排索引、`vchordg` 高吞吐图索引与 MaxSim（`@#`）多向量检索，全面支持 PostgreSQL 14–18。
+{{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v1.5.0" >}}
+新一代可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供 RaBitQ 量化的 `vchordrq` 倒排索引、`vchordg` 高吞吐图索引与 MaxSim（`@#`）多向量检索，全面支持 PostgreSQL 15–19。
 {{< /card >}}
 {{< card title="vchord_bm25" link="#vchord_bm25" icon="fa-solid fa-magnifying-glass" badge="v1.0.0" >}}
 PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-WeakAnd 块级剪枝索引（`USING bm25`）与 `<&>` 操作符加速 Top-K 词法检索，可与 `vchord` 无缝构建混合检索，全面支持 PostgreSQL 14–18。
@@ -145,7 +145,7 @@ docker run -d \
 
 | **扩展名称** | **当前正式版本** | **技术文档** | **PGEXT 扩展目录** | **Pigsty 扩展页** | **GitHub 仓库与发行版** |
 |:---|:---:|:---|:---|:---|:---|
-| **`vchord`** | `v1.2.0` | [vchord 文档](/zh/docs/vchord/) | [pgext.cloud/e/vchord](https://pgext.cloud/e/vchord) | [pigsty.cc/ext/e/vchord](https://pigsty.cc/ext/e/vchord/) | [pgsty/vchord](https://github.com/pgsty/vchord/releases) |
+| **`vchord`** | `v1.5.0` | [vchord 文档](/zh/docs/vchord/) | [pgext.cloud/e/vchord](https://pgext.cloud/e/vchord) | [pigsty.cc/ext/e/vchord](https://pigsty.cc/ext/e/vchord/) | [pgsty/vchord](https://github.com/pgsty/vchord/releases) |
 | **`vchord_bm25`** | `v1.0.0` | [vchord_bm25 文档](/zh/docs/bm25/) | [pgext.cloud/e/vchord_bm25](https://pgext.cloud/e/vchord_bm25) | [pigsty.cc/ext/e/vchord_bm25](https://pigsty.cc/ext/e/vchord_bm25/) | [pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25/releases) |
 | **`pg_tokenizer`** | `v1.0.0` | [pg_tokenizer 文档](/zh/docs/tokenizer/) | [pgext.cloud/e/pg_tokenizer](https://pgext.cloud/e/pg_tokenizer) | [pigsty.cc/ext/e/pg_tokenizer](https://pigsty.cc/ext/e/pg_tokenizer/) | [pgsty/pg_tokenizer](https://github.com/pgsty/pg_tokenizer/releases) |
 {.wide .expand}
@@ -154,11 +154,11 @@ docker run -d \
 
 ## 1 · `vchord` —— 可扩展向量检索引擎 {#vchord}
 
-**`vchord`**（`v1.2.0`）是套件的核心向量相似性检索扩展，提供 `vchordrq`（RaBitQ 倒排索引）与 `vchordg`（单层图索引）两种访问方法，依赖基础扩展 `vector`（[`pgvector`](/zh/docs/vector/)）。
+**`vchord`**（`v1.5.0`）是套件的核心向量相似性检索扩展，提供 `vchordrq`（RaBitQ 倒排索引）与 `vchordg`（单层图索引）两种访问方法，依赖基础扩展 `vector`（[`pgvector`](/zh/docs/vector/)）。
 
 | **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **软件仓库** | **许可证 / 语言** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{< bg "EXT" "PostgreSQL 扩展" "blue" >}} | [`vchord`](/zh/docs/vchord/) | `1.2.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | [`vector`](/zh/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}} |
+| {{< bg "EXT" "PostgreSQL 扩展" "blue" >}} | [`vchord`](/zh/docs/vchord/) | `1.5.0` | {{< pgver "19,18,17,16,15" "g,g,g,g,g" >}} | [`vector`](/zh/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}} |
 | {{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}} | `vchord_$v` | `1.2.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `pgvector_$v` | {{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}} | {{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}} |
 | {{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}} | `postgresql-$v-vchord` | `1.2.0` | {{< pgver "18,17,16,15,14" "g,g,g,g,g" >}} | `postgresql-$v-pgvector` | {{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}} | {{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}} |
 {.packages .wide .expand}

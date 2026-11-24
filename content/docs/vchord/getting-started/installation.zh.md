@@ -10,20 +10,7 @@ aliases:
 icon: fa-solid fa-download
 ---
 
-`vchord` 1.2.0 已正式发布，支持 PostgreSQL 14–18。Pigsty 已发布适用于 EL 8/9/10、Debian 12/13、Ubuntu 22.04/24.04/26.04 的 Linux 原生 RPM/DEB 软件包，覆盖 `x86_64` 和 `aarch64`（详见[下载页面](/zh/download/)与 [PGEXT 发布矩阵](https://pgext.cloud/ext/vchord)）。源码还在 CI 中测试了 macOS、Windows、Alpine Linux 及其他架构。
-
-当前版本可从 `pgsty/vchord` 仓库或 Pigsty 软件包仓库安装。PostgreSQL 19 构建仅用于开发验证，不属于正式发布支持矩阵。
-
-* Ubuntu (x86_64, aarch64)
-* macOS (x86_64, aarch64)
-* Windows (x86_64)
-* Alpine Linux (x86_64, aarch64) [^1]
-* Debian (powerpc64le, s390x, riscv64) [^2]
-
-[^1]: CI 在 Alpine Linux 3.22 上覆盖 PostgreSQL 15–17。
-[^2]: CI 通过 QEMU 用户态模拟器在 `powerpc64le` 上覆盖 PostgreSQL 14–18，并在 `s390x` 与 `riscv64` 上覆盖部分 PostgreSQL 15/17 作业。这些是源码/CI 目标；预构建原生二进制软件包面向 `x86_64` 与 `aarch64`。
-
-如果您在上述任何操作系统上遇到问题，请提交 Bug 报告；如果您需要更多平台支持，欢迎提交功能请求。
+按 PostgreSQL 主版本和架构选择 Linux ZIP 或 DEB。GitHub Release 提供 PostgreSQL 15–19 的 x86_64 与 aarch64 二进制包。 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.5.0) · [vchord 1.5.0 支持 PostgreSQL 15–19](/zh/blog/release/vchord-1.5.0/)
 
 <a id="Docker"></a>
 ## Docker {#docker}
@@ -118,7 +105,7 @@ CMD ["postgres", "-c" ,"shared_preload_libraries=vchord,vector"]
 >
 > * 任意版本的 `make`
 > * `clang >= 16` 及 `libclang`
-> * `rust >= 1.93` 及 `cargo`
+> * `rust >= 1.100.0` 及 `cargo`
 >
 > 在大多数平台上推荐使用 Rustup 安装 Rust，而在 Alpine Linux 上则建议使用系统包管理器安装。
 >
@@ -135,8 +122,8 @@ CMD ["postgres", "-c" ,"shared_preload_libraries=vchord,vector"]
 1. 下载源码，并使用 `make` 进行编译和安装。
 
 ```sh
-curl -fsSL https://github.com/pgsty/vchord/archive/refs/tags/1.2.0.tar.gz | tar -xz
-cd vchord-1.2.0
+curl -fsSL https://github.com/pgsty/vchord/archive/refs/tags/1.5.0.tar.gz | tar -xz
+cd vchord-1.5.0
 PG_CONFIG=/path/to/pg_config make build
 PG_CONFIG=/path/to/pg_config make install # 或者 `sudo make install`
 ```
@@ -179,7 +166,7 @@ RUSTFLAGS="-Ctarget-cpu=native" make build
 您也可以通过 Cargo 配置文件来完成此设置：
 
 ```sh
-cd vchord-1.2.0
+cd vchord-1.5.0
 mkdir -p .cargo
 touch .cargo/config.toml
 echo 'build.rustflags = ["-Ctarget-cpu=icelake"]' >> ./cargo/config.toml
@@ -191,14 +178,14 @@ echo 'build.rustflags = ["-Ctarget-cpu=icelake"]' >> ./cargo/config.toml
 如果您尚未安装 PostgreSQL，请参照 https://www.postgresql.org/download/linux/debian/ 进行安装。如果您尚未安装 pgvector，可以在执行第 3 步之前通过 `apt install postgresql-16-pgvector` 进行安装；请将 `16` 替换为您的 PostgreSQL 主版本。
 
 > [!TIP] 关于发布链接的说明
-> 当前 PGSTY 发布版本为 `vchord` 1.2.0。下面以 PostgreSQL 16 为例；请将 `16` 和 `amd64` 替换为您下载的软件包对应的 PostgreSQL 主版本和架构。
+> 当前 PGSTY 发布版本为 `vchord` 1.5.0。下面以 PostgreSQL 16 为例；请将 `16` 和 `amd64` 替换为您下载的软件包对应的 PostgreSQL 主版本和架构。
 
 
 1. 在[发布页面](https://github.com/pgsty/vchord/releases)下载 Debian 软件包，并通过 `apt` 进行安装。
 
 ```sh
-wget https://github.com/pgsty/vchord/releases/download/1.2.0/postgresql-16-vchord_1.2.0-1_amd64.deb
-sudo apt install ./postgresql-16-vchord_1.2.0-1_amd64.deb
+wget https://github.com/pgsty/vchord/releases/download/1.5.0/postgresql-16-vchord_1.5.0-1_amd64.deb
+sudo apt install ./postgresql-16-vchord_1.5.0-1_amd64.deb
 ```
 
 2. 修改 `shared_preload_libraries` 以加载该扩展来配置 PostgreSQL，然后重启 PostgreSQL 集群。
@@ -220,14 +207,14 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 如果您尚未安装 PostgreSQL，请参照 https://www.postgresql.org/download/linux/ubuntu/ 进行安装。如果您尚未安装 pgvector，可以在执行第 3 步之前通过 `apt install postgresql-16-pgvector` 进行安装；请将 `16` 替换为您的 PostgreSQL 主版本。
 
 > [!TIP] 关于发布链接的说明
-> 当前 PGSTY 发布版本为 `vchord` 1.2.0。下面以 PostgreSQL 16 为例；请将 `16` 和 `amd64` 替换为您下载的软件包对应的 PostgreSQL 主版本和架构。
+> 当前 PGSTY 发布版本为 `vchord` 1.5.0。下面以 PostgreSQL 16 为例；请将 `16` 和 `amd64` 替换为您下载的软件包对应的 PostgreSQL 主版本和架构。
 
 
 1. 在[发布页面](https://github.com/pgsty/vchord/releases)下载 Debian 软件包，并通过 `apt` 进行安装。
 
 ```sh
-wget https://github.com/pgsty/vchord/releases/download/1.2.0/postgresql-16-vchord_1.2.0-1_amd64.deb
-sudo apt install ./postgresql-16-vchord_1.2.0-1_amd64.deb
+wget https://github.com/pgsty/vchord/releases/download/1.5.0/postgresql-16-vchord_1.5.0-1_amd64.deb
+sudo apt install ./postgresql-16-vchord_1.5.0-1_amd64.deb
 ```
 
 2. 修改 `shared_preload_libraries` 以加载该扩展来配置 PostgreSQL，然后重启 PostgreSQL 集群。
@@ -274,7 +261,7 @@ CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
 > [!TIP]
 >
-> PGXN 是上游 VectorChord 项目的历史分发渠道。对于 PGSTY 1.2.0，请使用上面的 Pigsty 或 GitHub 发布软件包。
+> PGXN 是上游 VectorChord 项目的历史分发渠道。对于 PGSTY 1.5.0，请使用上面的 Pigsty 或 GitHub 发布软件包。
 >
 
 
@@ -309,11 +296,11 @@ psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'vchord'"
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 ```
 
-## 升级到 1.2.0 {#upgrading-to-120}
+## 升级到 1.5.0 {#upgrading-to-120}
 
-从 `1.1.1`（或 `0.2.0` 及之后的任意旧版本）升级时，先安装与 PostgreSQL 主版本匹配的 1.2.0 动态库和扩展 SQL 文件，再重启 PostgreSQL 以加载新的预加载库。1.2.0 包含从 `0.2.0` 至 `1.1.1` 的直接升级路径，并保留旧版 SQL 包装函数的兼容符号，确保 `1.0.0` 之前注册的扩展也能顺利完成 `ALTER EXTENSION`。在每个使用 `vchord` 的数据库中执行：
+安装对应的动态库和 SQL 后重启 PostgreSQL，在每个使用 vchord 的数据库中执行升级。已有 1.4.0 索引可原地使用，1.3.0 升级时会一并安装过滤键 SQL 对象。如果旧版图 VACUUM 已切断某个活区域，请对受影响的索引执行 `REINDEX INDEX CONCURRENTLY index_name;`。
 
 ```sql
-ALTER EXTENSION vchord UPDATE TO '1.2.0';
+ALTER EXTENSION vchord UPDATE TO '1.5.0';
 SELECT extversion FROM pg_extension WHERE extname = 'vchord';
 ```

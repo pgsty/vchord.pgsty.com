@@ -13,6 +13,8 @@ Download the Linux ZIP or DEB for your PostgreSQL major and architecture. The Gi
 
 An RQ index with filter keys now streams candidates from the initial IVF lists. A query such as `WHERE tenant_id = 42 ORDER BY embedding <-> $1 LIMIT 10` can stop as soon as ten rows are available. When more rows are needed, the scan expands up to `vchordrq.max_probes`. A later round can return a closer row. Applications that need a total order can overfetch and sort their result.
 
+Prepared queries with an enum range filter now retain the filter-key layout if a concurrent `ANALYZE` refreshes the relation cache. Earlier scans could skip matching rows in compacted blocks. Existing indexes pick up the fix when PostgreSQL loads the new library.
+
 ### Sphere search
 
 A sphere search remains approximate in the rows it visits. PostgreSQL checks candidates against the strict radius. An RQ scan can accept an interior hit directly for a single f32 L2 sphere when the rerank uses the SQL operator’s whole-vector reduction and the filter keys are exact. Graph, half-precision, inner-product and cosine sphere searches use the heap predicate.

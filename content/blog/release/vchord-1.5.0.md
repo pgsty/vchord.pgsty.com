@@ -3,6 +3,9 @@ title: "vchord 1.5.0 for PostgreSQL 15–19"
 date: 2026-11-24
 description: "Streaming filtered searches, parallel vector builds and graph repair after deletes."
 authors: ["vonng"]
+release_url: "https://github.com/pgsty/vchord/releases/tag/1.5.0"
+upstream_source: ""
+upstream_link: ""
 tags: ["release", "vchord"]
 ---
 

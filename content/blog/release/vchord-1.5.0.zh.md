@@ -3,6 +3,9 @@ title: "vchord 1.5.0 支持 PostgreSQL 15–19"
 date: 2026-11-24
 description: "过滤检索按需扩容，向量索引支持并行构建，图索引可在删除后修复跨区连接。"
 authors: ["vonng"]
+release_url: "https://github.com/pgsty/vchord/releases/tag/1.5.0"
+upstream_source: ""
+upstream_link: ""
 tags: ["release", "vchord"]
 ---
 

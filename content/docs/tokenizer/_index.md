@@ -1,7 +1,7 @@
 ---
 title: "pg_tokenizer Documentation"
 linkTitle: "pg_tokenizer"
-description: "Complete guide to pg_tokenizer: installation, text analyzers, character/token filters, pretrained and custom models, multilingual tokenization, and SQL reference."
+description: "pg_tokenizer turns multilingual text into tsvector lexemes for BM25 search, or into the token IDs of a vocabulary, inside PostgreSQL."
 weight: 300
 icon: fa-solid fa-language
 type: docs
@@ -17,25 +17,25 @@ cascade:
   upstream_modified: true
 ---
 
-**`pg_tokenizer` 1.0.0** (maintained by Pigsty at [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)) is a standalone multilingual tokenization extension for PostgreSQL built in Rust (`pgrx`). It provides customizable text analyzers, character/token filters, and vocabulary models that produce integer token ID arrays (`INT[]`) for the historical `bm25vector` workflow and native PostgreSQL `tsvector` values for GIN/GiST or compatible BM25 indexes.
+pg_tokenizer is a PostgreSQL extension that splits text into words, or into the token IDs of a vocabulary, with a pipeline you configure in SQL. Use it to feed [vchord_bm25](/docs/bm25/) when PostgreSQL's own `to_tsvector` does not fit your text: Chinese and Japanese, which have no spaces between words, stemming with your own stopwords and synonyms, or the vocabulary of an LLM tokenizer.
 
 {{< cards >}}
+  {{< card link="/docs/tokenizer/overview/" title="Overview" icon="fa-solid fa-compass" >}}
+How the analyzer and model stages fit together, which one you need, and a quick start with BM25.
+{{< /card >}}
   {{< card link="/docs/tokenizer/installation/" title="Installation" icon="fa-solid fa-download" >}}
-Install and preload `pg_tokenizer` via Pigsty native Linux packages, Docker (Obsolete) containers, Debian/ZIP release archives, or `cargo-pgrx` source builds.
+Install from Pigsty packages, GitHub releases or source, preload the library, and upgrade in place.
 {{< /card >}}
-  {{< card link="/docs/tokenizer/overview/" title="Architecture & Usage" icon="fa-solid fa-sitemap" >}}
-Understand how two-stage Text Analyzers and Vocabulary Models work together to transform raw text into integer token IDs or native `tsvector` values.
+  {{< card link="/docs/tokenizer/multilingual/" title="Multilingual Recipes" icon="fa-solid fa-earth-asia" >}}
+Complete SQL for BM25 search on English, other European languages, Chinese and Japanese.
 {{< /card >}}
-  {{< card link="/docs/tokenizer/text-analyzer/" title="Text Analyzers & Filters" icon="fa-solid fa-sliders" >}}
-Chain declarative character filters, pre-tokenizers (Unicode, Regex, Jieba), Snowball stemmers (30 languages), stopwords, synonyms, and n-gram filters.
+  {{< card link="/docs/tokenizer/text-analyzer/" title="Text Analyzers" icon="fa-solid fa-sliders" >}}
+Choose how text is split and filtered: word boundaries or jieba, stopwords, stemming, synonyms, PostgreSQL dictionaries, n-grams.
 {{< /card >}}
-  {{< card link="/docs/tokenizer/models/" title="Tokenization Models" icon="fa-solid fa-cubes" >}}
-Use built-in pretrained models (`llmlingua2`, `bert_base_uncased`, `wiki_tocken`, `gemma2b`), train custom corpus models, or import HuggingFace models.
+  {{< card link="/docs/tokenizer/models/" title="Models" icon="fa-solid fa-cubes" >}}
+Token IDs from built-in LLM vocabularies, Hugging Face tokenizers, Lindera dictionaries and your own corpus.
 {{< /card >}}
-  {{< card link="/docs/tokenizer/multilingual/" title="Multilingual Recipes & Limitations" icon="fa-solid fa-earth-asia" >}}
-Ready-to-use SQL configurations and operational guidelines for English, Chinese (`jieba`), Japanese (`lindera`), and custom domain-specific corpora.
-{{< /card >}}
-  {{< card link="/docs/tokenizer/reference/" title="SQL & TOML Reference" icon="fa-solid fa-book" >}}
-Consult the complete reference for all `tokenizer_catalog` SQL functions, trigger helpers, built-in model specs, and TOML configuration parameters.
+  {{< card link="/docs/tokenizer/reference/" title="Reference" icon="fa-solid fa-book" >}}
+Every function, configuration key and setting.
 {{< /card >}}
 {{< /cards >}}

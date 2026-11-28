@@ -1,24 +1,24 @@
 ---
-title: "参考手册与基准测试"
-description: "vchord_bm25 与 pg_tokenizer 的完整 SQL 参考手册、GUC 参数、性能基准测试与版本演进历史。"
+title: "参考"
+description: "vchord_bm25 的 SQL 对象、参数与索引选项、升级与迁移，以及基准测试。"
 weight: 40
 icon: fa-solid fa-book
 no_list: true
 ---
 
-**`vchord_bm25`** 与 **`pg_tokenizer`** 的完整技术参考资料：
+每个运算符、函数、参数和索引选项都只在这几页定义一次，使用指南会链接到这里。迁移页还收录了版本历史。
 
 {{< cards >}}
-  {{< card link="/zh/docs/bm25/reference/sql/" title="SQL 参考手册（类型、操作符与函数）" icon="fa-solid fa-code" >}}
-涵盖 `bm25vector`、`bm25query`、`tsvector`、`<&>`、`to_bm25query`、`bm25_page_inspect` 以及 `pg_tokenizer` SQL 函数的完整参考。
+  {{< card link="/zh/docs/bm25/reference/sql/" title="SQL 参考" icon="fa-solid fa-code" >}}
+`bm25query` 类型、`<&>` 运算符及其分数公式、`to_bm25query`、`bm25_maintain`，以及 `bm25` 访问方法。
 {{< /card >}}
-  {{< card link="/zh/docs/bm25/reference/gucs/" title="GUC 与索引参数" icon="fa-solid fa-sliders" >}}
-完整列出 `v0.1`–`v0.3`（`bm25_catalog.*`）与当前 `1.1.0`（`bm25.*`）的会话级 GUC 运行时参数、优先级覆盖规则及索引存储选项。
+  {{< card link="/zh/docs/bm25/reference/gucs/" title="参数与索引选项" icon="fa-solid fa-sliders" >}}
+`bm25.*` 参数、索引存储选项，以及两者同时设置时以谁为准。
 {{< /card >}}
-  {{< card link="/zh/docs/bm25/reference/benchmarks/" title="基准测试 (BEIR / MS MARCO)" icon="fa-solid fa-chart-bar" >}}
-展示 `vchord_bm25` 与 Elasticsearch、Lucene、ParadeDB 及 PostgreSQL 原生 GIN 索引的 QPS 吞吐量与 NDCG@10 检索精度对比。
+  {{< card link="/zh/docs/bm25/reference/migration/" title="升级与迁移" icon="fa-solid fa-right-left" >}}
+版本历史、1.x 内的原地升级与降级，以及从 0.x `bm25vector` 接口迁移。
 {{< /card >}}
-  {{< card link="/zh/docs/bm25/reference/versions/" title="版本历史与 API 演进" icon="fa-solid fa-clock-rotate-left" >}}
-梳理从 `v0.1.0` 到 `v0.3.0`，再到 `1.0.0` 原生 `tsvector` 架构与当前 `1.1.0` 的版本变更日志、SQL 模式演进和兼容性边界。
+  {{< card link="/zh/docs/bm25/reference/benchmarks/" title="基准测试" icon="fa-solid fa-chart-bar" >}}
+已发布的吞吐量与相关性测试结果，以及对应的数据集、版本和出处。
 {{< /card >}}
 {{< /cards >}}

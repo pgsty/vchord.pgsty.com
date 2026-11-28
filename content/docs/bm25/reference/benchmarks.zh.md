@@ -1,46 +1,45 @@
 ---
-title: "性能与精度基准测试"
-description: "VectorChord-BM25 与 Elasticsearch、Lucene、ParadeDB 及 PostgreSQL GIN 的 QPS 吞吐量与 NDCG@10 检索精度对比基准测试。"
-weight: 30
+title: "基准测试"
+linkTitle: "基准测试"
+description: "vchord_bm25 与混合检索已发布的吞吐量与相关性测试结果，以及对应的数据集、版本和出处。"
+weight: 40
 icon: fa-solid fa-chart-bar
 ---
 
-## 吞吐量基准测试（QPS 对比 Elasticsearch、Lucene、ParadeDB、PG GIN） {#throughput-benchmark-qps-vs-elasticsearch-lucene-paradedb-pg-gin}
+本页汇总 vchord_bm25 已发布的测试结果，并注明测了什么、出自哪里。这些结果都是用 0.x 引擎测得的，当时 vchord_bm25 还没有改为基于 `tsvector` 重写；在依赖这些数字之前，请先用自己的数据复测。速度取决于词表、查询长度和 `LIMIT`；相关性主要取决于分词。
 
-凭借结合 128 文档差分位打包块与单字节 Fieldnorm 量化的 **Block-WeakAnd** 算法实现，VectorChord-BM25 在 Top-10 排序查询上的 QPS 吞吐量最高可达基于 Tantivy 的 PostgreSQL 扩展（`ParadeDB / pg_search`）的 **3 倍**，并比 PostgreSQL 原生 `GIN` 索引高出一个数量级：
+## 与 Elasticsearch 对比 {#elasticsearch}
 
-![VectorChord-BM25 RPS 基准测试](/docs/images/es-vchord-bm25-rps.png)
+TensorChord 于 2025 年 2 月在 [bm25-benchmarks](https://github.com/xhluca/bm25-benchmarks) 的 BEIR 数据集上对比了 VectorChord-BM25 0.1 与 Elasticsearch，并事先对齐了停用词、词干提取，以及标题与正文字段的合并方式。原文未说明硬件配置。出处：[VectorChord-BM25：比 Elasticsearch 快 3 倍](/zh/blog/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)。
 
-![VectorChord-BM25 NDCG@10 基准测试](/docs/images/es-vchord-bm25-ndcg10.png)
+| 指标 | VectorChord-BM25 | Elasticsearch |
+| --- | --- | --- |
+| Top-1000 每秒查询数，几何平均 | 112 | 49 |
+| Top-10 每秒查询数，几何平均 | 272 | 341 |
 
-### 为什么 `vchord_bm25` 能实现极高的 QPS {#why-vchord_bm25-achieves-high-qps}
+需要返回大量结果时 VectorChord-BM25 更快，只取前 10 名时则较慢。NDCG@10 在大多数数据集上相当，在 trec-covid 和 scifact 上更高。
 
-1. **零跨引擎序列化开销**：不同于外部数据包装器（FDW）或外挂 Tantivy/Lucene 桥接方案，`vchord_bm25` 将段数据直接存储在 PostgreSQL 缓冲池页面（`PostgresRelation`）中，彻底消除了跨引擎元组编组（Marshaling）开销。
-2. **激进的块级上界剪枝（Block-Max Pruning）**：在多词查询场景下，一旦 Top-10 阈值趋于稳定，Block-WeakAnd 即可直接跳过 80%–95% 以上的 128 文档倒排块，无需对其进行解压。
-3. **256 项预计算 BM25 查找表**：将文档长度量化为单字节 `fieldnorm`，使原本昂贵的逐文档浮点运算简化为单次数组查表。
+各数据集的 Top-1000 吞吐量：
 
----
+![VectorChord-BM25 与 Elasticsearch 在 BEIR 数据集上的 Top-1000 每秒请求数](/docs/images/es-vchord-bm25-rps.png)
 
-## 检索精度基准测试（BEIR 与 LoTTE 上的 `NDCG@10`） {#retrieval-accuracy-benchmark-ndcg10-on-beir--lotte}
+各数据集 Top-1000 结果的 NDCG@10：
 
-下表（摘自我们的 [BEIR / LoTTE 混合检索与 ColBERT 重排序评测报告](/zh/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/)）对比了以下三种方案的检索精度（`NDCG@10`）：
+![VectorChord-BM25 与 Elasticsearch 在 BEIR 数据集上的 NDCG@10](/docs/images/es-vchord-bm25-ndcg10.png)
 
-- **PostgreSQL `vchord` 稠密向量检索**（`Vector`）
-- **PostgreSQL `vchord_bm25` 词法检索**（`BM25`）
-- **混合检索（`vchord` + `vchord_bm25` 配合 ColBERT 重排序）**
+## 混合检索质量 {#hybrid}
 
-| 数据集 | 领域 | 稠密向量 (`vchord`) | 词法 BM25 (`vchord_bm25`) | 混合检索 + ColBERT 重排序 |
-| :--- | :--- | :---: | :---: | :---: |
-| **scifact** | 科学事实核查 | 0.676 | 0.665 | **0.751** |
-| **nfcorpus** | 生物医学信息检索 | 0.340 | 0.325 | **0.370** |
-| **fiqa** | 金融问答 | 0.405 | 0.236 | **0.415** |
-| **trec-covid** | 生物医学 COVID-19 | 0.728 | 0.656 | **0.838** |
-| **LoTTE-lifestyle (search)** | 生活方式问答（搜索） | 0.735 | 0.635 | **0.779** |
-| **LoTTE-lifestyle (forum)** | 生活方式论坛 | 0.662 | 0.506 | **0.701** |
-| **LoTTE-recreation (search)** | 休闲娱乐问答 | 0.642 | 0.564 | **0.708** |
-| **LoTTE-technology (search)** | 技术问答 | 0.562 | 0.483 | **0.647** |
-| **LoTTE-writing (search)** | 写作问答 | 0.726 | 0.674 | **0.793** |
-{.wide .expand}
+TensorChord 于 2025 年 3 月在四个 BEIR 数据集上测量了 NDCG@10，使用 vchord 0.3、VectorChord-BM25 0.2（搭配 pg_tokenizer 的 Unicode 分词器）、BGE-M3 向量、`k = 60` 的 RRF，以及 `bge-reranker-v2-m3` cross-encoder。出处：[基于 Postgres 原生 BM25 与 VectorChord 的混合检索](/zh/blog/hybrid-search-with-postgres-native-bm25-and-vectorchord/)，代码见 [xieydd/vectorchord-hybrid-search](https://github.com/xieydd/vectorchord-hybrid-search)。
 
-> [!TIP]
-> 在所有评测数据集上，将 **`vchord_bm25`** 与 **`vchord`** 结合使用均稳定超越单独使用稠密向量检索或单独使用词法 BM25 检索。如需获取开箱即用的 SQL 查询模板，请参阅[混合检索 (BM25 + VectorChord)](/zh/docs/bm25/usage/hybrid-search/)。
+| 数据集 | 向量检索 | BM25 | 两者 RRF | Cross-encoder 重排 |
+| --- | --- | --- | --- | --- |
+| FiQA-2018 | 0.403 | 0.253 | 0.376 | 0.427 |
+| Quora | 0.884 | 0.787 | 0.870 | 0.891 |
+| SCIDOCS | 0.161 | 0.156 | 0.173 | 0.179 |
+| SciFact | 0.576 | 0.685 | 0.679 | 0.746 |
+
+RRF 只在 SCIDOCS 上同时超过了两种单一方法；用 cross-encoder 对候选重排，在每个数据集上都得分最高。两路结果如何加权，见[混合检索](/zh/docs/bm25/usage/hybrid-search/#tuning)。
+
+## 版本间对比 {#release-reports}
+
+[1.3.0 性能报告](https://github.com/pgsty/vchord_bm25/blob/1.3.0/docs/performance/2026-11-24-bm25.zh-CN.md)在一个构造的 20,000 行语料上，分别于 macOS `arm64` 和 Linux `x86_64`（PostgreSQL 18）对比了 1.3.0 与 1.2.0：建索引产生的 WAL、查询计划及其缓冲区读取、索引维护，以及并行建索引的耗时与内存。

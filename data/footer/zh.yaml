@@ -21,8 +21,8 @@ columns:
       - { label: "pgvector", url: "docs/vector/" }
   - title: "项目与博客"
     links:
-      - { label: "工程技术博客", url: "blog/post/" }
-      - { label: "版本发布说明", url: "blog/release/" }
+      - { label: "工程技术博客", url: "blog/" }
+      - { label: "版本发布说明", url: "release/" }
       - { label: "关于与开源许可", url: "docs/about/" }
       - { label: "署名与上游来源", url: "docs/about/attribution/" }
       - { label: "GitHub", url: "https://github.com/pgsty/vchord", external: true }

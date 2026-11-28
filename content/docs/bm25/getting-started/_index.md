@@ -1,21 +1,18 @@
 ---
 title: "Getting Started"
-description: "Overview, installation, and quick start guide for vchord_bm25 and pg_tokenizer."
+description: "What vchord_bm25 solves, how a ranked query runs, a first query, and how to install the extension."
 weight: 10
 icon: fa-solid fa-rocket
 no_list: true
 ---
 
-Get started with **`vchord_bm25`** in PostgreSQL:
+Start with the overview if you are deciding whether you need a BM25 index; it ends with a quick start you can run in a few minutes. The installation page covers every package format and how to enable the extension.
 
 {{< cards >}}
   {{< card link="/docs/bm25/getting-started/overview/" title="Overview" icon="fa-solid fa-compass" >}}
-Understand why Okapi BM25 and Block-WeakAnd index pruning significantly outperform native PostgreSQL `ts_rank` and GIN indexes for Top-K search.
+The problem with `ts_rank` and GIN for ranked search, how vchord_bm25 answers a top-k query, and a quick start.
 {{< /card >}}
   {{< card link="/docs/bm25/getting-started/installation/" title="Installation" icon="fa-solid fa-download" >}}
-Install and preload `vchord_bm25` and `pg_tokenizer` via Pigsty native Linux packages, Docker (Obsolete) containers, Debian/ZIP archives, or source builds.
-{{< /card >}}
-  {{< card link="/docs/bm25/getting-started/quick-start/" title="Quick Start" icon="fa-solid fa-bolt" >}}
-Walk through a complete hands-on SQL tutorial to tokenize text, build a `bm25` inverted index, and run Top-K ranked full-text queries in minutes.
+Pigsty packages, Debian and Ubuntu packages, ZIP archives, source builds, and enabling the extension.
 {{< /card >}}
 {{< /cards >}}

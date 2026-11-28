@@ -14,7 +14,7 @@ icon: fa-solid fa-chart-line
 测试在 Google Cloud [n2-standard-8](https://cloud.google.com/compute/docs/general-purpose-machines#n2_series)（8 vCPU，32 GB 内存）实例上进行，使用 `laion-768-5m-ip` 数据集。
 
 <a id="pgvecto-rs-v-s-pgvector"></a>
-## `pgvecto.rs` 对比 `pgvector` {#pgvecto-rs-vs-pgvector}
+## `pgvecto.rs` 对比 `pgvector` {#pgvectors-vs-pgvector}
 
 在使用 HNSW 索引时，`pgvecto.rs` 在保持约 97% 略高召回精度的同时，每秒响应数（RPS）可达到 `pgvector` 的 **2.5 倍**。当对召回精度要求更高时，这一性能优势还会进一步扩大。
 

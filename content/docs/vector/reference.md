@@ -8,9 +8,9 @@ upstream_link: https://github.com/pgvector/pgvector#reference
 math: true
 ---
 
-## SQL Function Reference
+## SQL Function Reference {#sql-function-reference}
 
-### Vector Functions
+### Vector Functions {#vector-functions}
 
 | Function | Return Type | Description |
 | :--- | :--- | :--- |
@@ -27,7 +27,7 @@ math: true
 | `subvector(a, start, count)` | same as input | Extract `count` dimensions starting at 1-based index `start` (`vector`, `halfvec`) |
 {.wide .expand}
 
-### Element-Wise Arithmetic Operators
+### Element-Wise Arithmetic Operators {#element-wise-arithmetic-operators}
 
 - `a + b`: Element-wise addition (`vector`, `halfvec`)
 - `a - b`: Element-wise subtraction (`vector`, `halfvec`)
@@ -36,7 +36,7 @@ math: true
 
 ---
 
-## GUC Parameters
+## GUC Parameters {#guc-parameters}
 
 | Parameter | Type / Allowed Values | Default | Description |
 | :--- | :--- | :---: | :--- |
@@ -51,15 +51,15 @@ math: true
 
 ---
 
-## Performance Tuning & Monitoring
+## Performance Tuning & Monitoring {#performance-tuning-monitoring}
 
-### 1. Check Index Size
+### 1. Check Index Size {#1-check-index-size}
 
 ```sql
 SELECT pg_size_pretty(pg_relation_size('items_embedding_idx'));
 ```
 
-### 2. Inspect Query Execution Plans
+### 2. Inspect Query Execution Plans {#2-inspect-query-execution-plans}
 
 Use `EXPLAIN ANALYZE` to confirm whether an index scan is chosen and measure execution latency:
 
@@ -68,7 +68,7 @@ EXPLAIN (ANALYZE, BUFFERS)
 SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 ```
 
-### 3. Monitor Slow Queries with `pg_stat_statements`
+### 3. Monitor Slow Queries with `pg_stat_statements` {#3-monitor-slow-queries-with-pg_stat_statements}
 
 ```sql
 SELECT
@@ -81,7 +81,7 @@ ORDER BY total_plan_time + total_exec_time DESC
 LIMIT 20;
 ```
 
-### 4. Measure Recall
+### 4. Measure Recall {#4-measure-recall}
 
 Compare approximate index results against exact sequential scan results inside a transaction:
 
@@ -94,22 +94,22 @@ COMMIT;
 
 ---
 
-## Frequently Asked Questions (FAQ)
+## Frequently Asked Questions (FAQ) {#frequently-asked-questions-faq}
 
-### Why isn't my query using the vector index?
+### Why isn't my query using the vector index? {#why-isnt-my-query-using-the-vector-index}
 
 1. **Missing `ORDER BY ... LIMIT`**: Index scans require both an `ORDER BY <operator>` and a `LIMIT` clause.
 2. **Mismatched operator class**: The query operator must match the index operator class (`<->` requires `vector_l2_ops`, `<#>` requires `vector_ip_ops`, `<=>` requires `vector_cosine_ops`).
 3. **Small table cost estimation**: On small tables, PostgreSQL's planner may correctly determine that a sequential scan is cheaper than an index scan. To force index usage during testing, run `SET LOCAL enable_seqscan = off;`.
 
-### How do I index vectors with more than 2,000 dimensions?
+### How do I index vectors with more than 2,000 dimensions? {#how-do-i-index-vectors-with-more-than-2000-dimensions}
 
 `pgvector` HNSW and IVFFlat indexes cap `vector` columns at 2,000 dimensions because PostgreSQL index tuples cannot exceed 8 KB page limits. You have three options:
 1. **Install [`vchord`](/docs/vchord/)**: [`vchord`](/docs/vchord/)'s `vchordrq` index supports up to **60,000 dimensions** directly on `vector` and `halfvec` columns.
 2. **Half-precision expression indexing**: Cast to `halfvec` (`(embedding::halfvec(3072)) halfvec_l2_ops`) to index up to **4,000 dimensions**.
 3. **Binary quantization**: Use `(binary_quantize(embedding)::bit(N)) bit_hamming_ops` to index up to **64,000 dimensions**.
 
-### Can I store vectors with different dimensions in the same column?
+### Can I store vectors with different dimensions in the same column? {#can-i-store-vectors-with-different-dimensions-in-the-same-column}
 
 Yes, declare the column without a dimension modifier (`embedding vector`), though you can only create an index on rows that share the same dimension via a partial expression index:
 
@@ -118,6 +118,6 @@ CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector);
 CREATE INDEX ON items USING hnsw ((embedding::vector(3)) vector_l2_ops) WHERE (vector_dims(embedding) = 3);
 ```
 
-### Do vectors contain `NULL` or `NaN` / `Infinity`?
+### Do vectors contain `NULL` or `NaN` / `Infinity`? {#do-vectors-contain-null-or-nan-infinity}
 
 Vectors cannot contain `NULL`, `NaN`, or `Infinity` elements. A whole column value can be `NULL`; note that `NULL` vectors are not indexed in IVFFlat and are sorted last by default unless `NULLS FIRST` is specified.

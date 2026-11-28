@@ -10,7 +10,7 @@ upstream_source: pgvector
 upstream_link: https://github.com/pgvector/pgvector
 upstream_modified: true
 aliases:
-  - "/zh/vector/"
+  - "/vector/"
 no_list: true
 cascade:
   type: docs
@@ -23,7 +23,7 @@ cascade:
 > [!TIP] 与 `vchord` 的关系
 > [`vchord`](/zh/docs/vchord/) 直接构建在 `pgvector` 的数据类型（`vector` 与 `halfvec`）和距离操作符（`<->`、`<#>`、`<=>`）之上。无需修改现有的表结构或应用层 SQL，即可直接在现有的 `pgvector` 向量列上创建 [`vchord`](/zh/docs/vchord/)（`vchordrq` 或 `vchordg`）索引。
 
-## 核心特性
+## 核心特性 {#key-features}
 
 - **精确与近似最近邻检索（KNN / ANN）**：与 PostgreSQL 完整 ACID 事务、时间点恢复（PITR）、关系连接（JOIN）及谓词过滤无缝融合。
 - **多种向量数据表示**：
@@ -34,7 +34,7 @@ cascade:
 - **六种距离度量**：欧氏 L2 距离（`<->`）、内积（`<#>`）、余弦距离（`<=>`）、曼哈顿 L1 距离（`<+>`）、汉明距离（`<~>`）以及杰卡德距离（`<%>`）。
 - **迭代式索引扫描（Iterative Index Scans，0.8.0+）**：当带 `WHERE` 过滤条件导致候选集不足时，自动扩展 HNSW 或 IVFFlat 索引遍历范围以保证召回数量。
 
-## 文档章节导航
+## 文档章节导航 {#documentation-sections}
 
 {{< cards >}}
 {{< card title="安装与快速上手" icon="fa-solid fa-rocket" link="/zh/docs/vector/getting-started/" >}}

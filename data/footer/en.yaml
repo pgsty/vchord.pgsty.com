@@ -21,8 +21,8 @@ columns:
       - { label: "pgvector", url: "docs/vector/" }
   - title: "Project & Blog"
     links:
-      - { label: "Engineering Blog", url: "blog/post/" }
-      - { label: "Release Notes", url: "blog/release/" }
+      - { label: "Engineering Blog", url: "blog/" }
+      - { label: "Release Notes", url: "release/" }
       - { label: "About & License", url: "docs/about/" }
       - { label: "Attribution", url: "docs/about/attribution/" }
       - { label: "GitHub", url: "https://github.com/pgsty/vchord", external: true }

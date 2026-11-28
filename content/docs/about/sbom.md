@@ -15,11 +15,11 @@ This page provides the **Software Bill of Materials (SBOM)** for the three core 
 | **Extension** | **Repository** | **Version** | **License** | **Rust / `pgrx`** | **PG Support** | **Workspace Crates** | **Locked Packages** |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **[`vchord`](/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.5.0` | `AGPL-3.0-only` | `2024` / `=0.20.1` | `pg15`–`pg19` | 15 | 245 |
-| **[`vchord_bm25`](/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.0.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 8 | 194 |
-| **[`pg_tokenizer`](/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
+| **[`vchord_bm25`](/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.3.0` | `AGPL-3.0-only` | `2024` / `=0.20.1` | `pg15`–`pg19` | 8 | 185 |
+| **[`pg_tokenizer`](/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.3.0` | `Apache-2.0` | `2021` / `=0.20.0` | `pg15`–`pg19` | 1 | 368 |
 {.wide .expand}
 
-The vchord 1.5.0 Linux build matrix covers PostgreSQL 15–19. The release tag records every resolved dependency. [Cargo.lock](https://github.com/pgsty/vchord/blob/1.5.0/Cargo.lock)
+The Linux build, test, and binary package matrices cover **PostgreSQL 15–19** on `x86_64` and `aarch64`. Each release tag records every resolved dependency in its `Cargo.lock`.
 
 ---
 
@@ -55,7 +55,7 @@ The vchord 1.5.0 Linux build matrix covers PostgreSQL 15–19. The release tag r
 | `pgrx` | `0.20.1` | `MIT` | Runtime (`cshim`) | Rust framework for PostgreSQL extensions (`pg15`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `pgrx-pg-sys` | `0.20.1` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `rusqlite` | `0.43.0` | `MIT` | Runtime (`bundled`) | Embedded SQLite engine (`libsqlite3-sys 0.40.0`) for recording sampled queries | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
-| `mimalloc` | `0.1.52` | `MIT` | Runtime (`x86_64`/`aarch64`) | High-performance allocator (`libmimalloc-sys 0.1.49`, `local_dynamic_tls`) on Linux | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
+| `mimalloc` | `0.1.52` | `MIT` | Runtime (Linux `x86_64`/`aarch64`) | High-performance allocator (`libmimalloc-sys 0.1.49`, `local_dynamic_tls`) on Linux `x86_64` and `aarch64` | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
 | `rayon` | `1.12.0` | `MIT OR Apache-2.0` | Runtime | Data-parallel work-stealing thread pool for K-means and parallel index builds | [rayon-rs/rayon](https://github.com/rayon-rs/rayon) |
 | `crossbeam-channel` | `0.5.17` | `MIT OR Apache-2.0` | Runtime | Multi-producer multi-consumer channels for parallel build coordination | [crossbeam-rs/crossbeam](https://github.com/crossbeam-rs/crossbeam) |
 | `zerocopy` | `0.8.64` | `BSD-2-Clause OR Apache-2.0 OR MIT` | Runtime | Safe zero-copy byte reinterpretation for on-disk PostgreSQL index pages | [google/zerocopy](https://github.com/google/zerocopy) |
@@ -68,7 +68,7 @@ The vchord 1.5.0 Linux build matrix covers PostgreSQL 15–19. The release tag r
 | `min-max-heap` | `1.3.0` | `MIT OR Apache-2.0` | Runtime | Double-ended priority queue for bounded beam search in `vchordg` | [tov/min-max-heap-rs](https://github.com/tov/min-max-heap-rs) |
 | `wyhash` | `0.6.0` | `MIT OR Apache-2.0` | Runtime | Fast non-cryptographic hashing for visited-vertex deduplication | [eldruin/wyhash-rs](https://github.com/eldruin/wyhash-rs) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | Runtime | Serialization framework for index reloptions (`options = $$...$$`) | [serde-rs/serde](https://github.com/serde-rs/serde) |
-| `toml` | `1.2.2+spec-1.1.0` | `MIT OR Apache-2.0` | Runtime | TOML parser for `vchordrq` and `vchordg` index build options | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2` | `MIT OR Apache-2.0` | Runtime | TOML parser for `vchordrq` and `vchordg` index build options | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | Runtime | Declarative range and structural validation for index options | [Keats/validator](https://github.com/Keats/validator) |
 | `humansize` | `2.1.3` | `MIT OR Apache-2.0` | Runtime | Human-readable byte formatting for diagnostics | [LeopoldArkham/humansize](https://github.com/LeopoldArkham/humansize) |
 | `paste` | `1.0.15` | `MIT OR Apache-2.0` | Macro | Identifier concatenation macro for operator boilerplate generation | [dtolnay/paste](https://github.com/dtolnay/paste) |
@@ -101,20 +101,20 @@ The vchord 1.5.0 Linux build matrix covers PostgreSQL 15–19. The release tag r
 
 | **Crate** | **Locked Version** | **SPDX License** | **Scope** | **Purpose** | **Upstream Repository** |
 |:---|:---:|:---|:---:|:---|:---|
-| `pgrx` | `0.19.3` | `MIT` | Runtime | Rust framework for PostgreSQL extensions (`pg14`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `pgrx-pg-sys` | `0.19.3` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx` | `0.20.1` | `MIT` | Runtime | Rust framework for PostgreSQL extensions (`pg15`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx-pg-sys` | `0.20.1` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `blake3` | `1.8.7` | `CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception` | Runtime | Cryptographic/fast hashing for vocabulary terms and segment integrity | [BLAKE3-team/BLAKE3](https://github.com/BLAKE3-team/BLAKE3) |
 | `memmap2` | `0.9.12` | `MIT OR Apache-2.0` | Runtime | Cross-platform memory-mapped file I/O during external segment sorting | [RazrFalcon/memmap2-rs](https://github.com/RazrFalcon/memmap2-rs) |
-| `mimalloc` | `0.1.52` | `MIT` | Runtime (`x86_64`/`aarch64`) | High-performance allocator (`libmimalloc-sys 0.1.49`, `local_dynamic_tls`) on Linux & macOS | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
-| `zerocopy` | `0.8.63` | `BSD-2-Clause OR Apache-2.0 OR MIT` | Runtime (`derive`, `simd`) | Zero-copy serialization of posting-list blocks and BM25 metadata pages | [google/zerocopy](https://github.com/google/zerocopy) |
+| `mimalloc` | `0.1.52` | `MIT` | Runtime (Linux `x86_64`/`aarch64`) | High-performance allocator (`libmimalloc-sys 0.1.49`, `local_dynamic_tls`) on Linux `x86_64` and `aarch64` | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
+| `zerocopy` | `0.8.64` | `BSD-2-Clause OR Apache-2.0 OR MIT` | Runtime (`derive`, `simd`) | Zero-copy serialization of posting-list blocks and BM25 metadata pages | [google/zerocopy](https://github.com/google/zerocopy) |
 | `getrandom` | `0.4.3` | `MIT OR Apache-2.0` | Runtime | Operating-system entropy source for temporary file naming | [rust-random/getrandom](https://github.com/rust-random/getrandom) |
-| `rand` | `0.10.3` | `MIT OR Apache-2.0` | Runtime | Random number generation utilities | [rust-random/rand](https://github.com/rust-random/rand) |
+| `rand` | `0.10.4` | `MIT OR Apache-2.0` | Runtime | Random number generation utilities | [rust-random/rand](https://github.com/rust-random/rand) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | Runtime | Serialization framework for `USING bm25` index reloptions | [serde-rs/serde](https://github.com/serde-rs/serde) |
-| `toml` | `1.1.8` | `MIT OR Apache-2.0` | Runtime | TOML parser for index configuration options | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2` | `MIT OR Apache-2.0` | Runtime | TOML parser for index configuration options | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | Runtime | Validation rules for BM25 index reloptions | [Keats/validator](https://github.com/Keats/validator) |
 | `seq-macro` | `0.3.6` | `MIT OR Apache-2.0` | Macro | Compile-time loop unrolling for bit-packing kernels | [dtolnay/seq-macro](https://github.com/dtolnay/seq-macro) |
-| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.9` | `MIT OR Apache-2.0` | Proc-macro | Syntax parsing and token generation for `simd_macros` | [dtolnay/syn](https://github.com/dtolnay/syn) |
-| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.7` / `0.40.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | Build (`xtask`) | Build CLI parsing, symbol verification, and SQL schema parity check (`pgrx-sql-entity-graph 0.19.3`) | [clap-rs/clap](https://github.com/clap-rs/clap) |
+| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.10` | `MIT OR Apache-2.0` | Proc-macro | Syntax parsing and token generation for `simd_macros` | [dtolnay/syn](https://github.com/dtolnay/syn) |
+| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.9` / `0.41.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | Build (`xtask`) | Build CLI parsing, symbol verification, and SQL schema parity check (`pgrx-sql-entity-graph 0.20.1`) | [clap-rs/clap](https://github.com/clap-rs/clap) |
 {.wide .expand}
 
 ---
@@ -127,27 +127,27 @@ The vchord 1.5.0 Linux build matrix covers PostgreSQL 15–19. The release tag r
 
 | **Crate** | **Locked Version** | **SPDX License** | **Scope** | **Purpose** | **Upstream Repository** |
 |:---|:---:|:---|:---:|:---|:---|
-| `pgrx` | `0.19.3` | `MIT` | Runtime | Rust framework for PostgreSQL extensions (`pg14`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `pgrx-pg-sys` | `0.19.3` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx` | `0.20.0` | `MIT` | Runtime | Rust framework for PostgreSQL extensions (`pg15`–`pg19` bindings) | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx-pg-sys` | `0.20.0` | `MIT` | Runtime | Raw FFI bindings to PostgreSQL server headers and internals | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `tokenizers` | `0.23.2` | `Apache-2.0` | Runtime | HuggingFace fast tokenization pipeline (WordPiece, BPE, Unigram) | [huggingface/tokenizers](https://github.com/huggingface/tokenizers) |
 | `tocken` | `0.1.0` | `Apache-2.0` | Runtime | Pre-built LLM/embedding vocabulary tokenizer (`bert_base_uncased`, `wiki_tocken`, `gemma2b`, `llmlingua2`) | [kemingy/tocken](https://github.com/kemingy/tocken) |
 | `jieba-rs` | `0.11.0` | `MIT` | Runtime | Chinese word segmentation (`jieba` pre-tokenizer with HMM and user dictionaries) | [messense/jieba-rs](https://github.com/messense/jieba-rs) |
-| `lindera` | `6.2.0` | `MIT` | Runtime | Japanese/CJK morphological analyzer framework (`lindera` model & pre-tokenizer) | [lindera/lindera](https://github.com/lindera/lindera) |
-| `lindera-analysis` | `6.2.0` | `MIT` | Runtime | Character filters, token filters, and embedded IPADIC / UniDic / ko-dic / CC-CEDICT dictionary support | [lindera/lindera](https://github.com/lindera/lindera) |
+| `lindera` | `7.0.0` | `MIT` | Runtime | Japanese/CJK morphological analyzer framework (`lindera` model & pre-tokenizer) | [lindera/lindera](https://github.com/lindera/lindera) |
+| `lindera-analysis` | `7.0.0` | `MIT` | Runtime | Character filters, token filters, and embedded IPADIC / UniDic / ko-dic / CC-CEDICT dictionary support | [lindera/lindera](https://github.com/lindera/lindera) |
 | `rust-stemmers` | `1.2.1` | `MIT OR BSD-3-Clause` | Runtime | Snowball stemming algorithms for 30 languages (Git tag `v1.2.1`, commit `61e8ea11`) | [pgsty/rust-stemmers](https://github.com/pgsty/rust-stemmers) |
 | `unicode-segmentation` | `1.13.3` | `MIT OR Apache-2.0` | Runtime | Unicode Standard Annex #29 (`UAX #29`) word boundary segmentation (`unicode` pre-tokenizer) | [unicode-rs/unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) |
 | `unicode-normalization` | `0.1.26` | `(MIT OR Apache-2.0) AND Unicode-3.0` | Runtime | Unicode NFC / NFD / NFKC / NFKD character normalization filters | [unicode-rs/unicode-normalization](https://github.com/unicode-rs/unicode-normalization) |
-| `regex` | `1.13.1` | `MIT OR Apache-2.0` | Runtime | Finite-automata regular expression engine for regex pre-tokenizers and pattern filters | [rust-lang/regex](https://github.com/rust-lang/regex) |
+| `regex` | `1.13.2` | `MIT OR Apache-2.0` | Runtime | Finite-automata regular expression engine for regex pre-tokenizers and pattern filters | [rust-lang/regex](https://github.com/rust-lang/regex) |
 | `dashmap` | `6.2.1` | `MIT` | Runtime | Concurrent sharded hash map for in-memory model and analyzer caching | [xacrimon/dashmap](https://github.com/xacrimon/dashmap) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | Runtime | Serialization framework for TOML/JSON pipeline and model configurations | [serde-rs/serde](https://github.com/serde-rs/serde) |
 | `serde_json` | `1.0.154` | `MIT OR Apache-2.0` | Runtime | JSON parser for HuggingFace tokenizer specifications | [serde-rs/json](https://github.com/serde-rs/json) |
-| `toml` | `1.1.8` | `MIT OR Apache-2.0` | Runtime | TOML parser for `create_tokenizer` / `create_text_analyzer` configuration blocks | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2` | `MIT OR Apache-2.0` | Runtime | TOML parser for `create_tokenizer` / `create_text_analyzer` configuration blocks | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | Runtime | Declarative validation for analyzer and model configuration structs | [Keats/validator](https://github.com/Keats/validator) |
 | `anyhow` | `1.0.104` | `MIT OR Apache-2.0` | Runtime | Contextual error reporting across tokenizer stages | [dtolnay/anyhow](https://github.com/dtolnay/anyhow) |
 | `onig_sys` | `69.9.3` | `MIT` | Transitive (`tokenizers`) | Oniguruma regular expression C library bindings used by HuggingFace `tokenizers` | [iwillspeak/rust-onig](https://github.com/iwillspeak/rust-onig) |
 | `esaxx-rs` | `0.1.10` | `Apache-2.0` | Transitive (`tokenizers`) | Enhanced suffix array C++ library used by Unigram vocabulary training | [Narsil/esaxx-rs](https://github.com/Narsil/esaxx-rs) |
-| `zstd-sys` | `2.1.2+zstd.1.5.7` | `BSD-3-Clause` | Transitive (`lindera`) | Zstandard compression C bindings used for compressed morphological dictionaries | [gyscos/zstd-rs](https://github.com/gyscos/zstd-rs) |
-| `pgrx-tests` | `0.19.3` | `MIT` | Dev / Test | PostgreSQL test harness for `cargo pgrx test` | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `zstd-sys` | `2.1.3+zstd.1.5.7` | `BSD-3-Clause` | Transitive (`lindera`) | Zstandard compression C bindings used for compressed morphological dictionaries | [gyscos/zstd-rs](https://github.com/gyscos/zstd-rs) |
+| `pgrx-tests` | `0.20.0` | `MIT` | Dev / Test | PostgreSQL test harness for `cargo pgrx test` | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 {.wide .expand}
 
 ---

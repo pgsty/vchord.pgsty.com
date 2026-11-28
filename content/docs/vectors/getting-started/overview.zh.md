@@ -19,7 +19,7 @@ icon: fa-solid fa-compass
 <a id="what-is-pgvecto-rs"></a>
 ## 什么是 `pgvecto.rs` {#what-is-pgvectors}
 
-`pgvecto.rs` 是一个提供向量相似度搜索功能的 Postgres 扩展。它使用 Rust 编写，基于 [pgrx](https://github.com/tcdi/pgrx) 构建。目前处于测试（Beta）阶段，诚邀您在生产环境中试用并向我们提供反馈。更多信息请参阅[📝我们的发布博客](/zh/blog/release/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/)。
+`pgvecto.rs` 是一个提供向量相似度搜索功能的 Postgres 扩展。它使用 Rust 编写，基于 [pgrx](https://github.com/tcdi/pgrx) 构建。目前处于测试（Beta）阶段，诚邀您在生产环境中试用并向我们提供反馈。更多信息请参阅[📝我们的发布博客](/zh/release/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/)。
 
 ## 与 pgvector 的对比 {#comparison-with-pgvector}
 

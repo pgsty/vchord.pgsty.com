@@ -8,7 +8,7 @@ upstream_link: https://github.com/pgvector/pgvector#querying
 math: true
 ---
 
-## Distance Operators
+## Distance Operators {#distance-operators}
 
 `pgvector` supports six distance operators for ordering (`ORDER BY`) and threshold filtering:
 
@@ -25,7 +25,7 @@ math: true
 > [!TIP] Normalized Vectors
 > If your vectors are already normalized to unit length (such as OpenAI `text-embedding-3-*` or BGE embeddings), prefer inner product (`<#>`) over cosine distance (`<=>`) for the best CPU throughput.
 
-### Nearest-Neighbor Queries
+### Nearest-Neighbor Queries {#nearest-neighbor-queries}
 
 ```sql
 -- Top 5 nearest neighbors by L2 distance
@@ -40,7 +40,7 @@ SELECT * FROM items ORDER BY embedding <#> '[3,1,2]' LIMIT 5;
 
 ---
 
-## Calculating Distances & Similarity Scores
+## Calculating Distances & Similarity Scores {#calculating-distances-similarity-scores}
 
 Retrieve the distance alongside each row:
 
@@ -55,7 +55,7 @@ SELECT id, (embedding <#> '[3,1,2]') * -1 AS inner_product FROM items;
 SELECT id, 1 - (embedding <=> '[3,1,2]') AS cosine_similarity FROM items;
 ```
 
-### Distance Threshold Queries
+### Distance Threshold Queries {#distance-threshold-queries}
 
 Get all rows within a given distance threshold:
 
@@ -73,11 +73,11 @@ LIMIT 5;
 ```
 
 > [!NOTE] Native Range / Sphere Queries in `vchord`
-> If you frequently query by distance radius, [`vchord`](/docs/vchord/) provides a dedicated `<<->>` sphere operator (`WHERE embedding <<->> sphere('[3,1,2]'::vector, 5)`) that evaluates range predicates directly inside the `vchordrq` or `vchordg` index without requiring `ORDER BY ... LIMIT`. See [Similarity Filter in `vchord`](/docs/vchord/usage/similarity-filter/).
+> If you frequently query by distance radius, [`vchord`](/docs/vchord/) provides a dedicated `<<->>` sphere operator (`WHERE embedding <<->> sphere('[3,1,2]'::vector, 5)`) that evaluates range predicates directly inside the `vchordrq` or `vchordg` index without requiring `ORDER BY ... LIMIT`. See [Similarity Filter in `vchord`](/docs/vchord/usage/filtering/#distance-range).
 
 ---
 
-## Aggregates
+## Aggregates {#aggregates}
 
 Compute the mean (`AVG`) or component-wise sum (`SUM`) of vectors:
 
@@ -91,7 +91,7 @@ GROUP BY category_id;
 
 ---
 
-## Filtering (`WHERE` Clauses) & Iterative Index Scans
+## Filtering (`WHERE` Clauses) & Iterative Index Scans {#filtering-where-clauses-iterative-index-scans}
 
 Combine vector search with relational predicates:
 
@@ -99,7 +99,7 @@ Combine vector search with relational predicates:
 SELECT * FROM items WHERE category_id = 123 ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 ```
 
-### Indexing Filter Columns
+### Indexing Filter Columns {#indexing-filter-columns}
 
 1. **Standard B-tree index** on the filter column (good when `category_id = 123` matches a very small fraction of rows):
    ```sql
@@ -114,7 +114,7 @@ SELECT * FROM items WHERE category_id = 123 ORDER BY embedding <-> '[3,1,2]' LIM
    CREATE TABLE items (embedding vector(3), category_id int) PARTITION BY LIST(category_id);
    ```
 
-### Iterative Index Scans (`pgvector 0.8.0+`)
+### Iterative Index Scans (`pgvector 0.8.0+`) {#iterative-index-scans}
 
 By default, approximate vector index scans examine a fixed number of candidates (`hnsw.ef_search` or `ivfflat.probes`). If a `WHERE` filter rejects most of those candidates, the query may return fewer rows than `LIMIT`.
 
@@ -143,7 +143,7 @@ WITH relaxed_results AS MATERIALIZED (
 SELECT * FROM relaxed_results ORDER BY distance + 0;
 ```
 
-#### Controlling Iterative Scan Budgets
+#### Controlling Iterative Scan Budgets {#controlling-iterative-scan-budgets}
 
 ```sql
 -- Maximum tuples HNSW will visit during an iterative scan (default: 20000)
@@ -158,11 +158,11 @@ SET ivfflat.max_probes = 100;
 
 ---
 
-## Hybrid Search
+## Hybrid Search {#hybrid-search}
 
 You can combine `pgvector` semantic similarity search with lexical full-text search using **Reciprocal Rank Fusion (RRF)**.
 
-### Hybrid Search with PostgreSQL `tsvector`
+### Hybrid Search with PostgreSQL `tsvector` {#hybrid-search-with-postgresql-tsvector}
 
 ```sql
 SELECT id, content FROM (
@@ -180,7 +180,7 @@ ORDER BY SUM(score) DESC
 LIMIT 5;
 ```
 
-### Hybrid Search with `vchord_bm25` or `pg_bestmatch`
+### Hybrid Search with `vchord_bm25` or `pg_bestmatch` {#hybrid-search-with-vchord_bm25-or-pg_bestmatch}
 
 For true Okapi BM25 ranking with document-length normalization and corpus IDF:
 - Pair `pgvector` (or [`vchord`](/docs/vchord/)) with [`vchord_bm25`](/docs/bm25/) and [`pg_tokenizer`](/docs/tokenizer/) — see the [Hybrid Search Guide](/docs/bm25/usage/hybrid-search/).

@@ -1,185 +1,163 @@
 ---
-title: "Multilingual Recipes & Limitations"
-description: "Complete tokenization configurations for English, Chinese (Jieba), Japanese (Lindera), and known limitations."
-weight: 40
-icon: fa-solid fa-language
+title: "Multilingual Recipes"
+linkTitle: "Recipes"
+description: "Complete SQL to set up BM25 search with pg_tokenizer and vchord_bm25 for English, other European languages, Chinese and Japanese."
+weight: 30
+icon: fa-solid fa-earth-asia
 ---
 
-> [!NOTE]
-> Recipes using `bm25vector` require historical `vchord_bm25` 0.1–0.3. With 1.0.0, store `analyze_to_tsvector` or `tokenize_to_tsvector` output in a `tsvector` column and use `to_bm25query(vector, index)`. See the [native BM25 example](/docs/tokenizer/overview/#native-postgresql-full-text-search).
+Each recipe sets up BM25 search for one language from start to finish: it creates the analyzer or tokenizer, a table whose `tsvector` column a trigger keeps current, a vchord_bm25 index, and a ranked query. Run it in a database where pg_tokenizer and vchord_bm25 are [installed and preloaded](/docs/tokenizer/installation/#enable), then replace the sample table with your own.
 
-This page provides production-ready tokenization recipes for English, Chinese, and Japanese full-text BM25 search, followed by important operational limitations to keep in mind.
+All recipes share the same shape, for two reasons explained in [Limits](/docs/tokenizer/overview/#limits):
 
-## Recipe 1: English with Stemming & Stopwords (`wiki_tocken`)
+- The `tsvector` column is filled by a trigger, because the pg_tokenizer functions are `STABLE` and PostgreSQL does not allow them in a generated column.
+- The query text goes through the same analyzer or tokenizer as the documents, so both sides produce the same lexemes.
 
-Combines Unicode word segmentation, NLTK stopwords removal, and Porter2 stemming with the built-in Wikipedia vocabulary (`wiki_tocken`):
+`<&>` returns the negated BM25 score, so `ORDER BY ... LIMIT` returns the best matches first. Function calls are schema-qualified so the recipes work whatever the `search_path`.
+
+## English {#english}
+
+<a id="recipe-1-english-with-stemming--stopwords-wiki_tocken"></a><a id="recipe-2-english-custom-corpus-model-with-trigger"></a>
+
+The analyzer lowercases the text, splits it at Unicode word boundaries (which also drops punctuation), removes the NLTK English stopwords, and reduces each word to its Porter2 stem, so that "ranking", "ranked" and "ranks" match each other.
 
 ```sql
-SELECT create_tokenizer('eng_wiki', $$
-model = "wiki_tocken"
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+
+SELECT tokenizer_catalog.create_text_analyzer('en_text', $$
 character_filters = ["to_lowercase"]
 pre_tokenizer = "unicode_segmentation"
-[[token_filters]]
-skip_non_alphanumeric = {}
-[[token_filters]]
-stopwords = "nltk_english"
-[[token_filters]]
-stemmer = "english_porter2"
+token_filters = [
+    { stopwords = "nltk_english" },
+    { stemmer = "english_porter2" },
+]
 $$);
 
-SELECT tokenize('PostgreSQL databases are running analytical and vector workloads.', 'eng_wiki');
-```
-
-## Recipe 2: English Custom Corpus Model with Trigger
-
-From the upstream [`pg_tokenizer` examples](https://github.com/pgsty/pg_tokenizer/blob/main/docs/03-examples.md), this workflow builds a domain-specific English vocabulary from your `documents` table and keeps embeddings updated automatically via trigger:
-
-```sql
-CREATE TABLE documents (
-    id SERIAL PRIMARY KEY,
-    passage TEXT,
-    embedding bm25vector
+CREATE TABLE en_docs (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
 );
 
-SELECT create_text_analyzer('text_analyzer1', $$
-pre_tokenizer = "unicode_segmentation"
-[[character_filters]]
-to_lowercase = {}
-[[character_filters]]
-unicode_normalization = "nfkd"
-[[token_filters]]
-skip_non_alphanumeric = {}
-[[token_filters]]
-stopwords = "nltk_english"
-[[token_filters]]
-stemmer = "english_porter2"
-$$);
+CREATE FUNCTION en_docs_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.body, 'en_text');
+    RETURN NEW;
+END;
+$$;
 
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name => 'tokenizer1',
-    model_name => 'model1',
-    text_analyzer_name => 'text_analyzer1',
-    table_name => 'documents',
-    source_column => 'passage',
-    target_column => 'embedding'
-);
+CREATE TRIGGER en_docs_terms BEFORE INSERT OR UPDATE OF body ON en_docs
+FOR EACH ROW EXECUTE FUNCTION en_docs_terms();
 
-INSERT INTO documents (passage) VALUES
-('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development and a proven architecture that has earned it a strong reputation for reliability, feature robustness, and performance.'),
-('Full-text search is a technique for searching a computer-stored document or a collection in a full-text database. Full-text search is distinguished from searches based on metadata or on parts of the original texts represented in databases (such as titles, abstracts, selected sections, or bibliographical references).'),
-('BM25 is a ranking function used by search engines to estimate the relevance of documents to a given search query. It is based on the probabilistic retrieval framework developed in the 1970s and 1980s by Stephen E. Robertson, Karen Spärck Jones, and others.'),
-('PostgreSQL supports advanced data types and performance optimization features, only available in the expensive commercial databases, such as Oracle and SQL Server. It is known for its resilience, integrity, and correctness.'),
-('The BM25 algorithm computes a score for each document in a collection based on the query terms appearing in the document, regardless of their proximity within the document. It is a bag-of-words retrieval function that ranks a set of documents based on the query terms appearing in each document.'),
-('PostgreSQL has a wide range of extensions and tools that make it suitable for various use cases, from small single-machine applications to large internet-facing applications with many concurrent users.'),
-('Full-text search in PostgreSQL allows users to perform complex queries on text data, including phrase searching, ranking of results, and support for multiple languages through configurations and dictionaries.'),
-('VectorChord-BM25 is a postgresql extension designed for bm25 ranking algorithm. Block-WeakAnd algorithm is implemented in it to accelerate the ranking process.'),
-('pg_tokenizer is a postgresql extension designed for full-text search. It provides a set of functions to preprocess text data and generate tokens for indexing and searching.'),
-('Look for organizations which use PostgreSQL for mission-critical or scaled applications. Look for organizations that have used PostgreSQL for a significant length of time.');
+INSERT INTO en_docs (body) VALUES
+    ('PostgreSQL is an open-source object-relational database system.'),
+    ('BM25 ranks documents by how often the query terms appear in them.'),
+    ('vchord_bm25 adds a BM25 index to PostgreSQL.'),
+    ('pg_tokenizer splits text into words before they are indexed.');
 
-CREATE INDEX documents_passage_bm25 ON documents USING bm25 (embedding bm25_ops);
+CREATE INDEX en_docs_bm25 ON en_docs USING bm25 (terms bm25_ops);
 
-SELECT id, passage, embedding <&> to_bm25query('documents_passage_bm25', tokenize('PostgreSQL BM25', 'tokenizer1')) AS rank
-FROM documents
-ORDER BY rank
+SELECT id, body
+FROM en_docs
+ORDER BY terms <&> to_bm25query(
+    tokenizer_catalog.analyze_to_tsvector('ranking documents in PostgreSQL', 'en_text'),
+    'en_docs_bm25')
 LIMIT 10;
 ```
 
-## Recipe 3: Chinese Full-Text Search (`jieba` + Custom Model)
+To index an existing table instead, add the `terms` column and the trigger, fill the column once with `UPDATE en_docs SET terms = tokenizer_catalog.analyze_to_tsvector(body, 'en_text');`, then create the index.
 
-For Chinese text, combine the `jieba` pre-tokenizer (`mode = "search"`, `enable_hmm = true`) with a custom corpus model trained on your table (demonstrated below using passages from Qian Zhongshu's *Fortress Besieged* / 《围城》):
+## Other languages with spaces {#european}
+
+For French, German, Spanish, Russian and the other languages that separate words with spaces, change only the analyzer in the English recipe. Two choices:
+
+- A Snowball **stemmer** with your own stopword list. pg_tokenizer has [30 stemmers](/docs/tokenizer/reference/#stemmers) but ships English stopword lists only; create others with `create_stopwords`.
+- One **`pg_dict`** filter naming a PostgreSQL Snowball dictionary such as `french_stem` or `german_stem`, the dictionary `to_tsvector` uses for that language. It lowercases, removes the language's stopwords and stems in one step.
 
 ```sql
-CREATE TABLE zh_docs (
-    id SERIAL PRIMARY KEY,
-    passage TEXT,
-    embedding bm25vector
-);
+SELECT tokenizer_catalog.create_text_analyzer('de_text', $$
+pre_tokenizer = "unicode_segmentation"
+token_filters = [{ pg_dict = "german_stem" }]
+$$);
 
--- 1. Create Chinese text analyzer with NFKD normalization and Jieba search mode
-SELECT create_text_analyzer('text_analyzer1', $$
-character_filters = ["to_lowercase", { unicode_normalization = "nfkd" }]
-pre_tokenizer = { jieba = { mode = "search", enable_hmm = true } }
+SELECT tokenizer_catalog.apply_text_analyzer(
+    'Aus so krummen Holze, als woraus der Mensch gemacht ist, kann nichts ganz Gerades gezimmert werden.',
+    'de_text');
+```
+
+```text
+{krumm,holz,woraus,mensch,gemacht,ganz,gerad,gezimmert}
+```
+
+`SELECT dictname FROM pg_ts_dict WHERE dictname LIKE '%\_stem';` lists the Snowball dictionaries your PostgreSQL has.
+
+## Chinese {#chinese}
+
+<a id="recipe-2-chinese-full-text-search-jieba--custom-model"></a><a id="recipe-3-chinese-full-text-search-jieba"></a>
+
+Chinese has no spaces between words, so the analyzer uses the jieba dictionary to find them. NFKC normalization turns full-width letters and digits into ASCII, lowercasing makes English words inside Chinese text match regardless of case, and `skip_non_alphanumeric` drops the punctuation and spaces that jieba returns as tokens. jieba's default `search` mode also emits the shorter words inside a long one, so a query for 数据 finds 数据库.
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+
+SELECT tokenizer_catalog.create_text_analyzer('zh_text', $$
+character_filters = [{ unicode_normalization = "nfkc" }, "to_lowercase"]
+pre_tokenizer = { jieba = { mode = "search" } }
 token_filters = ["skip_non_alphanumeric"]
 $$);
 
--- 2. Create custom vocabulary model, tokenizer, and auto-update trigger
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name     => 'tokenizer1',
-    model_name         => 'model1',
-    text_analyzer_name => 'text_analyzer1',
-    table_name         => 'zh_docs',
-    source_column      => 'passage',
-    target_column      => 'embedding'
+CREATE TABLE zh_docs (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
 );
 
--- 3. Insert Chinese corpus (trigger automatically populates embedding)
-INSERT INTO zh_docs (passage) VALUES
-('红海早过了，船在印度洋面上开驶着，但是太阳依然不饶人地迟落早起，侵占去大部分的夜。'),
-('夜仿佛纸浸了油，变成半透明体；它给太阳拥抱住了，分不出身来，也许是给太阳陶醉了，所以夕照霞隐褪后的夜色也带着酡红。'),
-('到红消醉醒，船舱里的睡人也一身腻汗地醒来，洗了澡赶到甲板上吹海风，又是一天开始。'),
-('这是七月下旬，合中国旧历的三伏，一年最热的时候。在中国热得更比常年利害，事后大家都说是兵戈之象，因为这就是民国二十六年【一九三七年】。'),
-('这条法国邮船白康蒂号（VicomtedeBragelonne）正开向中国来。早晨八点多钟，冲洗过的三等舱甲板湿意未干，但已坐立满了人，法国人、德国流亡出来的犹太人、印度人、安南人，不用说还有中国人。'),
-('海风里早含着燥热，胖人身体给风吹干了，蒙上一层汗结的盐霜，仿佛刚在巴勒斯坦的死海里洗过澡。'),
-('毕竟是清晨，人的兴致还不没给太阳晒萎，烘懒，说话做事都很起劲。那几个新派到安南或中国租界当警察的法国人，正围了那年轻善撒娇的犹太女人在调情。'),
-('俾斯麦曾说过，法国公使大使的特点，就是一句外国话不会讲；这几位警察并不懂德文，居然传情达意，引得犹太女人格格地笑，比他们的外交官强多了。'),
-('这女人的漂亮丈夫，在旁顾而乐之，因为几天来，香烟、啤酒、柠檬水全靠这几个警察孝敬。船上买东西用法国钱，这犹太人只有一点儿沿着那位丹麦王子汉姆烈德（Hamlet）路线逃出来的德国马克。'),
-('当时德国跟日本虽在谈恋爱，尚未结婚，到中国来的犹太人还是德国公民，有他们本国的保护。这船上的犹太人有过路到香港的，有到上海居留的，聚在一起在讨论生计，声音活像小洋磁盆里托的石子。'),
-('几个年轻的安南人比手画脚，像猴子跳电线一样迅捷地交换着法语，华侨在旁羡慕地听着。这船上都是回家乡的中国人，像报纸上的标题，电影的字幕，标语，籍贯姓名年纪一张表上那几格，他们老早填满了，此番回来，不过把这些公式平滑无波地重演一次。'),
-('只有鼻梁上架着一副黑眼镜的苏小姐，心算着她离国这几年，家里有什么变化，她父亲是否老了，她母亲新添了什么病痛，她弟弟结婚了没有。'),
-('苏小姐在里昂研究法国文学，做了一篇《中国十八世纪的法国文学里的中国》的论文，刚得了博士。'),
-('方鸿渐也到甲板上来了，在苏小姐身旁走过，向她脱帽招呼。苏小姐一壁应着，一壁想他真算厚脸皮，昨天向自己借了照相机，今天见了面，提都不提。');
+CREATE FUNCTION zh_docs_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.body, 'zh_text');
+    RETURN NEW;
+END;
+$$;
 
--- 4. Create BM25 index and search
-CREATE INDEX zh_docs_passage_bm25 ON zh_docs USING bm25 (embedding bm25_ops);
+CREATE TRIGGER zh_docs_terms BEFORE INSERT OR UPDATE OF body ON zh_docs
+FOR EACH ROW EXECUTE FUNCTION zh_docs_terms();
 
-SELECT id, passage,
-       embedding <&> to_bm25query('zh_docs_passage_bm25', tokenize('苏小姐 法国', 'tokenizer1')) AS rank
+INSERT INTO zh_docs (body) VALUES
+    ('PostgreSQL 是一个开源的关系型数据库管理系统。'),
+    ('全文检索需要先把句子切分成词语，再建立倒排索引。'),
+    ('结巴分词根据词典和隐马尔可夫模型切分中文句子。'),
+    ('vchord_bm25 在 PostgreSQL 中按 BM25 分数对文档排序。');
+
+CREATE INDEX zh_docs_bm25 ON zh_docs USING bm25 (terms bm25_ops);
+
+SELECT id, body
 FROM zh_docs
-ORDER BY rank
+ORDER BY terms <&> to_bm25query(
+    tokenizer_catalog.analyze_to_tsvector('中文分词与全文检索', 'zh_text'),
+    'zh_docs_bm25')
 LIMIT 10;
 ```
 
-## Recipe 4: Japanese Full-Text Search (`lindera` IPADIC)
+pg_tokenizer has no Chinese stopword list. To drop common words such as 的 and 了, create one with `create_stopwords` and add `{ stopwords = "<name>" }` to `token_filters`.
 
-When upgrading from Lindera 0.42 to 6.2, regenerate stored token arrays and rebuild their indexes because the IPADIC token IDs change. The dictionary configuration below remains supported; see the [Lindera migration notes](/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model).
+## Japanese {#japanese}
 
-For Japanese text, create a Lindera IPADIC morphological model with iteration mark normalization, NFKC normalization, Japanese stop-tag filtering, and Katakana stemming (demonstrated below using passages from Natsume Sōseki's *I Am a Cat* / 《吾輩は猫である》):
+<a id="recipe-3-japanese-full-text-search-lindera-ipadic"></a><a id="recipe-4-japanese-full-text-search-lindera-ipadic"></a>
+
+Japanese has no spaces either, and finding its words needs a morphological dictionary. The recipe creates a [Lindera](/docs/tokenizer/models/#lindera) model with the IPADIC dictionary and a tokenizer that uses it, and stores the dictionary IDs of the words as lexemes. Before segmenting, the model folds full-width and half-width forms (NFKC) and expands repetition marks such as 々; afterwards it drops particles, auxiliary verbs and symbols by their part of speech.
+
+The recipe uses the IPADIC dictionary built into the GitHub release packages and source builds. Pigsty packages do not include it: replace `embedded://ipadic` with the path of an IPADIC directory built for Lindera 7, and run the recipe as a superuser or a member of `pg_read_server_files`. Every session that loads such a model needs that privilege, including the application role whose inserts fire the trigger, unless the model is [preloaded](/docs/tokenizer/models/#preload).
 
 ```sql
-CREATE TABLE jp_docs (
-    id SERIAL PRIMARY KEY,
-    passage TEXT,
-    embedding bm25vector
-);
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
 
-INSERT INTO jp_docs (passage) VALUES
-('吾輩は猫である。名前はまだ無い。'),
-('どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。'),
-('吾輩はここで始めて人間というものを見た。しかもあとで聞くとそれは書生という人間中で一番獰悪な種族であったそうだ。'),
-('この書生というのは時々我々を捕えて煮て食うという話である。しかしその当時は何という考もなかったから別段恐しいとも思わなかった。'),
-('ただ彼の掌に載せられてスーと持ち上げられた時何だかフワフワした感じがあったばかりである。'),
-('掌の上で少し落ちついて書生の顔を見たのがいわゆる人間というものの見始であろう。この時妙なものだと思った感じが今でも残っている。'),
-('第一毛をもって装飾されべきはずの顔がつるつるしてまるで薬缶だ。その後猫にもだいぶ逢ったがこんな片輪には一度も出会わした事がない。'),
-('のみならず顔の真中があまりに突起している。そうしてその穴の中から時々ぷうぷうと煙を吹く。どうも咽せぽくて実に弱った。'),
-('これが人間の飲む煙草というものである事はようやくこの頃知った。'),
-('この書生の掌の裏でしばらくはよい心持に坐っておったが、しばらくすると非常な速力で運転し始めた。'),
-('書生が動くのか自分だけが動くのか分らないが無暗に眼が廻る。胸が悪くなる。到底助からないと思っていると、どさりと音がして眼から火が出た。'),
-('それまでは記憶しているがあとは何の事やらいくら考え出そうとしても分らない。'),
-('ふと気が付いて見ると書生はいない。たくさんおった兄弟が一疋も見えぬ。肝心の母親さえ姿を隠してしまった。'),
-('その上今までの所とは違って無暗に明るい。眼を明いていられぬくらいだ。果てな何でも容子がおかしいと、のそのそ這い出して見ると非常に痛い。'),
-('吾輩は藁の上から急に笹原の中へ棄てられたのである。');
-
-SELECT create_lindera_model('lindera_ipadic', $$
+SELECT tokenizer_catalog.create_lindera_model('ja_ipadic', $$
 [segmenter]
 mode = "normal"
-  [segmenter.dictionary]
-  kind = "ipadic"
-
-[[character_filters]]
-kind = "japanese_iteration_mark"
-  [character_filters.args]
-  normalize_kanji = true
-  normalize_kana = true
+dictionary = "embedded://ipadic"
 
 [[character_filters]]
 kind = "unicode_normalize"
@@ -187,24 +165,10 @@ kind = "unicode_normalize"
   kind = "nfkc"
 
 [[character_filters]]
-kind = "mapping"
-  [character_filters.args.mapping]
-  "リンデラ" = "Lindera"
-
-[[token_filters]]
-kind = "japanese_compound_word"
-  [token_filters.args]
-  kind = "ipadic"
-  tags = [
-    "名詞,数",
-    "名詞,接尾,助数詞",
-  ]
-  new_tag = "名詞,数"
-
-[[token_filters]]
-kind = "japanese_number"
-  [token_filters.args]
-  tags = ["名詞,数"]
+kind = "japanese_iteration_mark"
+  [character_filters.args]
+  normalize_kanji = true
+  normalize_kana = true
 
 [[token_filters]]
 kind = "japanese_stop_tags"
@@ -215,38 +179,44 @@ kind = "japanese_stop_tags"
     "助詞,並立助詞", "助詞,終助詞", "助詞,副助詞／並立助詞／終助詞",
     "助詞,連体化", "助詞,副詞化", "助詞,特殊", "助動詞", "記号",
     "記号,一般", "記号,読点", "記号,句点", "記号,空白", "記号,括弧閉",
-    "その他,間投", "フィラー", "非言語音"
+    "その他,間投", "フィラー", "非言語音",
   ]
-
-[[token_filters]]
-kind = "japanese_katakana_stem"
-  [token_filters.args]
-  min = 3
-
-[[token_filters]]
-kind = "remove_diacritical_mark"
-  [token_filters.args]
-  japanese = false
 $$);
 
-SELECT create_tokenizer('tokenizer1', $$
-model = "lindera_ipadic"
+SELECT tokenizer_catalog.create_tokenizer('ja_text', $$
+model = "ja_ipadic"
 $$);
 
-UPDATE jp_docs SET embedding = tokenize(passage, 'tokenizer1');
+CREATE TABLE ja_docs (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
+);
 
-CREATE INDEX jp_docs_passage_bm25 ON jp_docs USING bm25 (embedding bm25_ops);
+CREATE FUNCTION ja_docs_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.terms := tokenizer_catalog.tokenize_to_tsvector(NEW.body, 'ja_text');
+    RETURN NEW;
+END;
+$$;
 
-SELECT id, passage,
-       embedding <&> to_bm25query('jp_docs_passage_bm25', tokenize('人間 吾輩', 'tokenizer1')) AS rank
-FROM jp_docs
-ORDER BY rank
+CREATE TRIGGER ja_docs_terms BEFORE INSERT OR UPDATE OF body ON ja_docs
+FOR EACH ROW EXECUTE FUNCTION ja_docs_terms();
+
+INSERT INTO ja_docs (body) VALUES
+    ('PostgreSQL はオープンソースのリレーショナルデータベースです。'),
+    ('全文検索では文章を単語に分割してから索引を作ります。'),
+    ('日本語の文章には単語の間に空白がありません。'),
+    ('vchord_bm25 は PostgreSQL に BM25 のランキングを追加します。');
+
+CREATE INDEX ja_docs_bm25 ON ja_docs USING bm25 (terms bm25_ops);
+
+SELECT id, body
+FROM ja_docs
+ORDER BY terms <&> to_bm25query(
+    tokenizer_catalog.tokenize_to_tsvector('日本語の全文検索', 'ja_text'),
+    'ja_docs_bm25')
 LIMIT 10;
 ```
 
-## Operational Notes & Known Limitations
-
-1. **Object Name Validation**: All names for tokenizers, text analyzers, models, stopword dictionaries, and synonym dictionaries must contain only alphanumeric characters and underscores (`[A-Za-z0-9_]`), and must not start with a digit.
-2. **Transaction boundaries & object cache**: Each PostgreSQL backend caches `tokenizer`, `text_analyzer`, `model`, `stopwords`, and `synonym` objects in backend memory (`DashMap`). Create/drop/rebuild operations clear the current backend immediately and publish cache invalidation when the transaction commits; a rollback only clears the current backend. Other backends discard stale definitions before their next lookup, and a rollback does not leave a created object in the cache. Replacing an analyzer or model also invalidates dependent tokenizers. Persisted `INT[]`, `bm25vector`, and `tsvector` values are not rewritten automatically; recompute them after an intentional definition replacement.
-3. **Preload Models Across Replicas**: `add_preload_model` writes the preload model list to the local `$PGDATA/pg_tokenizer` directory on the primary node. Because filesystem files outside PostgreSQL relations are not replicated via WAL, you should run `add_preload_model` on read replicas independently if you preload models there.
-4. **Memory Consumption of Built-in LLM Models**: Models like `llmlingua2` (~200 MB), `gemma2b` (~100 MB), and `lindera` consume significant memory. Always use `add_preload_model` in production so the model is loaded once in the postmaster process rather than duplicated per connection, or prefer a custom corpus model (`create_custom_model`) which uses only a few megabytes.
+Each backend loads the dictionary the first time it tokenizes. To load it once at server start instead, [preload the model](/docs/tokenizer/models/#preload). Words that are not in the dictionary are left out, and that includes most words in Latin letters, such as PostgreSQL. For Korean, build pg_tokenizer with the `lindera-ko-dic` feature and use `embedded://ko-dic` with Korean part-of-speech tags.

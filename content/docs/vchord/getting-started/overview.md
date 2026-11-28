@@ -1,7 +1,7 @@
 ---
 title: "Overview"
 linkTitle: "Overview"
-description: "vchord is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search."
+description: "What vchord is, the problem it solves for pgvector users, how its two index types differ, and a five-minute quick start."
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/getting-started/overview.md"
 aliases:
@@ -10,103 +10,81 @@ aliases:
 icon: fa-solid fa-compass
 ---
 
-`vchord` is a PostgreSQL extension designed for scalable, high-performance, and disk-efficient vector similarity search.
+`vchord` is a PostgreSQL extension that adds two approximate nearest-neighbor (ANN) indexes for [pgvector](/docs/vector/) columns. Your tables, vector types, and queries stay as they are: you create a `vchordrq` or `vchordg` index instead of `hnsw` or `ivfflat`, and the same `ORDER BY embedding <-> $1 LIMIT 10` query uses it.
 
-With `vchord`, you can store 400,000 vectors for just $1, enabling significant savings: 6x more vectors compared to Pinecone's optimized storage and 26x more than pgvector/pgvecto.rs for the same price[^1]. For further insights, check out our [launch blog post](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).
+## Why vchord {#why}
 
-<a id="Features"></a>
-## Features
+pgvector's HNSW index is fast while the whole graph sits in memory. Each index entry holds a full copy of its vector, so the index is at least as large as the vectors themselves, and every step through the graph is a random page read. At tens of millions of vectors the index outgrows RAM, builds take hours, and latency follows the disk.
 
-`vchord` introduces remarkable enhancements over pgvecto.rs and pgvector:
+`vchordrq`, the main vchord index, is designed for that size:
 
-**⚡ Enhanced Performance**: Delivering optimized operations with up to 5x faster queries, 16x higher insert throughput, and 16x quicker[^1] index building compared to pgvector's HNSW implementation.
+- **Less memory.** Vectors are grouped into lists around centroids (IVF), and each vector is also stored as a [RaBitQ](https://arxiv.org/abs/2405.12497) code a few bits per dimension wide. A query keeps only the centroids hot and reads the lists it needs sequentially.
+- **Faster builds.** Clustering runs on a sample with many threads, or [on a GPU outside the database](/docs/vchord/usage/external-build/). On a 16-vCPU machine, 100 million 768-dimensional vectors index in 18 minutes with 6 GiB of build memory ([configuration](/docs/vchord/usage/partitioning-tuning/#laion-100m)).
+- **Exact distances at the end.** The compact codes only shortlist candidates. vchord reranks the shortlist with the same exact `<->`, `<#>`, or `<=>` distance that SQL computes before it returns a row.
 
-[^1]: Based on [MyScale Benchmark](https://myscale.github.io/benchmark/) with 768-dimensional vectors and 95% recall. Please check out our [blog post](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/) for more details.
+A 4-vCPU, 32 GB server answers queries over 100 million 768-dimensional vectors at 0.95 top-10 recall ([benchmark](/docs/vchord/benchmark/performance/#laion-100m-on-i4ixlarge)).
 
-**💰 Affordable Vector Search**: Query 100M 768-dimensional vectors using just 32GB of memory, achieving 35ms P50 latency with top10 recall@95%, helping you keep infrastructure costs down while maintaining high search quality.
+## Choose an index {#choose-an-index}
 
-**🔌 Seamless Integration**: Fully compatible with pgvector data types and syntax while providing optimal defaults out of the box - no manual parameter tuning needed. Just drop in `vchord` for enhanced performance.
+| | `vchordrq` | `vchordg` |
+| --- | --- | --- |
+| Structure | IVF lists of RaBitQ codes, exact rerank | Graph over RaBitQ codes, exact rerank |
+| Good fit | Tables larger than memory, fast builds, filtering by tenant or category | Index fits in memory, low latency without choosing list counts |
+| You tune | `lists` at build; `probes` and `epsilon` at query | `m` and `ef_construction` at build; `ef_search` at query |
+| Only here | [Filter keys](/docs/vchord/usage/filtering/#filter-keys), [multi-vector MaxSim](/docs/vchord/usage/multi-vector-retrieval/), [external builds](/docs/vchord/usage/external-build/) | |
+| Dimensions | up to 60,000 | up to 30,000 |
+{.wide}
 
-**🔧 Accelerated Index Build**: Leverage IVF to build indexes externally (e.g., on GPU) for faster KMeans clustering, combined with RaBitQ[^2] compression to efficiently store vectors while maintaining search quality through autonomous reranking.
+If you are unsure, start with `vchordrq`: it supports every feature and keeps working when the data outgrows RAM. Both indexes accept pgvector's `vector` and `halfvec` and vchord's compressed [`rabitq8` and `rabitq4`](/docs/vchord/usage/quantization-types/) types.
 
-[^2]: Gao, Jianyang, and Cheng Long. "RaBitQ: Quantizing High-Dimensional Vectors with a Theoretical Error Bound for Approximate Nearest Neighbor Search." Proceedings of the ACM on Management of Data 2.3 (2024): 1-27.
+## Quick start {#quick-start}
 
-**📏 Long Vector Support**: Store and search vectors up to 60,000[^3] dimensions, enabling the use of the best high-dimensional models like text-embedding-3-large with ease.
+vchord 1.5.0 runs on PostgreSQL 15–19 on Linux `x86_64` and `aarch64`, and needs pgvector. Other ways to install are on the [installation page](/docs/vchord/getting-started/installation/).
 
-[^3]: There is a [limitation](https://github.com/pgvector/pgvector#vector-type) at pgvector of 16,000 dimensions now. If you really have a large dimension(`16,000<dim<60,000`), consider changing [VECTOR_MAX_DIM](https://github.com/pgvector/pgvector/blob/fef635c9e5512597621e5669dce845c744170822/src/vector.h#L4) and compile pgvector yourself.
+1. Install the packages from the Pigsty repository:
 
-**🌐 Scale As You Want**: Based on horizontal expansion, the query of 5M / 100M 768-dimensional vectors can be easily scaled to 10000+ QPS with top10 recall@90% at a competitive cost[^4]
+   ```bash
+   curl -fsSL https://repo.pigsty.io/pig | bash
+   pig repo add pgsql -u
+   pig ext add vchord
+   ```
 
-[^4]: Please check our [blog post](/blog/post/vector-search-at-10000-qps-in-postgresql-with-vectorchord/)  for more details, the PostgreSQL scalability is powered by [CloudNative-PG](https://github.com/cloudnative-pg/cloudnative-pg).
+1. Preload the library and restart PostgreSQL. Without this step, `CREATE EXTENSION` stops with `vchord must be loaded via shared_preload_libraries`. Keep any libraries already in the list.
 
-## Quick Start
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'vchord';
+   ```
 
-For new users, install the current `vchord` 1.2.0 package from Pigsty, or
-build the `pgsty/vchord` 1.2.0 source release. See the [installation
-guide](/docs/vchord/getting-started/installation/) for package, source, and
-historical upstream Docker options.
+1. Create the extension in your database. `CASCADE` also creates pgvector's `vector` extension.
 
-```bash
-pig ext add vchord
-```
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+   ```
 
-Add `vchord` to `shared_preload_libraries`, restart PostgreSQL, and connect
-with `psql`. The Docker images linked from the installation guide are
-historical TensorChord images and contain older upstream builds.
+1. Index a table and query it:
 
-Then connect to the PostgreSQL cluster using the credentials configured for
-your installation:
+   ```sql
+   CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
 
-```bash
-psql -U postgres
-```
+   INSERT INTO items (embedding)
+   SELECT ARRAY[random(), random(), random()]::real[]
+   FROM generate_series(1, 1000);
 
-Now you can play with VectorChord!
+   CREATE INDEX ON items USING vchordrq (embedding vector_l2_ops);
 
-VectorChord depends on pgvector, including the vector representation. Since you can use them directly, your application can be easily migrated without pain!
+   SELECT id FROM items ORDER BY embedding <-> '[3, 1, 2]' LIMIT 5;
+   ```
+{.steps}
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-```
+This index has a single list, which is right for small tables. For a real table, choose `lists` from its row count as described in [vchordrq index](/docs/vchord/usage/indexing/#lists).
 
-Similar to pgvector, you can create a table with vector column and insert some rows to it.
+## Where to go next {#next-steps}
 
-```sql
-CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
-INSERT INTO items (embedding) SELECT ARRAY[random(), random(), random()]::real[] FROM generate_series(1, 1000);
-```
+- **Index a production table**: [vchordrq index](/docs/vchord/usage/indexing/), then [measure recall](/docs/vchord/usage/measure-recall/) to tune it.
+- **Filter results** by tenant, category, or distance: [Filtering](/docs/vchord/usage/filtering/).
+- **Move from pgvector or pgvecto.rs**: [Migration](/docs/vchord/admin/migration/).
+- **Add keyword search**: the [Vchord suite](/docs/vchord/getting-started/vectorchord-suite/) combines vchord with BM25 ranking in the same database.
 
-With VectorChord, you can create `vchordrq` indexes.
+## License {#license}
 
-```SQL
-CREATE INDEX ON items USING vchordrq (embedding vector_l2_ops);
-```
-
-And then perform a vector search using `SELECT ... ORDER BY ... LIMIT ...`.
-
-```SQL
-SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
-```
-
-For more usage, please read:
-
-- [Indexing](/docs/vchord/usage/indexing/)
-- [Multi-Vector Retrieval](/docs/vchord/usage/multi-vector-retrieval/)
-- [Graph Index](/docs/vchord/usage/graph-index/)
-- [Quantization Types](/docs/vchord/usage/quantization-types/)
-- [Similarity Filter](/docs/vchord/usage/similarity-filter/)
-- [PostgreSQL Tuning](/docs/vchord/usage/postgresql-tuning/)
-- [Monitoring](/docs/vchord/usage/monitoring/)
-- [Fallback Parameters](/docs/vchord/usage/fallback-parameters/)
-- [Measure Recall](/docs/vchord/usage/measure-recall/)
-- [Prewarm](/docs/vchord/usage/prewarm/)
-- [Prefilter](/docs/vchord/usage/prefilter/)
-- [Prefetch](/docs/vchord/usage/prefetch/)
-- [Rerank in Table](/docs/vchord/usage/rerank-in-table/)
-- [Partitioning Tuning](/docs/vchord/usage/partitioning-tuning/)
-- [External Build](/docs/vchord/usage/external-build/)
-
-<a id="License"></a>
-## License
-
-`vchord` is licensed under the **GNU Affero General Public License v3.0 ([`AGPL-3.0-only`](https://github.com/pgsty/vchord/blob/main/LICENSE))**. We welcome any commercial collaboration or support inquiries—please email us at [rh@vonng.com](mailto:rh@vonng.com) with any questions.
+vchord is licensed under [AGPL-3.0](https://github.com/pgsty/vchord/blob/main/LICENSE). It is a fork of TensorChord's VectorChord, maintained by [PGSTY](https://pgsty.com). For commercial licensing or support, contact [rh@vonng.com](mailto:rh@vonng.com).

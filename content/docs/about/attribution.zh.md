@@ -14,22 +14,22 @@ aliases:
 
 `VectorChord`、`VectorChord-bm25` 与 `pg_tokenizer.rs` 的原开发公司 **TensorChord Inc.** 已清算并停止对上游仓库的日常维护。应原作者请求，**[PGSTY](https://pigsty.cc/)** 社区正式接手维护这三个扩展：
 
-- PGSTY 负责测试和打包这三个扩展。vchord 1.5.0 使用 pgrx 0.20.1，支持 PostgreSQL 15–19 的 x86_64 和 aarch64。[下载](/zh/download/) · [软件物料清单](/zh/docs/about/sbom/)
-- **功能演进路线图**：我们不承诺任何新功能的开发，新功能需求与演进路线图将视维护团队的精力余量来响应。
-- **安全问题反馈**：如果您发现任何安全问题或严重缺陷，非常欢迎通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 提交给我们。
+- **供应链持续性与版本适配**：PGSTY 持续维护代码仓库，在 pgrx 0.20 上构建这三个扩展，并面向 `x86_64` 与 `aarch64` 上的 **PostgreSQL 15–19** 测试和打包。预构建的 RPM/DEB 软件包见[下载页](/zh/download/)，完整的依赖与许可证清单见[软件物料清单 (SBOM)](/zh/docs/about/sbom/)。
+- **功能演进路线图**：维护重点聚焦正确性、恢复安全性与软件包交付，不承诺新功能开发路线图；新功能需求按维护余量评估。
+- **安全问题反馈**：如发现安全漏洞或严重缺陷，请通过 [GitHub Issues](https://github.com/pgsty/vchord/issues) 报告。
 
 ## 上游来源 {#upstream-sources}
 
-1. **文档内容（`content/docs/`、`content/cloud/`）**
+1. **文档内容（`content/docs/`）**
    - **VectorChord 与 pgvecto.rs 文档**：[`https://github.com/tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs)（`https://docs.vectorchord.ai/`）—— © 2023–2026 TensorChord Inc.（Apache-2.0）
    - **BM25 与分词器文档**：[`https://github.com/supervc-stack/VectorChord-bm25`](https://github.com/supervc-stack/VectorChord-bm25)、[`https://github.com/supervc-stack/pg_tokenizer.rs`](https://github.com/supervc-stack/pg_tokenizer.rs) 与 [`https://github.com/tensorchord/pg_bestmatch.rs`](https://github.com/tensorchord/pg_bestmatch.rs) —— © 2024–2026 TensorChord Inc.
    - **pgvector 文档（`content/docs/vector/`）**：整理自 [`https://github.com/pgvector/pgvector`](https://github.com/pgvector/pgvector) —— © 2021–2026 Andrew Kane（PostgreSQL 许可证）。
-   - **适配说明**：迁移并统一整理至 Hugo + [OINK `v1.5.0`](https://github.com/pgsty/oink)，包含 GitHub 风格提示框规范化、KaTeX 数学公式分隔符标准化、站内链接解析修正、结构化导航元数据补齐以及完整中文化翻译。
+   - **适配说明**：迁移并统一整理至 Hugo + [OINK](https://github.com/pgsty/oink)，包含 GitHub 风格提示框规范化、KaTeX 数学公式分隔符标准化、站内链接校验以及完整中英双语文档。
 
 2. **工程技术博客与发布说明（`content/blog/`）**
    - **原始发布站点**：[`https://blog.vectorchord.ai/`](https://blog.vectorchord.ai/)
    - **版权声明**：© 2023–2026 TensorChord Inc. 及各篇文章原作者（[Ce Gao](https://github.com/gaocegege)、[Jinjing Zhou](https://github.com/VoVAllen)、[Junyu Chen](https://github.com/cutecutecat)、[Keming Yang](https://github.com/kemingy)、[xieydd](https://github.com/xieydd)、[Zoie Wang](https://hashnode.com/@zoie) 以及 [TensorChord 团队](https://github.com/tensorchord)）。
-   - **适配说明**：归档整理至 `content/blog/post/` 与 `content/blog/release/`，保留原始发布日期、原作者主页链接、单篇版权声明与直接指向原文的 `upstream_link` 溯源链接，并提供完整中文译文。
+   - **适配说明**：归档整理至 `content/blog/` 与 `content/release/`，保留原始发布日期、原作者主页链接、单篇版权声明与直接指向原文的 `upstream_link` 溯源链接，并提供完整中文译文。
 
 3. **Vchord 扩展家族（`vchord`、`vchord_bm25` 与 `pg_tokenizer`）**
    - **`vchord`（[`pgsty/vchord`](https://github.com/pgsty/vchord)）Fork 自**：[`https://github.com/tensorchord/VectorChord`](https://github.com/tensorchord/VectorChord)

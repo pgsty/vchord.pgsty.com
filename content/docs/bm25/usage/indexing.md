@@ -1,170 +1,155 @@
 ---
-math: true
-title: "Indexing & Maintenance"
-description: "Create, configure, maintain, and inspect bm25 indexes in PostgreSQL."
+title: "Indexing"
+linkTitle: "Indexing"
+description: "Produce the tsvector for any language, build a bm25 index, choose k1 and b, and keep the index fast and correct as the table changes."
 weight: 10
 icon: fa-solid fa-database
 ---
 
-`vchord_bm25` provides the `bm25` index access method and the explicit `bm25_ops` operator class. The SQL handler is `bm25_amhandler` in 1.0.0 and `_bm25_amhandler` in 0.3.x.
+A `bm25` index holds the posting lists and corpus statistics that BM25 ranking needs, built from one `tsvector` column or expression. This page covers producing that `tsvector`, building and tuning the index, and keeping queries fast as rows are inserted, updated, and deleted.
 
-## Creating a `bm25` Index
+## Produce the tsvector {#tsvector}
 
-### Historical Releases (`v0.1` – `v0.3`, `bm25vector`) {#stable-releases-v01--v03-bm25vector}
+The index scores what the `tsvector` contains, so relevance depends first on text analysis. Two rules apply whichever method you use:
+
+- Documents and queries must go through the same analysis. A query built with another configuration produces lexemes the index has never seen.
+- Document vectors must keep positions: the number of positions of a lexeme is its term frequency. `strip()`, `array_to_tsvector()`, and literals without positions are rejected (see [Limits](#limits)).
+
+**A generated column** is the simplest choice for languages PostgreSQL's text search configurations handle, such as `english` or `simple`. The [quick start](/docs/bm25/getting-started/overview/#quick-start) uses one.
+
+**An expression index** saves the storage of a separate column. Queries must order by the same expression:
 
 ```sql
-CREATE INDEX documents_embedding_bm25
-ON documents
-USING bm25 (embedding bm25_ops);
+CREATE INDEX documents_passage_bm25 ON documents
+USING bm25 ((to_tsvector('english', passage)) bm25_ops);
+
+SELECT id FROM documents
+ORDER BY to_tsvector('english', passage)
+      <&> to_bm25query(to_tsvector('english', 'full text search'), 'documents_passage_bm25')
+LIMIT 10;
 ```
 
-### 1.0.0 (`tsvector`) {#next-gen-main-branch-tsvector}
+The expression must be immutable, so pass the configuration name explicitly.
 
-In 1.0.0, `bm25_ops` operates on `tsvector` and supports index-level storage parameters (`options`, `limit`, and `prefilter`):
+**pg_tokenizer** produces `tsvector` values for text that `to_tsvector` cannot segment, such as Chinese with Jieba, Japanese and Korean with Lindera, or the token IDs of a model vocabulary. Its functions are `STABLE` because analyzers are defined in catalog tables, so they cannot appear in a generated column or an index expression. Fill a regular column instead, for example with a trigger:
 
 ```sql
-CREATE INDEX documents_vector_bm25
-ON documents
-USING bm25 (vector bm25_ops)
-WITH (
-    options = $$
-    k1 = 1.2
-    b = 0.75
-    $$,
-    limit = 100,
-    prefilter = false
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;  -- also add pg_tokenizer to shared_preload_libraries
+
+SELECT tokenizer_catalog.create_text_analyzer('zh', $$
+[pre_tokenizer.jieba]
+$$);
+
+CREATE TABLE articles (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
 );
-```
 
-| Storage Parameter (`WITH (...)`) | Type | Default | Range | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `options` (`k1`) | `float` (in TOML) | `1.2` | `1.2` – `2.0` | Term frequency saturation parameter \(k_1\). Higher values increase the weight of repeated occurrences of a term within a document. |
-| `options` (`b`) | `float` (in TOML) | `0.75` | `0.0` – `1.0` | Document length normalization parameter \(b\). `0.0` disables length normalization; `1.0` fully normalizes by document length relative to \(\text{avgdl}\). |
-| `limit` | `int` | `100` | `0` – `65535` | Initial scan batch size; zero selects 100. Scans continue as needed for complete SQL results. |
-| `prefilter` | `bool` | `false` | `true` / `false` | Default prefilter behavior stored on the index (can be overridden per session via `bm25.prefilter`). |
-{.wide .expand}
-
-You can dynamically update `limit` or `prefilter` on an existing index with `ALTER INDEX`:
-
-```sql
-ALTER INDEX documents_vector_bm25 SET (limit = 200, prefilter = true);
-ALTER INDEX documents_vector_bm25 RESET (limit, prefilter);
-```
-
-## Automatic Tokenization Triggers (`v0.1` – `v0.3`)
-
-When using `pg_tokenizer 1.0.0` with the historical `bm25vector` API, you can keep a tokenized column automatically synchronized on `INSERT` and `UPDATE`:
-
-### Using a Custom Model Trigger (One-Step Helper)
-
-`create_custom_model_tokenizer_and_trigger` creates a custom model, a tokenizer, backfills existing rows, and attaches an automatic `BEFORE INSERT OR UPDATE` trigger:
-
-The helper accepts an optional seventh `filter` argument. It limits vocabulary training and embedding updates to rows whose trusted source-column predicate evaluates to `TRUE`; omit it or pass SQL `NULL` to retain whole-table behavior. See the [pg_tokenizer model notes](/docs/tokenizer/models/#filtering-a-corpus).
-
-```sql
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name => 'my_tokenizer',
-    model_name     => 'my_model',
-    text_analyzer_name => 'my_analyzer',
-    table_name     => 'documents',
-    source_column  => 'passage',
-    target_column  => 'embedding'
-);
-```
-
-### Using a Standard PL/pgSQL Trigger with Pretrained Models
-
-If you use a pretrained model (such as `llmlingua2` or `bert_base_uncased`), create a standard trigger function:
-
-```sql
-CREATE OR REPLACE FUNCTION documents_tokenize_trigger()
-RETURNS trigger AS $$
+CREATE FUNCTION articles_terms() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
-    NEW.embedding := tokenize(NEW.passage, 'my_tokenizer');
+    NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.body, 'zh');
     RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+END
+$$;
 
-CREATE TRIGGER trg_documents_tokenize
-BEFORE INSERT OR UPDATE OF passage ON documents
-FOR EACH ROW
-EXECUTE FUNCTION documents_tokenize_trigger();
+CREATE TRIGGER articles_terms BEFORE INSERT OR UPDATE OF body ON articles
+FOR EACH ROW EXECUTE FUNCTION articles_terms();
+
+CREATE INDEX articles_bm25 ON articles USING bm25 (terms bm25_ops);
+
+SELECT id, body
+FROM articles
+ORDER BY terms <&> to_bm25query(tokenizer_catalog.analyze_to_tsvector('全文检索', 'zh'), 'articles_bm25')
+LIMIT 10;
 ```
 
-## Growing segments and maintenance in 1.0.0
+`analyze_to_tsvector` emits the analyzer's tokens as lexemes; `tokenize_to_tsvector` emits a model's token IDs. The [pg_tokenizer documentation](/docs/tokenizer/) covers analyzers, filters, and models.
 
-In 1.0.0, inserts append through a tail hint and are searchable immediately. Scans and scalar scoring share cached statistics within an executor execution. `work_mem` is a soft limit: active native scans and the eight most recently used queries retain their statistics above it; other entries are evicted in LRU order. Recollected entries can see corpus changes during the same statement. Terms share two immutable length-normalization tables per preparation, but growing-document scores still require memory proportional to the growing segment. Counts include physical non-NULL records, including tombstones until compaction removes them. Result generation skips tombstones immediately. WAND stays enabled with upper bounds adjusted for average-length drift. Scalar scoring is parallel restricted. These physical statistics are not an MVCC snapshot of the corpus.
-
-`VACUUM`, including parallel VACUUM, can merge while readers and writers continue. `ANALYZE` alone does not rebuild. Maintenance uses the heap's normal `ShareUpdateExclusiveLock` and short page locks. Publication records a retirement horizon; a later pass recycles old pages only after older snapshots are gone. Cancelled or crashed output is reclaimed and the free-space map repaired on a later pass. Recycling advances the graveyard head and marks the retired page deleted in the same WAL record, so stale free-space hints cannot enable reuse before unlinking. Inserts wait for the tail page without holding jump, revalidate the generation, and acquire the tail lock conditionally; they retain jump while appending one document, including any relation extension.
-
-Automatic merging requires growing records to reach `max(maintenance_min_rows, maintenance_scale_factor × sealed records)`, or tombstones to reach `maintenance_scale_factor × total records`. Defaults are 1000 rows and 0.1. Unchanged indexes are not rewritten. Set these reloptions with `ALTER INDEX`.
+## Create the index {#create}
 
 ```sql
-ALTER INDEX documents_vector_bm25 SET (maintenance_min_rows = 1000, maintenance_scale_factor = 0.1);
-VACUUM documents;
-SELECT bm25_maintain('documents_vector_bm25');
+CREATE INDEX documents_bm25 ON documents USING bm25 (terms bm25_ops);
 ```
 
-`bm25_maintain(regclass)` bypasses the thresholds and returns true when it publishes a merged segment. False means no work or an older generation still prevents another merge. It requires table ownership or, on PostgreSQL 17+, `MAINTAIN` privilege. It does not find dead heap tuples; use `VACUUM` for that. It holds the table's `ShareUpdateExclusiveLock` while maintenance runs.
+- Name the operator class `bm25_ops`; it is not the default for `tsvector`.
+- Give the index a name you will keep. Queries refer to it in `to_bm25query`, and the name decides which statistics score the query.
+- An index covers one column. To rank within a fixed subset, such as published rows, build a [partial index](/docs/bm25/usage/filtering/#partial-indexes).
+- `CREATE INDEX CONCURRENTLY` works as for any index.
 
-There is one retirement slot. Long snapshots can postpone reclamation and the next merge, so growing-segment size has no hard bound. In an idle database the transaction horizon may also stop advancing. Tune table-level `autovacuum_vacuum_insert_threshold` and `autovacuum_vacuum_insert_scale_factor` for insert-heavy workloads. Freed pages are reused, not necessarily truncated; no fixed file-size multiplier is guaranteed. Standby readers receive SQLSTATE `40001` when they meet recycled pages or growing pages appended after a newer segment was published. Retry these queries. `hot_standby_feedback` prevents recycling conflicts at the cost of delaying reclamation; it does not prevent the newer-growing-page conflict. Tombstones never cancel standby queries: PostgreSQL resolves those conflicts when it replays the heap pruning that precedes them.
-
-
-There is one sealed segment, and every merge rewrites it together with the growing records. Every non-ANALYZE VACUUM still scans the whole index and sealed document chain before its no-op decision; skipping only on a zero deletion count would miss insert-driven merges and crash/FSM repair. A large append or page I/O can still delay publication. Temporary build/merge files are outside PostgreSQL's `temp_file_limit` and `log_temp_files` accounting. VACUUM reports estimated index counts; CREATE INDEX, REINDEX and ANALYZE update catalog statistics.
-
-`bm25query` stores a `regclass` OID. Plain `REINDEX` preserves it, but `REINDEX ... CONCURRENTLY` replaces it. Views, materialized views, rules and SQL-standard function bodies keep their old OID constants. Save the original DDL before reindexing, then recreate those definitions against the new qualified name; `CREATE OR REPLACE VIEW` and `CREATE OR REPLACE FUNCTION` work for ordinary views and functions. `pg_get_viewdef()` after reindexing may contain the dangling numeric OID and cannot recover the original binding. Text-body functions and prepared statements are reanalyzed.
-
-An explicit `to_bm25query(query_vector, pg_catalog.to_regclass('public.documents_vector_bm25'))` resolves the qualified name at execution time and survives concurrent reindexing. It uses scalar sorting, retains the same SELECT/RLS checks, and creates no stored dependency on the index. Rename/drop can change its target; a missing name returns NULL. Existing OID-based definitions are not automatically repaired. Format-4 healthy indexes need no rebuild for the recycling/locking fixes; an already-reused graveyard page is rejected and requires REINDEX.
-
-
-The `bm25_catalog.segment_growing_max_page_size` setting below belongs to 0.3.x and is not part of the 1.0.0 API.
-
-## Segment Architecture: Growing vs. Sealed Segments (`v0.1` – `v0.3`)
-
-Internally, `vchord_bm25` organizes index tuples into two segment states:
-
-1. **Growing Segment**: Newly inserted tuples (`INSERT` / `UPDATE`) are appended to the growing segment for fast write throughput without re-compressing entire posting lists.
-2. **Sealed Segment**: When the growing segment exceeds `bm25_catalog.segment_growing_max_page_size` pages (default `4096` pages, ~32 MB), it is sealed into an immutable, read-only segment with delta-bitpacked 128-document blocks, precomputed block-max upper bounds, and term document frequency statistics.
+Builds scan the table with PostgreSQL's parallel maintenance workers, limited by `max_parallel_maintenance_workers` (or the table's `parallel_workers` option). The leader and the workers share `maintenance_work_mem` for their sort buffers, at most 64 MiB each; anything beyond that spills to temporary files. Follow a build in `pg_stat_progress_create_index`, where `phase` moves through `building index: scanning table` and `building index: writing index structures`:
 
 ```sql
--- Adjust the growing segment seal threshold (in 8 KB pages, range 1..1000000)
-SET bm25_catalog.segment_growing_max_page_size = 4096;
-```
-
-## Parallel Index Build & Progress Monitoring
-
-Index creation supports PostgreSQL parallel maintenance workers and reports live build progress via `pg_stat_progress_create_index` across three phases:
-
-1. `initializing`
-2. `scanning table`
-3. `writing index structures`
-
-```sql
--- Speed up large index builds with parallel workers
-SET max_parallel_maintenance_workers = 8;
-SET maintenance_work_mem = '2GB';
-
--- Monitor build progress from another session
-SELECT
-    pid,
-    phase,
-    tuples_total,
-    tuples_done,
-    round(100.0 * tuples_done / nullif(tuples_total, 0), 2) AS pct_done
+SELECT phase, tuples_done, tuples_total
 FROM pg_stat_progress_create_index;
 ```
 
-## Inspecting Index Pages (`v0.3.0`)
+## Choose k1 and b {#scoring-parameters}
 
-Version `0.3.0` provides `bm25_page_inspect(index regclass, blkno int)` to inspect the internal metadata and page headers of a `bm25` index:
+BM25 has two parameters, fixed when the index is built:
+
+- **`k1`** (default `1.2`, range 1.2–2.0) sets how quickly repeated occurrences of a term stop adding to the score. Raise it when repetition is a real signal of relevance, as in long technical documents.
+- **`b`** (default `0.75`, range 0–1) sets how strongly long documents are penalized. Lower it when long documents are long because they cover more, not because they ramble; `0` turns length normalization off.
+
+The defaults match Lucene and Elasticsearch and are the right start. Change them only against measured relevance:
+
+1. Collect real queries with known relevant rows, and measure NDCG@10 or recall of the current index.
+1. Build a second index on the same column with the candidate values. Both indexes stay usable, because each query names the index that scores it:
+
+   ```sql
+   CREATE INDEX CONCURRENTLY documents_bm25_k15 ON documents USING bm25 (terms bm25_ops)
+   WITH (options = $$
+   k1 = 1.5
+   b = 0.6
+   $$);
+   ```
+
+1. Run the same queries against `documents_bm25_k15` and compare.
+1. Keep the better index and drop the other. Every write maintains both while they coexist.
+{.steps}
+
+To change the values of an existing index in place, set `options` and rebuild: `ALTER INDEX documents_bm25 SET (options = $$ ... $$); REINDEX INDEX documents_bm25;`. The [score definition](/docs/bm25/reference/sql/#score) shows where `k1` and `b` enter the formula.
+
+## Keep the index fast {#maintenance}
+
+Inserted and updated rows are appended to a **growing segment** and are searchable immediately, with exact scores. The growing segment has no block summaries, though, so every query reads all of it. Query time grows with it until `VACUUM` merges it into the compressed segment.
+
+`VACUUM`, manual or autovacuum, merges when either is true:
+
+- The growing segment holds at least `maintenance_min_rows` rows (default 1,000) and at least `maintenance_scale_factor` (default 0.1) times the rows already merged.
+- Deleted rows reach `maintenance_scale_factor` of all rows. Until then, deleted and replaced rows still count in the statistics (the document count, term document frequencies, and average length), so scores drift after a large `DELETE` or rewrite.
+
+Merging takes the same lock as `VACUUM`, so reads and writes continue. `ANALYZE` alone does not merge. Both thresholds are [index options](/docs/bm25/reference/gucs/#index-options); lower `maintenance_scale_factor` on a large table to merge more often.
+
+**Insert-only tables** are vacuumed when inserts reach `autovacuum_vacuum_insert_threshold` plus `autovacuum_vacuum_insert_scale_factor` (default 0.2) of the table. On a large table that lets the growing segment get big; lower the factor for that table:
 
 ```sql
--- Inspect the metapage (block 0) of a bm25 index
-SELECT bm25_page_inspect('documents_embedding_bm25', 0);
+ALTER TABLE documents SET (autovacuum_vacuum_insert_scale_factor = 0.02);
 ```
 
-## Index Constraints & Limitations
+**Merge now** with [`bm25_maintain`](/docs/bm25/reference/sql/#field-bm25_maintain-regclass), regardless of thresholds, after a bulk load or delete:
 
-- **Single-Column Only**: A `bm25` index can only be created on a single `bm25vector` (or `tsvector`) column. Multicolumn `bm25` indexes are not supported.
-- **No Unlogged Tables**: `UNLOGGED` tables are not supported by the `bm25` access method (`ambuildempty` raises `Unlogged indexes are not supported`).
-- **Forward Scan Direction Only**: `bm25` index scans only support forward (`ASC`) scan direction on `<&>`.
+```sql
+SELECT bm25_maintain('documents_bm25');
+```
+
+It returns `true` when it wrote a merged segment, and `false` when nothing changed or when the pages of the previous merge are still waiting for older transactions to finish. It needs ownership of the table, or the `MAINTAIN` privilege on PostgreSQL 17 and later, and takes the same table lock as `VACUUM`.
+
+**Long transactions** hold back the reuse of pages that a merge replaced, so the index grows until they end. On a hot standby without `hot_standby_feedback`, a query that reads pages the primary has just reused fails with `canceling statement due to conflict with bm25 index maintenance`; retry it, or turn on `hot_standby_feedback`.
+
+## Rebuild {#rebuild}
+
+Rebuild to apply new `k1` and `b`, or to repair an index that a failed `CREATE INDEX CONCURRENTLY` left invalid. Queries against an invalid index fail with `index "documents_bm25" is not valid`.
+
+- `REINDEX INDEX documents_bm25` keeps the index's OID. While it runs, it blocks writes to the table and queries that use the index.
+- `REINDEX INDEX CONCURRENTLY documents_bm25` keeps writes going but creates a new index with a new OID.
+
+`to_bm25query(..., 'documents_bm25')` turns the name into an OID when a statement is parsed, so statements parsed after the reindex find the new index. Views, materialized views, rules, and SQL-standard function bodies (`BEGIN ATOMIC` or `RETURN`) store the old OID and fail afterwards with `the relation does not exist`. Keep their original definitions and run them again with `CREATE OR REPLACE` after a concurrent reindex; `pg_get_viewdef` at that point already shows the stale OID. The same applies after dropping and recreating an index.
+
+## Limits {#limits}
+
+- **One column.** A second key column fails with `multicolumn index is not supported`.
+- **Positions required.** A document `tsvector` without positions fails with `tsvector must have positions`, on insert, during `CREATE INDEX`, and when scoring. Query vectors may lack positions.
+- **PostgreSQL `tsvector` limits.** A lexeme keeps at most 256 positions, positions above 16,383 are clamped, and `to_tsvector` drops words longer than 2,046 bytes. Term frequencies therefore saturate in very long documents. Index passages of a few thousand words rather than whole books.
+- **No unlogged tables.** `CREATE INDEX` on an `UNLOGGED` table fails with `Unlogged indexes are not supported.`
+- **Partitioned tables.** `CREATE INDEX` on a partitioned table creates one bm25 index per partition, each with its own statistics. Query a partition and name that partition's index in `to_bm25query`; the parent index cannot be used for scoring or with `bm25_maintain`.

@@ -1,11 +1,11 @@
 ---
 title: "使用指南"
 linkTitle: "使用指南"
-description: "使用 vchordrq 与 vchordg 构建索引、MaxSim 多向量检索、量化类型、范围查询与性能调优。"
+description: "构建、调优和过滤 vchordrq 与 vchordg 索引，以及大规模运行。"
 weight: 20
 icon: fa-solid fa-code
 upstream_link: ""
 aliases:
-  - "/zh/docs/usage/"
+  - "/docs/usage/"
   - "/vectorchord/usage/"
 ---

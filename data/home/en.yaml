@@ -9,15 +9,14 @@ sections:
   - cta
 
 hero:
-  eyebrow: vchord 1.5.0 · PostgreSQL 15–19 · Successor to pgvecto.rs
+  eyebrow: Scalable Vector Search Built for PostgreSQL
   title_lines:
-    - Scalable Vector Search
-    - Built for PostgreSQL
-  title_size: 3.6rem
+    - PGSTY VCHORD
+  title_size: 4.0rem
   lead: >-
-    Powered by RaBitQ 4/8-bit quantization, disk-friendly IVF (`vchordrq`),
-    high-QPS graphs (`vchordg`), MaxSim search, and `pgvector` compatibility.
-  note: 'Forked from [VectorChord](https://github.com/tensorchord/VectorChord), created by [TensorChord](https://github.com/tensorchord), and now maintained by [PGSTY](https://pgsty.com/) · [AGPL-3.0](/docs/about/license/)'
+    Disk-friendly RaBitQ vector search (`vchord`), native Okapi BM25 ranking (`vchord_bm25`),
+    and multilingual tokenization (`pg_tokenizer`) — compatible with `pgvector`.
+  note: 'vchord 1.5.0 · vchord_bm25 1.3.0 · pg_tokenizer 1.3.0 · PostgreSQL 15–19 · [AGPL-3.0](/docs/about/license/)'
   image:
     light: img/vchord-architecture-light.svg
     dark: img/vchord-architecture-dark.svg
@@ -42,54 +41,54 @@ hero:
       icon: fa-solid fa-chart-line
       style: ghost
   detail:
-    label: What's new in vchord 1.5
-    url: /blog/release/vchord-1.5.0/
+    label: What is new in vchord 1.5.0
+    url: /release/vchord-1.5.0/
 
 metrics:
   eyebrow: Proven at 100M+ Scale
-  title: Enterprise vector scale at a fraction of the RAM
-  desc: Benchmarks on GIST-1M, Cohere-10M, and LAION-100M against HNSW and commercial vector databases.
+  title: Enterprise vector scale with minimal RAM
+  desc: Benchmarks on GIST-1M, Cohere-10M, and LAION-100M against HNSW and dedicated vector databases.
   columns: 2
   items:
     - value: "400k / $1"
       title: Vectors per dollar
       label: Vectors per dollar
-      desc: 26x more vectors stored per $1 on AWS vs pgvector HNSW
+      desc: 26x more vectors stored per $1 on AWS than pgvector HNSW
       icon: fa-solid fa-coins
       url: /docs/vchord/benchmark/price/
     - value: "20 min"
       title: 100M index build
       label: 100M index build
-      desc: External index precomputation or 6x faster in-DB build
+      desc: External index precomputation or 6x faster in-database build
       icon: fa-solid fa-bolt
       url: /docs/vchord/usage/external-build/
     - value: "16×"
       title: Faster insert throughput
       label: Faster insert throughput
-      desc: Minimal write amplification compared to in-memory HNSW
+      desc: Low write amplification compared to in-memory HNSW
       icon: fa-solid fa-gauge-high
       url: /docs/vchord/benchmark/performance/
     - value: "95%+"
       title: Recall@10 accuracy
       label: Recall@10 accuracy
-      desc: Guaranteed theoretical error bounds with RaBitQ4 and RaBitQ8
+      desc: Theoretical distance error bounds with RaBitQ4 and RaBitQ8
       icon: fa-solid fa-bullseye
-      url: /blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/
+      url: /blog/vectorchord-store-400k-vectors-for-1-in-postgresql/
 
 capabilities:
   eyebrow: Core Engine Architecture
-  title: Designed for disk, memory, and hybrid retrieval
-  text: vchord pairs SIGMOD'24 RaBitQ quantization with PostgreSQL's native storage, WAL, and buffer manager.
+  title: Built for disk, memory, and hybrid retrieval
+  text: vchord pairs SIGMOD'24 RaBitQ quantization with PostgreSQL's native page storage, WAL, and buffer manager.
   items:
     - ref: 01 / VCHORDRQ · DISK-FRIENDLY IVF
       title: Scale to 100M+ vectors on SSD
       url: /docs/vchord/usage/indexing/
       motto: Hierarchical K-Means + RaBitQ 4/8-bit Quantization
       bullets:
-        - 'Compresses 32-bit vectors by **8×–32×** with bounded error'
-        - 'Keeps only centroids in RAM; streams lists from SSD via async I/O'
-        - 'Supports multi-node or GPU external build with zero CPU contention'
-      value: Scale to hundreds of millions of vectors on a 32 GB node.
+        - 'Compresses 32-bit vectors by **8×–32×** with bounded distance error'
+        - 'Keeps centroids in RAM and streams posting lists from SSD via async I/O'
+        - 'Supports external centroid and IVF precomputation with zero database CPU contention'
+      value: Scale to hundreds of millions of vectors on a 32 GB PostgreSQL node.
       visual:
         type: code
         aria_label: Create a disk-friendly vchordrq index with hierarchical K-Means
@@ -107,36 +106,36 @@ capabilities:
           - { class: v, prefix: '  ', text: '$$);' }
     - ref: 02 / VCHORDG · HIGH-QPS GRAPH
       title: Fast graph search without bloat
-      url: /docs/vchord/usage/indexing/
+      url: /docs/vchord/usage/graph-index/
       motto: Single-layer RaBitQ graph index for low-latency search
       bullets:
         - 'Delivers **2×–5× higher QPS** and lower p99 latency than HNSW'
-        - '**50% smaller index footprint** and **4× faster build** than HNSW'
-        - 'Native support for `vector`, `halfvec`, and `vector[]` types'
-      value: Drop-in graph index when your working set fits in memory.
+        - 'Reduces index size by **50%** and builds **4× faster** than HNSW'
+        - 'Supports `vector`, `halfvec`, `rabitq8`, and `rabitq4` single-vector types'
+      value: Use vchordg when your working set fits in memory and requires maximum QPS.
       visual:
         type: code
         aria_label: Create a high-QPS vchordg graph index
         title: vchordg.sql
         lines:
-          - { class: c, prefix: '-- ', text: 'High-QPS graph index with RaBitQ8' }
+          - { class: c, prefix: '-- ', text: 'High-QPS graph index with 2-bit RaBitQ' }
           - { class: k, prefix: '', text: 'CREATE INDEX items_graph_idx ON items' }
           - { class: k, prefix: '  ', text: 'USING vchordg (embedding vector_ip_ops)' }
           - { class: v, prefix: '  ', text: 'WITH (options = $$' }
           - { class: v, prefix: '    ', text: 'm = 32' }
           - { class: v, prefix: '    ', text: 'ef_construction = 64' }
           - { class: v, prefix: '    ', text: 'alpha = [1.0, 1.2]' }
-          - { class: v, prefix: '    ', text: 'bits = 8' }
+          - { class: v, prefix: '    ', text: 'bits = 2' }
           - { class: v, prefix: '  ', text: '$$);' }
     - ref: 03 / MAXSIM · MULTI-VECTOR RETRIEVAL
       title: Native ColBERT & ColPali in SQL
       url: /docs/vchord/usage/multi-vector-retrieval/
       motto: Native vector[] indexing with WARP dynamic pruning
       bullets:
-        - 'Indexes `vector[]` token-level embeddings with `@#` (`MaxSim`)'
-        - 'Uses **WARP** over RaBitQ centroids to prune token comparisons'
-        - 'Powers **ColPali** visual retrieval and **ColBERTv2** reranking'
-      value: Up to 70% higher accuracy without external rerank clusters.
+        - 'Indexes `vector[]` token-level embeddings with the `@#` (`MaxSim`) operator'
+        - 'Applies **WARP** pruning over RaBitQ centroids to skip non-matching tokens'
+        - 'Runs **ColPali** visual document search and **ColBERTv2** reranking in SQL'
+      value: Improve multi-vector retrieval accuracy by up to 70% without external rerankers.
       visual:
         type: code
         aria_label: Multi-vector MaxSim query in SQL
@@ -151,14 +150,14 @@ capabilities:
           - { class: k, prefix: '  ', text: 'ORDER BY embs @# ARRAY[''[0.1, ...]'']::vector[]' }
           - { class: k, prefix: '  ', text: 'LIMIT 10;' }
     - ref: 04 / VCHORD SUITE · HYBRID SEARCH
-      title: Unified hybrid search in Postgres
+      title: Unified hybrid search in PostgreSQL
       url: /docs/bm25/
       motto: Combine vchord, vchord_bm25, and pg_tokenizer in SQL
       bullets:
-        - '**`vchord`**: RaBitQ disk-friendly IVF and high-QPS graph indexes'
-        - '**`vchord_bm25`**: Block-WeakAnd BM25 index, 3× faster than ParadeDB'
-        - '**`pg_tokenizer`**: In-database multilingual and LLM tokenizers'
-      value: Unify relational data, vector search, and BM25 in one database.
+        - '**`vchord` (`1.5.0`)**: RaBitQ disk-friendly IVF with filter keys, single-layer graph, and MaxSim indexes'
+        - '**`vchord_bm25` (`1.3.0`)**: Native `tsvector` Okapi BM25 index with Block-WeakAnd pruning'
+        - '**`pg_tokenizer` (`1.3.0`)**: In-database multilingual text analyzers and vocabulary models'
+      value: Combine relational filters, dense or multi-vector similarity, and BM25 in one SQL query.
       visual:
         type: code
         aria_label: Hybrid vector and BM25 search in SQL
@@ -167,123 +166,126 @@ capabilities:
           - { class: c, prefix: '-- ', text: 'Enable vector search & BM25 lexical ranking' }
           - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord CASCADE;' }
           - { class: k, prefix: '', text: 'CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;' }
-          - { class: c, prefix: '-- ', text: 'Index both dense vectors and BM25 tokens' }
+          - { class: c, prefix: '-- ', text: 'Index dense vectors and native tsvector lexemes' }
           - { class: k, prefix: '', text: 'CREATE INDEX docs_vec_idx ON docs USING vchordrq (emb vector_l2_ops);' }
           - { class: k, prefix: '', text: 'CREATE INDEX docs_bm25_idx ON docs USING bm25 (tsv bm25_ops);' }
           - { class: c, prefix: '-- ', text: 'Query with Block-WeakAnd BM25 (<&>) ranking' }
-          - { class: k, prefix: '', text: 'SELECT id, tsv <&> to_bm25query(''postgres vector'', ''docs_bm25_idx'') AS score' }
+          - { class: k, prefix: '', text: 'SELECT id, tsv <&> to_bm25query(to_tsvector(''english'', ''postgres vector''), ''docs_bm25_idx'') AS score' }
           - { class: k, prefix: '  ', text: 'FROM docs ORDER BY score LIMIT 10;' }
 
 suite:
   eyebrow: Documentation Sections
   title: Explore the complete Vchord documentation
-  desc: Complete documentation for the three PGSTY-maintained core extensions (vchord, vchord_bm25, pg_tokenizer), predecessor archives, and the upstream pgvector foundation.
+  desc: Reference documentation for the three PGSTY-maintained core extensions (vchord, vchord_bm25, pg_tokenizer), predecessor archives, and the upstream pgvector foundation.
   columns: 3
   items:
     - title: vchord Documentation
       meta: Core Vector Engine · v1.5.0
       icon: fa-solid fa-layer-group
       class: td-landing-card--core
-      desc: Core disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, featuring vchordrq IVF indexes, vchordg graph indexes, and MaxSim.
+      desc: Disk-friendly PostgreSQL vector search extension powered by RaBitQ quantization, providing vchordrq IVF indexes, vchordg graph indexes, and MaxSim.
       url: /docs/vchord/
     - title: vchord_bm25 Documentation
-      meta: Native BM25 Ranking Index · v1.0.0
+      meta: Native BM25 Ranking Index · v1.3.0
       icon: fa-solid fa-magnifying-glass
       class: td-landing-card--core
-      desc: Core native Okapi BM25 ranking extension for PostgreSQL using Block-WeakAnd Top-K index pruning, designed to pair with vchord for hybrid search in SQL.
+      desc: Native Okapi BM25 ranking extension for PostgreSQL tsvector columns using Block-WeakAnd Top-K pruning, built to pair with vchord for hybrid search.
       url: /docs/bm25/
     - title: pg_tokenizer Documentation
-      meta: Multilingual & LLM Vocabularies · v1.0.0
+      meta: Multilingual & LLM Vocabularies · v1.3.0
       icon: fa-solid fa-language
       class: td-landing-card--core
-      desc: Core in-database multilingual text analyzer and tokenization pipeline supporting Jieba, Lindera, Snowball stemmers, LLM vocabularies, and custom models.
+      desc: In-database multilingual text analyzer and tokenization pipeline supporting Jieba, Lindera, Snowball stemmers, LLM vocabularies, and custom models.
       url: /docs/tokenizer/
     - title: pgvecto.rs Documentation
       meta: Predecessor Reference Manual
       icon: fa-solid fa-cube
       class: td-landing-card--deprecated
-      desc: First-generation Rust vector search extension (v0.1–v0.4) succeeded by vchord. Preserved as a complete historical reference and step-by-step migration guide.
+      desc: First-generation Rust vector search extension (v0.1–v0.4) succeeded by vchord. Preserved as a historical reference and migration guide.
       url: /docs/vectors/
     - title: pg_bestmatch Documentation
       meta: Predecessor Reference Manual
       icon: fa-solid fa-ranking-star
       class: td-landing-card--deprecated
-      desc: Early BM25 sparse-vector generator succeeded by vchord_bm25 and pg_tokenizer. Preserved for existing sparsevec/svector users and historical reference.
+      desc: Early BM25 sparse-vector generator succeeded by vchord_bm25 and pg_tokenizer. Preserved for existing sparsevec and svector users.
       url: /docs/bestmatch/
     - title: pgvector Documentation
       meta: Required Upstream Extension
       icon: fa-solid fa-circle-nodes
       class: td-landing-card--upstream
-      desc: Foundational upstream PostgreSQL extension that vchord builds upon, providing standard vector, halfvec, bit, and sparsevec types, operators, and HNSW.
+      desc: Foundational upstream PostgreSQL extension (`0.8.7`) required by vchord, providing vector, halfvec, bit, and sparsevec types, operators, and HNSW.
       url: /docs/vector/
 
 steps:
   eyebrow: Quick Start
   title: Run vchord in three steps
-  desc: Start a local container or install native packages via Pigsty, enable the extension, and run your first similarity search.
+  desc: Install native packages with Pigsty or download a GitHub release, preload the shared library, and build your first vector index.
   items:
-    - icon: fa-brands fa-docker
-      title: Docker example (Obsolete)
-      desc: "**Obsolete — pending updates and maintenance.** PGSTY Docker images are not yet available. The upstream example is retained for reference; use [Pigsty packages](/docs/vchord/getting-started/installation/) for current releases."
+    - icon: fa-solid fa-download
+      title: Install extension packages
+      desc: "Install `vchord` (and `pgvector`) on Linux with the [`pig`](https://pig.pgsty.com/) CLI, or download `1.5.0` packages from [GitHub Releases](/docs/vchord/getting-started/installation/)."
       cmd:
-        code: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres tensorchord/vchord-postgres:pg18-v1.1.1
+        code: pig repo add pgsql -u && pig ext add vchord
     - icon: fa-solid fa-plug
-      title: Enable the extension
-      desc: Connect with `psql` and enable `vchord` (`CASCADE` loads `pgvector` automatically).
+      title: Preload & enable vchord
+      desc: "Add `vchord.so` to `shared_preload_libraries` and restart PostgreSQL, then run `CREATE EXTENSION` (`CASCADE` loads `pgvector`)."
       cmd:
-        code: psql -h 127.0.0.1 -U postgres -c "CREATE EXTENSION IF NOT EXISTS vchord CASCADE;"
+        code: psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS vchord CASCADE;"
     - icon: fa-solid fa-magnifying-glass-chart
       title: Create index & query
-      desc: Build a `vchordrq` index on your `vector` column and query with `<->`, `<#>`, or `<=>`.
+      desc: "Create a `vchordrq` or `vchordg` index on your `vector` column and query with `<->`, `<#>`, `<=>`, or `@#`."
       cmd:
-        code: psql -h 127.0.0.1 -U postgres -c "CREATE INDEX ON items USING vchordrq (emb vector_l2_ops);"
+        code: psql -U postgres -c "CREATE INDEX ON items USING vchordrq (emb vector_l2_ops);"
 
 faq:
   eyebrow: Frequently Asked Questions
   title: Understanding the Vchord Suite & PGSTY Maintenance
   flat: true
   items:
-    - question: Why is the PGSTY community maintaining the Vchord suite?
+    - question: Why does PGSTY maintain the Vchord suite?
       answer: >-
-        **TensorChord Inc.**, the company that created `VectorChord`, `VectorChord-bm25`, and `pg_tokenizer.rs`,
-        has wound down operations and ceased active maintenance. At the request of the original authors,
-        the **[PGSTY](https://pigsty.io/)** community stepped in to take over stewardship of all three
-        extensions—[`pgsty/vchord`](https://github.com/pgsty/vchord), [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25),
-        and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer)—so the PostgreSQL community can continue relying on them.
-    - question: What is PGSTY's maintenance scope, roadmap, and security policy?
+        **TensorChord Inc.**, the original creator of `VectorChord`, `VectorChord-bm25`, and `pg_tokenizer.rs`,
+        closed operations and stopped active upstream maintenance. At the request of the original authors,
+        **[PGSTY](https://pigsty.io/)** assumed maintenance of all three extensions —
+        [`pgsty/vchord`](https://github.com/pgsty/vchord), [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25),
+        and [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) — to keep them reliable for PostgreSQL users.
+    - question: What are PGSTY's maintenance scope, release baseline, and security policy?
       answer: >-
-        PGSTY maintains and packages the three extensions. vchord 1.5.0 uses pgrx 0.20.1 and supports PostgreSQL 15–19.
-        See the [download page](/download/) for available packages and the [SBOM](/docs/about/sbom/) for dependency and license inventories.
-        We do **not** commit to developing new features—roadmap items will be handled on a best-effort basis
-        as maintainer capacity allows—but **security vulnerabilities and critical bug reports are always welcome** via [GitHub Issues](https://github.com/pgsty/vchord/issues).
-    - question: What license is the Vchord suite under, and is it drop-in compatible?
+        PGSTY maintains **`vchord` (`1.5.0`)**, **`vchord_bm25` (`1.3.0`)**, and **`pg_tokenizer` (`1.3.0`)**
+        on **`pgrx 0.20`** for **PostgreSQL 15–19** (`x86_64` and `aarch64`).
+        Source tags and Linux release artifacts are published on GitHub, and GPG-signed RPM and DEB packages are distributed across
+        [16 Linux OS and CPU targets](/download/) with full dependency inventories in the [SBOM](/docs/about/sbom/).
+        PGSTY focuses on stability, correctness, and packaging rather than new feature commitments; report bugs and security issues on
+        [GitHub Issues](https://github.com/pgsty/vchord/issues).
+    - question: Which licenses apply, and can existing installations upgrade in place?
       answer: >-
-        [`vchord`](https://github.com/pgsty/vchord) and [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) are distributed under the
-        [**GNU AGPL v3.0**](/docs/about/license/) license, while [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) is distributed under
-        **Apache-2.0**. `vchord 1.5.0` and `pg_tokenizer 1.0.0` provide in-place `ALTER EXTENSION ... UPDATE` scripts from earlier releases,
-        while `vchord_bm25 1.0.0` uses native `tsvector` and requires following the [migration guide](/docs/bm25/reference/migration/) from 0.3.x.
-        See [Attribution & Provenance](/docs/about/attribution/).
+        [`vchord`](https://github.com/pgsty/vchord) and [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) use the
+        [**GNU AGPL v3.0**](/docs/about/license/) license, and [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) uses
+        **Apache-2.0**. `vchord 1.5.0`, `vchord_bm25 1.3.0` (within `1.x`), and `pg_tokenizer 1.3.0`
+        provide in-place `ALTER EXTENSION ... UPDATE` scripts on PostgreSQL 15–19. Upgrading `vchord_bm25` from legacy `0.3.x` (`bm25vector`) to `1.x` (`tsvector`)
+        requires following the [BM25 Migration Guide](/docs/bm25/reference/migration/). See [Attribution & Provenance](/docs/about/attribution/).
     - question: How does vchord relate to pgvector and pgvecto.rs?
       answer: >-
-        **`vchord`** is the next-generation successor to [`pgvecto.rs`](/docs/vectors/), redesigned around SIGMOD'24 **RaBitQ**
-        quantization and PostgreSQL's native page storage and WAL replication. Unlike `pgvecto.rs`, `vchord` uses `pgvector`'s
-        standard `vector` and `halfvec` types and `<->`, `<#>`, `<=>` operators directly—so existing `pgvector` applications
-        can switch indexes (`USING vchordrq` or `USING vchordg`) without rewriting queries. See the [Migration Guide](/docs/vchord/admin/migration/).
+        **`vchord`** replaces [`pgvecto.rs`](/docs/vectors/) and builds on SIGMOD'24 **RaBitQ** quantization,
+        PostgreSQL native buffer pages, and WAL replication. Unlike `pgvecto.rs`, `vchord` uses `pgvector`'s standard
+        `vector` and `halfvec` types and `<->`, `<#>`, and `<=>` operators directly, so existing `pgvector` queries work without SQL rewrites
+        after creating a `vchordrq` or `vchordg` index. See the [Migration Guide](/docs/vchord/admin/migration/).
     - question: When should I choose vchordrq versus vchordg?
       answer: >-
-        Choose **`vchordrq`** (RaBitQ Inverted File) for large datasets (1M to 100M+ vectors), cost-sensitive deployments,
-        high insert/update throughput, or when your vectors exceed available RAM. Choose **`vchordg`** (RaBitQ Graph) when
-        your dataset fits comfortably in memory and you need maximum QPS and ultra-low single-query latency without HNSW's
-        multi-layer memory overhead. Compare both in the [Indexing Guide](/docs/vchord/usage/indexing/).
+        Choose **`vchordrq`** (RaBitQ Inverted File) for large datasets (1M to 100M+ vectors), SSD-backed storage,
+        high write throughput, multi-vector `vector[]` (`@#` MaxSim) search, or external index builds.
+        Choose **`vchordg`** (RaBitQ Graph) for single-vector (`vector`, `halfvec`, `rabitq8`, `rabitq4`) workloads that fit in memory
+        and require high QPS and low tail latency without HNSW memory overhead. Compare both in the [Indexing Guide](/docs/vchord/usage/indexing/).
     - question: How do vchord, vchord_bm25, and pg_tokenizer work together?
       answer: >-
-        [`pg_tokenizer`](/docs/tokenizer/) segments multilingual or English text into `INT[]` token IDs, legacy `bm25vector` values, or native `tsvector` values,
-        [`vchord_bm25`](/docs/bm25/) executes fast Block-WeakAnd Okapi BM25 Top-K lexical ranking (`<&>`), and [`vchord`](/docs/)
-        provides dense (`vchordrq`/`vchordg`) and multi-vector ColBERT (`@#` MaxSim) semantic search—fused inside a single SQL query via RRF.
+        [`pg_tokenizer`](/docs/tokenizer/) converts multilingual text into native `tsvector` lexemes or `INT[]` token IDs,
+        [`vchord_bm25`](/docs/bm25/) scores and prunes `tsvector` documents with Block-WeakAnd Okapi BM25 (`<&>`), and
+        [`vchord`](/docs/vchord/) executes dense (`vchordrq` / `vchordg`) or multi-vector (`@#` MaxSim) similarity search —
+        combined in one SQL query with Reciprocal Rank Fusion (RRF) or reranking.
 
 cta:
   title: Ready to scale vector & BM25 search in PostgreSQL?
-  desc: Follow the Getting Started guide, explore the SQL reference, or read the engineering blog.
+  desc: Read the Getting Started guide, review the Indexing Guide, or explore the engineering blog.
   actions:
     - label: Getting Started
       url: /docs/vchord/getting-started/overview/

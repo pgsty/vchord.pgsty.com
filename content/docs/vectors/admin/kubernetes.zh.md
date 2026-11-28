@@ -37,7 +37,7 @@ cnpg-cloudnative-pg-67ff4f5f66-94m8d   1/1     Running   0          1m
 ```
 
 <a id="build-postgresql-image-with-pgvecto-rs"></a>
-## 构建包含 `pgvecto.rs` 的 PostgreSQL 镜像 {#build-postgresql-image-with-pgvecto-rs}
+## 构建包含 `pgvecto.rs` 的 PostgreSQL 镜像 {#build-postgresql-image-with-pgvectors}
 
 我们以官方的 [CloudNative-PG Docker 镜像](https://github.com/cloudnative-pg/postgres-containers)作为基础镜像，并在其中安装 `pgvecto.rs`。你可以在 [Releases 页面](https://github.com/tensorchord/pgvecto.rs/releases)查看可用的 `pgvecto.rs` 版本。
 

@@ -1,11 +1,11 @@
 ---
-title: "快速入门"
-linkTitle: "快速入门"
-description: "概览、安装包、Docker（Obsolete） 镜像以及 Vchord 检索扩展家族。"
+title: "入门"
+linkTitle: "入门"
+description: "vchord 是什么、怎样安装，以及它如何与 BM25 排序和分词扩展搭配使用。"
 weight: 10
 icon: fa-solid fa-rocket
 upstream_link: ""
 aliases:
-  - "/zh/docs/getting-started/"
+  - "/docs/getting-started/"
   - "/vectorchord/getting-started/"
 ---

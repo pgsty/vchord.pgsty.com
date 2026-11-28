@@ -1,133 +1,145 @@
 ---
-title: "Tokenizer Architecture & Usage"
-description: "Understand the two-stage pipeline of pg_tokenizer: Text Analyzer and Tokenization Model."
+title: "Overview"
+linkTitle: "Overview"
+description: "What pg_tokenizer does, how its analyzer and model stages fit together, which one you need, and a five-minute BM25 quick start."
 weight: 10
-icon: fa-solid fa-sitemap
+icon: fa-solid fa-compass
 ---
 
-## Two-Stage Tokenization Pipeline
+PostgreSQL's `to_tsvector` splits text at spaces and punctuation, so it cannot find the words in Chinese or Japanese text, and its dictionaries give you limited control over stopwords, synonyms and stemming. pg_tokenizer runs a pipeline you configure in SQL and returns a `tsvector` that [vchord_bm25](/docs/bm25/) ranks with BM25, or the integer token IDs of a vocabulary such as an LLM tokenizer. If `to_tsvector('english', ...)` already handles your text, you do not need it.
 
-A `tokenizer` in `pg_tokenizer` consists of up to two stages that transform a raw `TEXT` string into an `INT[]` array of integer token IDs:
+## How it works {#how-it-works}
+
+<a id="two-stage-tokenization-pipeline"></a>
+
+Text passes through up to two stages:
 
 ```mermaid
 flowchart LR
-    A["Raw Text\\n(TEXT)"] --> B["Stage 1: Text Analyzer\\n1. character_filters\\n2. pre_tokenizer\\n3. token_filters"]
-    B --> C["Normalized Tokens\\n(TEXT[])"]
-    C --> D["Stage 2: Model\\nVocabulary Mapping / Subword BPE"]
-    D --> E["Token ID Array\\n(INT[] → bm25vector)"]
+    T["text"] --> A["text analyzer"]
+    A --> W["words"]
+    W -->|analyze_to_tsvector| V1["tsvector of words"]
+    W --> M["model"]
+    M --> I["token IDs"]
+    I -->|tokenize| R["int[]"]
+    I -->|tokenize_to_tsvector| V2["tsvector of IDs"]
 ```
 
-1. **Text Analyzer (`text_analyzer`)**: Splits raw text into a `TEXT[]` array of normalized string tokens by applying a sequential pipeline of:
-   - **Character Filters (`character_filters`)**: Transform the raw string before splitting (e.g., `to_lowercase`, `unicode_normalization`).
-   - **Pre-tokenizer (`pre_tokenizer`)**: Splits the string into initial substrings (`unicode_segmentation`, `regex`, or Chinese `jieba`).
-   - **Token Filters (`token_filters`)**: Filter or transform individual tokens (`skip_non_alphanumeric`, `stemmer`, `stopwords`, `synonym`, `pg_dict`, `ngram`).
-2. **Model (`model`)**: Maps the string tokens (or raw text, for standalone subword models like `llmlingua2`, `bert_base_uncased`, `gemma2b`, HuggingFace, or `lindera`) into integer token IDs (`INT[]`).
+1. A **text analyzer** decides what counts as a word. Character filters rewrite the whole text (lowercase, Unicode normalization), a pre-tokenizer splits it (at Unicode word boundaries, by a regular expression, or with the jieba dictionary for Chinese), and token filters drop or rewrite words (stopwords, stemming, synonyms, PostgreSQL dictionaries, n-grams).
+1. A **model** maps text to integer IDs from a fixed vocabulary: one of four built-in LLM vocabularies, a Hugging Face `tokenizer.json`, a Lindera dictionary for Japanese or Korean, or a vocabulary built from one of your tables.
+{.steps}
 
-> [!NOTE]
-> - **Pretrained subword models** (`llmlingua2`, `bert_base_uncased`, `gemma2b`), **HuggingFace models**, and **Lindera models** include their own built-in tokenization rules and do not require a separate `text_analyzer` stage.
-> - **Dictionary/corpus models** (`wiki_tocken` and custom models created via `create_custom_model`) require a `text_analyzer` stage to split and normalize text before looking up token IDs in the model's vocabulary table.
+An analyzer alone is enough for BM25: `analyze_to_tsvector` makes the words themselves the lexemes. To use a model you create a **tokenizer**, which pairs the model with an optional analyzer; `tokenize` returns its IDs as `int[]`, and `tokenize_to_tsvector` returns them as lexemes.
 
-## Creating and Using a Tokenizer
+## Choose a path {#choose}
 
-All configuration in `pg_tokenizer` uses **TOML** format passed as a dollar-quoted string (`$$ ... $$`).
+| You want | Create | Then call |
+| --- | --- | --- |
+| BM25 search on English or another language with spaces | text analyzer with a stemmer | `analyze_to_tsvector` |
+| BM25 search on Chinese | text analyzer with the `jieba` pre-tokenizer | `analyze_to_tsvector` |
+| BM25 search on Japanese or Korean | Lindera model and a tokenizer | `tokenize_to_tsvector` |
+| The same token IDs as an LLM or embedding model | tokenizer with a built-in or Hugging Face model | `tokenize` |
+| Compact integer IDs for the words of your own corpus | tokenizer with a custom model | `tokenize` |
 
-### Option 1: Single-Stage Tokenizer (Built-in Model)
+You need a model only when you need IDs, or when splitting the text needs a dictionary that only a model provides, as Japanese does. [Multilingual recipes](/docs/tokenizer/multilingual/) has a complete setup for English, other European languages, Chinese and Japanese.
 
-```sql
-SELECT create_tokenizer('llm_tok', $$
-model = "llmlingua2"
-$$);
+## Quick start {#quick-start}
 
-SELECT tokenize('PostgreSQL is an object-relational database system.', 'llm_tok');
-```
+This builds BM25 search over English text. It needs pg_tokenizer and vchord_bm25 installed; see [Installation](/docs/tokenizer/installation/).
 
-### Option 2: Inline Text Analyzer + Model
+1. Preload both libraries and restart PostgreSQL. Keep any libraries already in the list.
 
-You can define the `text_analyzer` pipeline directly inside `create_tokenizer`:
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer, vchord_bm25';
+   ```
 
-```sql
-SELECT create_tokenizer('wiki_eng', $$
-model = "wiki_tocken"
-character_filters = ["to_lowercase"]
-pre_tokenizer = "unicode_segmentation"
-[[token_filters]]
-stopwords = "nltk_english"
-[[token_filters]]
-stemmer = "english_porter2"
-$$);
+1. Create the extensions:
 
-SELECT tokenize('PostgreSQL is an object-relational database system.', 'wiki_eng');
-```
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+   CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+   ```
 
-### Option 3: Reusable Named Text Analyzer + Custom Model
+1. Create a text analyzer that lowercases, splits at word boundaries, removes English stopwords and stems, then look at what it produces:
 
-You can create a standalone `text_analyzer` once with `create_text_analyzer` and reference it across multiple custom models and tokenizers:
+   ```sql
+   SELECT tokenizer_catalog.create_text_analyzer('en_text', $$
+   character_filters = ["to_lowercase"]
+   pre_tokenizer = "unicode_segmentation"
+   token_filters = [
+       { stopwords = "nltk_english" },
+       { stemmer = "english_porter2" },
+   ]
+   $$);
 
-```sql
--- 1. Create a reusable text analyzer
-SELECT create_text_analyzer('english_analyzer', $$
-character_filters = ["to_lowercase"]
-pre_tokenizer = "unicode_segmentation"
-[[token_filters]]
-skip_non_alphanumeric = {}
-[[token_filters]]
-stopwords = "nltk_english"
-[[token_filters]]
-stemmer = "english_porter2"
-$$);
+   SELECT tokenizer_catalog.analyze_to_tsvector('The quick brown foxes jumped', 'en_text');
+   ```
 
--- Preview how the text analyzer splits text into TEXT[] tokens:
-SELECT apply_text_analyzer('PostgreSQL is a powerful database system!', 'english_analyzer');
--- Output: {postgresql,power,databas,system}
-```
+   ```text
+   'brown':2 'fox':3 'jump':4 'quick':1
+   ```
 
-## Managing Tokenizers
+1. Store the analyzed text in a `tsvector` column, index it, and rank with the same analyzer on the query:
 
-```sql
--- List configured tokenizers
-SELECT name FROM tokenizer_catalog.tokenizer;
+   ```sql
+   CREATE TABLE docs (
+       id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+       body text NOT NULL,
+       terms tsvector
+   );
 
--- Drop a tokenizer
-SELECT drop_tokenizer('wiki_eng');
-```
+   INSERT INTO docs (body) VALUES
+       ('The quick brown fox jumps over the lazy dog.'),
+       ('Foxes are quick to adapt to cities.'),
+       ('A slow brown bear sleeps all winter.');
 
-## Native PostgreSQL full-text search {#native-postgresql-full-text-search}
+   UPDATE docs SET terms = tokenizer_catalog.analyze_to_tsvector(body, 'en_text');
 
-Version 1.0.0 provides two functions returning the native `tsvector` type. `analyze_to_tsvector` uses the text analyzer's string tokens as lexemes, making it useful for Jieba and custom stemmer/filter pipelines. `tokenize_to_tsvector` instead uses the model's token IDs as decimal lexemes, supporting built-in, custom, Hugging Face, and Lindera models. No model decoding or second PostgreSQL text normalization is performed.
+   CREATE INDEX docs_terms_bm25 ON docs USING bm25 (terms bm25_ops);
 
-```sql
-SELECT create_text_analyzer('fts_words', $$
-pre_tokenizer = "unicode_segmentation"
-[[character_filters]]
-to_lowercase = {}
-$$);
-SELECT analyze_to_tsvector('Cat dog cat', 'fts_words');
--- 'cat':1,3 'dog':2
+   SELECT id, body
+   FROM docs
+   ORDER BY terms <&> to_bm25query(
+       tokenizer_catalog.analyze_to_tsvector('quick foxes', 'en_text'),
+       'docs_terms_bm25')
+   LIMIT 10;
+   ```
+{.steps}
 
-CREATE TABLE fts_documents (id int PRIMARY KEY, passage text, terms tsvector);
-INSERT INTO fts_documents VALUES
-    (1, 'Cat dog cat', analyze_to_tsvector('Cat dog cat', 'fts_words'));
-CREATE INDEX ON fts_documents USING gin (terms);
-SELECT id FROM fts_documents WHERE terms @@ 'cat <-> dog'::tsquery;
+`<&>` returns the negated BM25 score, so ascending order puts the best match first. To keep `terms` current as rows change, add the trigger shown in the [English recipe](/docs/tokenizer/multilingual/#english).
 
-SELECT create_tokenizer('fts_bert', 'model = "bert_base_uncased"');
-SELECT tokenize_to_tsvector('hello hello', 'fts_bert');
--- '7592':1,2
-```
+## Output {#output}
 
-Both functions preserve repeated output tokens and assign positions from the final output sequence (default weight D). Positions are **not source-text offsets**: filters can remove, expand, or reorder tokens, and model output can contain subwords. Quotes, backslashes, whitespace, and punctuation in lexemes are preserved. Empty tokens are omitted; an empty output produces an empty vector, and NULL input returns NULL.
+<a id="native-postgresql-full-text-search"></a><a id="native-fts"></a>
 
-PostgreSQL's native limits apply: tokens longer than 2046 bytes are skipped without leaving position gaps; each lexeme stores at most 256 positions, and positions above 16,383 are clamped. Long input can therefore lose term-frequency/proximity detail. See [PostgreSQL text search limits](https://www.postgresql.org/docs/current/textsearch-limitations.html).
+Both `tsvector` functions number the words in the order the pipeline outputs them, starting at 1, with the default weight `D`. A repeated word becomes one lexeme with several positions. Positions count output words, not characters in the source text, so a word removed by a stopword filter leaves no gap.
 
-Use the same analyzer/model and lexeme representation for documents and queries. `plainto_tsquery('english', ...)` does not generate model token IDs or reproduce a custom Chinese analyzer. These functions do not add a custom text search parser or a `tsquery` builder. They are `STABLE` because definitions live in catalogs: store/update the resulting vector in a column and index that column with GIN/GiST. `vchord_bm25` 1.0.0 indexes these values directly. After [installing and preloading it](/docs/bm25/getting-started/installation/), add a BM25 index to the example above:
+The result is an ordinary `tsvector`. vchord_bm25 reads the term counts and document length from it; GIN indexes and `@@` also work, as long as the `tsquery` holds the same lexemes. `to_tsquery('english', ...)` produces different lexemes, so build the query side with the same analyzer or tokenizer as the documents.
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vchord_bm25;
-CREATE INDEX fts_documents_bm25 ON fts_documents USING bm25 (terms bm25_ops);
-SELECT id, terms <&> to_bm25query(analyze_to_tsvector('cat', 'fts_words'), 'fts_documents_bm25') AS rank
-FROM fts_documents
-ORDER BY rank
-LIMIT 10;
-```
+## Limits {#limits}
 
-Existing `bm25vector` indexes require the [1.0.0 migration procedure](/docs/bm25/reference/migration/).
+<a id="operational-notes--known-limitations"></a>
+
+These apply whichever path you choose.
+
+- **Not in generated columns or expression indexes.** `analyze_to_tsvector`, `tokenize_to_tsvector`, `tokenize` and `apply_text_analyzer` read their definitions from tables, so they are `STABLE`, not `IMMUTABLE`. PostgreSQL rejects them in `GENERATED ALWAYS AS (...) STORED` with `generation expression is not immutable`, and in an index expression with `functions in index expression must be marked IMMUTABLE`. Store the result in an ordinary column filled by `INSERT`, `UPDATE`, or a trigger.
+- **Documents and queries must use the same definition.** A query analyzed differently from the documents matches little or nothing.
+- **Stored values are never recomputed.** Dropping and recreating an analyzer, tokenizer or model under the same name changes future output only. Recompute the stored column with an `UPDATE`; see [Change an analyzer in use](/docs/tokenizer/text-analyzer/#change). A trigger or tokenizer that names a dropped analyzer fails with `TextAnalyzer not found: <name>`.
+- **Definitions belong to one database.** Analyzers, tokenizers, models, stopword lists and synonym lists live in tables in the database where you create them, and replicate and dump with it. Create them in each database that needs them.
+- **`tsvector` limits.** A word longer than 2,046 bytes is left out. A lexeme keeps at most 256 positions, and positions above 16,383 all become 16,383, so in documents longer than about 16,000 words, later occurrences stop adding to term counts; split very long documents into passages if ranking them matters. If the distinct lexemes of one document exceed about 1 MB, the call fails with `string is too long for tsvector`.
+- **Size limits per call.** By default one call accepts up to 16 MiB of text, and a jieba, regular-expression or model step receives at most 1 MiB at a time. When an input splits as one piece, as it does with jieba or with a model that has no analyzer in front, a document over 1 MiB fails with `pg_tokenizer exceeds max_piece_bytes (1048576)`. Raise the [limits](/docs/tokenizer/reference/#analysis-budgets) per transaction for trusted batch loads.
+- **Models use memory per backend.** Each backend loads a model on first use and keeps it. `llmlingua2` takes about 200 MB and `gemma2b` about 100 MB, in every backend that uses them unless they are [preloaded](/docs/tokenizer/models/#preload). `llmlingua2` is preloaded by default, which costs that memory at server start even if you never use it.
+- **Preloading is required.** pg_tokenizer must be in `shared_preload_libraries`; otherwise `CREATE EXTENSION` fails with `pg_tokenizer must be loaded via shared_preload_libraries.` Its position in the list does not matter, but setting the list replaces it, so name every library the server needs.
+- **Model names.** Model names use ASCII letters, digits and underscores, start with a letter, and have at most 20 characters. The built-in names `bert_base_uncased`, `wiki_tocken`, `gemma2b` and `llmlingua2` are reserved. Other definitions have no naming rule beyond being unique.
+
+## Where to go next {#next-steps}
+
+- **Set up search for a language**: [Multilingual recipes](/docs/tokenizer/multilingual/).
+- **Tune what counts as a word**: [Text analyzers](/docs/tokenizer/text-analyzer/).
+- **Produce token IDs, or segment Japanese and Korean**: [Models](/docs/tokenizer/models/).
+- **Look up a function, key or setting**: [Reference](/docs/tokenizer/reference/).
+- **Rank, filter and combine with vectors**: [vchord_bm25](/docs/bm25/) and [vchord](/docs/vchord/).
+
+## License {#license}
+
+pg_tokenizer is licensed under [Apache-2.0](https://github.com/pgsty/pg_tokenizer/blob/main/LICENSE). It is a fork of TensorChord's pg_tokenizer.rs, maintained by [PGSTY](https://pgsty.com).

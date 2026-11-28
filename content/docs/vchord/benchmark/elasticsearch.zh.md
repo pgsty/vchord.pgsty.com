@@ -1,27 +1,38 @@
 ---
-title: "与 Elasticsearch 的基准测试对比"
+title: "与 Elasticsearch 对比"
 linkTitle: "对比 Elasticsearch"
-description: "全面对比 VectorChord-BM25 与 Elasticsearch 在 QPS 与 NDCG@10 两个核心指标上的基准测试表现。"
+description: "在 14 个 BEIR 数据集上对比 vchord_bm25 与 Elasticsearch：返回前 1,000 条和前 10 条结果时的每秒查询数，以及用 NDCG@10 衡量的排序质量。"
 weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/benchmark/elasticsearch.md"
 aliases:
-  - "/zh/docs/benchmark/elasticsearch/"
+  - "/docs/benchmark/elasticsearch/"
   - "/vectorchord/benchmark/elasticsearch/"
 icon: fa-solid fa-magnifying-glass-chart
 ---
 
-本文展示了我们将 VectorChord-BM25 实现与 Elasticsearch 进行全面对比的基准测试结果，重点考察两个核心指标：QPS（每秒查询数）与 NDCG@10（前 10 位结果的归一化折损累计增益）。如果您对我们的技术实现细节感兴趣，请参阅我们的博文《[VectorChord-BM25：以比 Elasticsearch 快 3 倍的 BM25 排序彻底革新 PostgreSQL 搜索](/zh/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)》。
+本页在 [bm25-benchmarks](https://github.com/xhluca/bm25-benchmarks) 的 BEIR 数据集上，对比用 [vchord_bm25](/zh/docs/bm25/) 在 PostgreSQL 里做 BM25 关键词检索与 Elasticsearch：两者每秒各能回答多少查询，排序结果是否一样好。数据出自 [VectorChord-BM25: 3x Faster Than Elasticsearch](/zh/blog/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)（2025 年 2 月），文章没有给出测试硬件。
 
 <a id="RPS"></a>
-## RPS {#rps}
 
-<img src="/docs/images/es-vchord-bm25-rps.png" alt="RPS" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+## 每秒查询数 {#rps}
 
-我们在来自 [bm25-benchmarks](https://github.com/xhluca/bm25-benchmarks) 的多个数据集上，对比了我们的实现与 Elasticsearch 的 Top-1000 每秒查询数（QPS）——该指标衡量系统在为每次查询检索前 1000 条结果时每秒能够处理的查询数量。在所有测试数据集上，我们的实现平均取得了 **比 Elasticsearch 高出 3 倍的 QPS**，充分展现了其卓越的执行效率与可扩展性。
+为了公平比较，两边使用相同的停用词表和词干提取器，Elasticsearch 也像 vchord_bm25 一样把每篇文档的标题和正文合成一个字段建索引。
 
-<a id="ndcg-10"></a>
-## NDCG@10 {#ndcg10}
+<img src="/docs/images/es-vchord-bm25-rps.png" alt="14 个 BEIR 数据集上 vchord_bm25 与 Elasticsearch 返回前 1,000 条结果时的每秒查询数" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 
-<img src="/docs/images/es-vchord-bm25-ndcg10.png" alt="NDCG@10" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+谁更快取决于每条查询返回多少行：
 
-我们投入了大量精力使 VectorChord-BM25 的评分行为与 Elasticsearch 保持对齐，以确保对比的公平性与准确性。如上表所示，我们的实现在绝大多数数据集上均取得了与 Elasticsearch 相当的 NDCG@10 得分，甚至在部分数据集（如 `trec-covid` 和 `scifact`）上超越了 Elasticsearch。
+| 每条查询返回 | vchord_bm25 | Elasticsearch |
+| --- | --- | --- |
+| 前 1,000 条 | 112 QPS | 49 QPS |
+| 前 10 条 | 271.91 QPS | 341 QPS |
+
+表中数字都是各数据集的平均值。返回前 1,000 条时，图中 14 个数据集里 vchord_bm25 有 12 个更快，climate-fever 和 arguana 两个更慢；按数据集逐个求平均，文章给出的吞吐是 Elasticsearch 的三倍。返回前 10 条时，Elasticsearch 快约 25%。
+
+<a id="ndcg10"></a>
+
+## 排序质量 {#ndcg-10}
+
+<img src="/docs/images/es-vchord-bm25-ndcg10.png" alt="BEIR 数据集上 vchord_bm25 与 Elasticsearch 的 NDCG@10" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+
+文本处理一致时，两者在大多数数据集上的 NDCG@10 接近，在 trec-covid 和 scifact 上 vchord_bm25 更高。排序质量更多取决于分词而不是索引：停用词表和词干提取器对齐之前，vchord_bm25 在部分数据集上的 NDCG@10 明显偏低。文档和查询要用同一种方式分词，做法见 [vchord_bm25](/zh/docs/bm25/)。

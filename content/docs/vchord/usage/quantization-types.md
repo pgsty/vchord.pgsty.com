@@ -1,250 +1,75 @@
 ---
-title: "Quantization Types"
-linkTitle: "Quantization Types"
-description: "Quantization can be applied not only to indexes but also directly to vectors. To this end, VectorChord provides data types for quantized vectors."
-weight: 40
+title: "Quantized Types"
+linkTitle: "Quantized Types"
+description: "Store vectors at 8 or 4 bits per dimension with the rabitq8 and rabitq4 column types, and know what that costs in accuracy."
+weight: 50
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/quantization-types.md"
-math: true
 aliases:
   - "/docs/usage/quantization-types/"
   - "/vectorchord/usage/quantization-types/"
 icon: fa-solid fa-compress
 ---
 
-{{< badge text="since v1.1.0" tone="info" >}}
+vchord indexes already compress vectors internally, but the table still holds every vector at full size, and at hundreds of millions of rows that column is most of the database. pgvector's `halfvec` halves it. vchord's `rabitq8` and `rabitq4` types go further, storing each vector as one 8-bit or 4-bit code per dimension plus four scaling values, using [extended RaBitQ](https://arxiv.org/abs/2409.09913):
 
+| Type | Approximate size of a 768-dimensional vector | Compared to `vector` |
+| --- | --- | --- |
+| `vector` | 3,072 bytes | 1 |
+| `halfvec` | 1,536 bytes | 1/2 |
+| `rabitq8` | 784 bytes | about 1/4 |
+| `rabitq4` | 400 bytes | about 1/8 |
 
-Quantization can be applied not only to indexes but also directly to vectors. To this end, VectorChord provides data types for quantized vectors.
+The price is that every distance between quantized vectors is an estimate, in the index and in SQL alike. With `rabitq8`, retrieving candidates typically loses less than 1% recall; `rabitq4` loses more. If you need exact distances for the final ranking, keep the original vectors somewhere else and rerank the top candidates with them.
 
-`rabitq8` is the data type of a quantized vector. For the same dimension, its cost is about \(\frac{1}{4}\) that of a full-precision vector (`vector`) and \(\frac{1}{2}\) that of a half-precision vector (`halfvec`). This type is named after its quantization algorithm.[^exrabitq]
+## Use them {#basic-usage}
 
-[^exrabitq]: Jianyang Gao, Yutong Gou, Yuexuan Xu, Yongyi Yang, Cheng Long, Raymond Chi-Wing Wong, "Practical and Asymptotically Optimal Quantization of High-Dimensional Vectors in Euclidean Space for Approximate Nearest Neighbor Search", SIGMOD 2025, available at https://arxiv.org/abs/2409.09913.
+Quantize vectors as you insert them, and quantize the query vector the same way:
 
 ```sql
 CREATE TABLE items (id bigserial PRIMARY KEY, embedding rabitq8(3));
-INSERT INTO items (embedding) VALUES (quantize_to_rabitq8('[0,0,0]'::vector));
-INSERT INTO items (embedding) VALUES (quantize_to_rabitq8('[1,1,1]'::vector));
-INSERT INTO items (embedding) VALUES (quantize_to_rabitq8('[2,2,2]'::vector));
---- ...
-SELECT id FROM items ORDER BY embedding <-> quantize_to_rabitq8('[0.9,0.9,1.1]'::vector) LIMIT 100;
+
+INSERT INTO items (embedding) VALUES
+    (quantize_to_rabitq8('[0, 0, 0]'::vector)),
+    (quantize_to_rabitq8('[1, 1, 1]'::vector)),
+    (quantize_to_rabitq8('[2, 2, 2]'::vector));
+
+CREATE INDEX ON items USING vchordrq (embedding rabitq8_l2_ops);
+
+SELECT id FROM items
+ORDER BY embedding <-> quantize_to_rabitq8('[0.9, 0.9, 1.1]'::vector)
+LIMIT 10;
 ```
 
-Like them, an index can be created on columns of type `rabitq8`, too.
+The types work with both vchordrq and vchordg, as arrays for [multi-vector retrieval](/docs/vchord/usage/multi-vector-retrieval/), and with [distance ranges](/docs/vchord/usage/filtering/#distance-range). Use the `rabitq8_*` or `rabitq4_*` operator class that matches your distance.
+
+To let an application or ORM insert plain vector literals, register an assignment cast once:
 
 ```sql
-CREATE INDEX ON items USING vchordrq (embedding rabitq8_l2_ops);
+CREATE CAST (vector AS rabitq8) WITH FUNCTION quantize_to_rabitq8(vector) AS ASSIGNMENT;
 ```
 
-By using `rabitq8`, both the table size and index size become \(\frac{1}{4}\) of what they would be when the type of the column is `vector`. The cost is that both performance and precision are compromised by quantization noticeably. Therefore, it is applicable in scenarios that retrieve a large number of results.
+## Limits {#limits}
 
-In addition, there is also the `rabitq4` type. `rabitq8` quantized vectors use \(8\) bits per dimension, whereas `rabitq4` quantized vectors use only \(4\) bits per dimension. It is designed for constrained situations that favor low storage over high precision.
+<a id="input-validation"></a>
 
-### Input validation and numeric behavior {#input-validation}
+- `residual_quantization` is not available for indexes on these types.
+- The dimension in `rabitq8(n)` is not yet checked on insert ([#31](https://github.com/pgsty/vchord/issues/31)); an index on the column does reject rows of the wrong dimension. Check dimensions in the application until then.
+- Converting back with `dequantize_to_vector` or `dequantize_to_halfvec` gives an approximation of the original, within pgvector's limits of 16,000 dimensions for `vector` and 4,000 for `halfvec`.
 
-The `rabitq4` and `rabitq8` data types accept at most 65,535 dimensions. Codes must be in `0..15` for `rabitq4` and `0..255` for `rabitq8`. Version 1.2.0 rejects whitespace inside numbers, trailing garbage, and truncated binary input. `quantize_to_*` reports an error on metadata overflow; input still accepts non-finite metadata stored by earlier versions so existing dumps can be restored.
+## Reference {#reference}
 
-Version 1.2.0 fixes numeric edge cases for zero vectors, constant vectors, and half-precision calculations. Quantized L2 estimates are clamped to nonnegative values so rounding errors do not produce NaN when taking the square root. Cosine distance for a zero vector remains mathematically undefined.
+<a id="operator-classes"></a><a id="types"></a><a id="rabitq8"></a><a id="rabitq4"></a><a id="operators"></a><a id="rabitq8-l2-op"></a><a id="rabitq8-ip-op"></a><a id="rabitq8-cosine-op"></a><a id="rabitq4-l2-op"></a><a id="rabitq4-ip-op"></a><a id="rabitq4-cosine-op"></a>
 
-For `halfvec`, ANN routing can use lower precision to improve throughput. On ARM CPUs with FP16 and FHM, IVF centroid selection and graph pruning round L2 differences to `f16`, then multiply and accumulate in `f32`. This introduces at most about 0.1% relative error in squared distance from difference rounding, plus `f32` summation error; it is not a bound on recall loss. Overflowing differences trigger a retry with `f32` differences. Final reranking and SQL sphere predicates retain their existing precision. Other CPUs use the existing `f32` reduction. Measure recall when choosing probes and search breadth, particularly for nearly tied neighbors.
+Both types take up to 65,535 dimensions; vchordrq indexes up to 60,000 and vchordg up to 30,000. They support `<->`, `<#>`, and `<=>`, which return estimated distances, and the operator classes listed for [vchordrq](/docs/vchord/usage/indexing/#operator-classes) and [vchordg](/docs/vchord/usage/graph-index/#operator-classes). Their text form, such as `(2.99, 160.6, 647, 2.85)[255, 205, 187]`, is four scaling values followed by one code per dimension; create values with the functions below rather than by hand.
 
-> [!NOTE] Unreleased 1.3.0 candidate
-> The candidate defines RaBitQ cosine distances with zero or non-finite norms as `NaN`. Cosine indexes skip vectors without a valid direction, and a zero or non-finite cosine query returns no index rows. Rebuild affected old indexes after installing the corrected encoder; an extension catalog update alone does not rewrite stored metadata.
->
-> Dimension enforcement for `rabitq4(n)` / `rabitq8(n)` is deferred: this candidate keeps the existing cast catalog and expression-index matching. SQL literals, same-type assignment, `COPY` and binary input do not check the declared dimension, so rows accepted by `INSERT` remain restorable from a dump. A `vchordrq` or `vchordg` index on the column rejects values of another dimension. Validate dimensions when writing to unindexed columns; do not rely on the typmod alone.
+### Functions {#functions}
 
-<a id="Reference"></a>
-## Reference
+<a id="Functions"></a><a id="quantize-to-rabitq8-vector"></a><a id="quantize-to-rabitq8-halfvec"></a><a id="dequantize-to-vector-rabitq8"></a><a id="dequantize-to-halfvec-rabitq8"></a><a id="quantize-to-rabitq4-vector"></a><a id="quantize-to-rabitq4-halfvec"></a><a id="dequantize-to-vector-rabitq4"></a><a id="dequantize-to-halfvec-rabitq4"></a>
 
-### Operator Classes
-
-Refer to
-
-* [Operator Classes (`vchordrq`)](/docs/vchord/usage/indexing/#operator-classes).
-* [Operator Classes (`vchordg`)](/docs/vchord/usage/graph-index/#operator-classes).
-
-<a id="Types"></a>
-### Types
-
-#### `rabitq8`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: The data type of a quantized vector that uses `uint8` for internal storage. It's based on extended RaBitQ.[^exrabitq]
-- Textual representation: Unlike `vector`/`halfvec`, the textual representation of `rabitq8` is more complex. Suppose the dimension is \(d\); it consists of a concatenation of an array of \(4\) floating-point numbers enclosed in parentheses and an array of \(d\) `uint8` integers enclosed in brackets. For example, `(2.999999, 160.63234, 647, 2.8498733)[255, 205, 187]`. Its interpretation is internal, but you can get the vector it represents by using `dequantize_to_vector(rabitq8)`/`dequantize_to_halfvec(rabitq8)`.
-
-#### `rabitq4`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: The data type of a quantized vector that uses `uint4` for internal storage. It's based on extended RaBitQ.[^exrabitq]
-- Textual representation: Unlike `vector`/`halfvec`, the textual representation of `rabitq4` is more complex. Suppose the dimension is \(d\); it consists of a concatenation of an array of \(4\) floating-point numbers enclosed in parentheses and an array of \(d\) `uint4` integers enclosed in brackets. For example, `(2.999999, 9.420722, 38, 2.8498733)[15, 12, 11]`. Its interpretation is internal, but you can get the vector it represents by using `dequantize_to_vector(rabitq4)`/`dequantize_to_halfvec(rabitq4)`.
-
-<a id="Functions"></a>
-### Functions
-
-<a id="quantize-to-rabitq8-vector"></a>
-#### `quantize_to_rabitq8(vector)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Quantize a vector to `rabitq8`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines.
-- Result: `rabitq8`, the quantized vector
-- Arguments:
-    - `vector`, the vector to be quantized
-- Example:
-    - `SELECT quantize_to_rabitq8('[1,1,1]'::vector)`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (vector AS rabitq8) WITH FUNCTION quantize_to_rabitq8(vector) AS ASSIGNMENT`.
-
-<a id="quantize-to-rabitq8-halfvec"></a>
-#### `quantize_to_rabitq8(halfvec)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Quantize a vector to `rabitq8`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines.
-- Result: `rabitq8`, the quantized vector
-- Arguments:
-    - `halfvec`, the vector to be quantized
-- Example:
-    - `SELECT quantize_to_rabitq8('[1,1,1]'::halfvec)`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (halfvec AS rabitq8) WITH FUNCTION quantize_to_rabitq8(halfvec) AS ASSIGNMENT`.
-
-<a id="dequantize-to-vector-rabitq8"></a>
-#### `dequantize_to_vector(rabitq8)`
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- Description: Dequantize a quantized vector to `vector`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines. The original vector cannot be precisely reconstructed using this function.
-- Result: `vector`, the dequantized vector
-- Arguments:
-    - `rabitq8`, the quantized vector to be dequantized
-- Example:
-    - `SELECT dequantize_to_vector(quantize_to_rabitq8('[1,1,1]'::vector))`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (rabitq8 AS vector) WITH FUNCTION dequantize_to_vector(rabitq8) AS ASSIGNMENT`.
-
-<a id="dequantize-to-halfvec-rabitq8"></a>
-#### `dequantize_to_halfvec(rabitq8)`
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- Description: Dequantize a quantized vector to `halfvec`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines. The original vector cannot be precisely reconstructed using this function.
-- Result: `halfvec`, the dequantized vector
-- Arguments:
-    - `rabitq8`, the quantized vector to be dequantized
-- Example:
-    - `SELECT dequantize_to_halfvec(quantize_to_rabitq8('[1,1,1]'::halfvec))`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (rabitq8 AS halfvec) WITH FUNCTION dequantize_to_halfvec(rabitq8) AS ASSIGNMENT`.
-
-<a id="quantize-to-rabitq4-vector"></a>
-#### `quantize_to_rabitq4(vector)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Quantize a vector to `rabitq4`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines.
-- Result: `rabitq4`, the quantized vector
-- Arguments:
-    - `vector`, the vector to be quantized
-- Example:
-    - `SELECT quantize_to_rabitq4('[1,1,1]'::vector)`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (vector AS rabitq4) WITH FUNCTION quantize_to_rabitq4(vector) AS ASSIGNMENT`.
-
-<a id="quantize-to-rabitq4-halfvec"></a>
-#### `quantize_to_rabitq4(halfvec)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Quantize a vector to `rabitq4`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines.
-- Result: `rabitq4`, the quantized vector
-- Arguments:
-    - `halfvec`, the vector to be quantized
-- Example:
-    - `SELECT quantize_to_rabitq4('[1,1,1]'::halfvec)`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (halfvec AS rabitq4) WITH FUNCTION quantize_to_rabitq4(halfvec) AS ASSIGNMENT`.
-
-<a id="dequantize-to-vector-rabitq4"></a>
-#### `dequantize_to_vector(rabitq4)`
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- Description: Dequantize a quantized vector to `vector`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines. The original vector cannot be precisely reconstructed using this function.
-- Result: `vector`, the dequantized vector
-- Arguments:
-    - `rabitq4`, the quantized vector to be dequantized
-- Example:
-    - `SELECT dequantize_to_vector(quantize_to_rabitq4('[1,1,1]'::vector))`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (rabitq4 AS vector) WITH FUNCTION dequantize_to_vector(rabitq4) AS ASSIGNMENT`.
-
-<a id="dequantize-to-halfvec-rabitq4"></a>
-#### `dequantize_to_halfvec(rabitq4)`
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- Description: Dequantize a quantized vector to `halfvec`. Note that this function may produce sightly different results for identical inputs with different versions of VectorChord or with different machines. The original vector cannot be precisely reconstructed using this function.
-- Result: `halfvec`, the dequantized vector
-- Arguments:
-    - `rabitq4`, the quantized vector to be dequantized
-- Example:
-    - `SELECT dequantize_to_halfvec(quantize_to_rabitq4('[1,1,1]'::halfvec))`
-- Note: This function does not have a corresponding `CAST`. If needed, you can create one manually using `CREATE CAST (rabitq4 AS halfvec) WITH FUNCTION dequantize_to_halfvec(rabitq4) AS ASSIGNMENT`.
-
-<a id="Operators"></a>
-### Operators
-
-#### `<->(rabitq8, rabitq8)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Calculates L2 distance of two quantized vectors.
-- Result: `real`, L2 distance of two quantized vectors
-- Arguments:
-    - `rabitq8`
-    - `rabitq8`
-
-#### `<#>(rabitq8, rabitq8)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Calculates negative dot product distance of two quantized vectors.
-- Result: `real`, negative dot product distance of two quantized vectors
-- Arguments:
-    - `rabitq8`
-    - `rabitq8`
-
-#### `<=>(rabitq8, rabitq8)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Calculates cosine distance of two quantized vectors.
-- Result: `real`, cosine distance of two quantized vectors
-- Arguments:
-    - `rabitq8`
-    - `rabitq8`
-
-#### `<->(rabitq4, rabitq4)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Calculates L2 distance of two quantized vectors.
-- Result: `real`, L2 distance of two quantized vectors
-- Arguments:
-    - `rabitq4`
-    - `rabitq4`
-
-#### `<#>(rabitq4, rabitq4)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Calculates negative dot product distance of two quantized vectors.
-- Result: `real`, negative dot product distance of two quantized vectors
-- Arguments:
-    - `rabitq4`
-    - `rabitq4`
-
-#### `<=>(rabitq4, rabitq4)`
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- Description: Calculates cosine distance of two quantized vectors.
-- Result: `real`, cosine distance of two quantized vectors
-- Arguments:
-    - `rabitq4`
-    - `rabitq4`
+| Function | Returns | Description |
+| --- | --- | --- |
+| `quantize_to_rabitq8(vector \| halfvec)` | `rabitq8` | Quantize to 8 bits per dimension. |
+| `quantize_to_rabitq4(vector \| halfvec)` | `rabitq4` | Quantize to 4 bits per dimension. |
+| `dequantize_to_vector(rabitq8 \| rabitq4)` | `vector` | Approximate original vector. |
+| `dequantize_to_halfvec(rabitq8 \| rabitq4)` | `halfvec` | Approximate original vector in half precision. |
+{.fields meta="type"}

@@ -1,7 +1,7 @@
 ---
 title: "Administration"
 linkTitle: "Administration"
-description: "Migrating from pgvecto.rs or pgvector, horizontal read scalability, and Kubernetes (Obsolete) deployment."
+description: "Run vchord in production: migrate from pgvector or pgvecto.rs, add read replicas when one server cannot keep up with queries, and deploy on Kubernetes."
 weight: 50
 icon: fa-solid fa-sliders
 upstream_link: ""

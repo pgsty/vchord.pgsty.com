@@ -1,208 +1,188 @@
 ---
-title: "在 PostgreSQL 中使用 ColBERT 重排序为向量检索加速"
-linkTitle: "ColBERT 重排序"
-description: "传统的向量检索通常使用句向量来定位相似内容，而结合 VectorChord 与 ColBERT 词元级多向量晚期交互重排序，可兼顾检索速度与细粒度精度。"
+title: "ColBERT 重排"
+linkTitle: "ColBERT 重排"
+description: "先用单向量 vchordrq 索引召回候选，再在同一条 SQL 里用 @# 运算符按 ColBERTv2 词元级 MaxSim 重排。"
 weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/use-case/colbert-rerank.md"
 aliases:
-  - "/zh/docs/use-case/colbert-rerank/"
+  - "/docs/use-case/colbert-rerank/"
   - "/vectorchord/use-case/colbert-rerank/"
 icon: fa-solid fa-ranking-star
 ---
 
-传统的向量检索方法通常采用句级别嵌入（Sentence Embeddings）来查找相似内容。然而，通过对词元嵌入（Token Embeddings）进行池化（Pooling）来生成句嵌入，可能会损失词元层级中蕴含的细粒度信息。[ColBERT](https://github.com/stanford-futuredata/ColBERT) 通过将文本表示为词元级的多向量（Multi-vectors）而非单个聚合向量，有效克服了这一缺陷。这种方法利用词元级的上下文晚期交互（Contextual Late Interaction），使 ColBERT 能够比仅依赖句嵌入的方法保留更丰富的细微语义信息，从而显著提高检索精度。
+本教程在一个 BEIR 数据集上搭建两阶段检索：先用建在“每段文本一条嵌入”上的 `vchordrq` 索引找出 100 个候选，再用存在同一行里的 ColBERTv2 词元向量按 MaxSim 给它们重排。把整段文本池化成一条向量会丢掉单个词元的细节，而对整个语料逐词元打分又太慢；只对候选重排，用一次向量检索的代价就能拿到大部分词元级的准确率。vchord 的 `@#` 运算符在 SQL 里计算 MaxSim，两个阶段在一条查询里完成。
 
-<img src="/docs/images/maxsim.jpeg" alt="ColBERT structure (from the original paper)" width="600" height="400" />
+## 工作原理 {#how-it-works}
 
-如上图所示，ColBERT 会将每篇文档和每个查询编码为一组词元向量列表，并在查询时计算最大相似度（MaxSim）。
+<img src="/docs/images/maxsim.jpeg" alt="ColBERT 晚期交互：查询和文档的词元分别编码，每个查询词元与最相似的文档词元匹配" width="600" />
 
-词元级的晚期交互需要消耗更多的计算资源和存储空间。这使得在大规模数据集上直接使用 ColBERT 检索充满挑战，尤其是在对低延迟有严格要求的场景下。
+[ColBERT](https://github.com/stanford-futuredata/ColBERT) 为文本中的每个词元生成一条归一化的 128 维向量，查询固定编码成 32 条。一段文本的 MaxSim 分数是：对每条查询向量，取它与该文本所有向量内积的最大值，再把这些最大值相加。`embs @# query` 返回这个分数的相反数，所以和距离一样，`ORDER BY ... ASC` 会把最匹配的文本排在最前。
 
-一种行之有效的解决方案是将句级别的向量检索与词元级的晚期交互重排序相结合——这样既能利用近似向量检索的高效性，又能兼顾多向量相似性检索的高质量。
+本教程的每一行存放文本、第一阶段用的一条句向量，以及第二阶段用的 ColBERT 词元向量（类型为 `vector(128)[]`）。如果想直接为词元向量建索引而不是对候选重排，见[多向量检索](/zh/docs/vchord/usage/multi-vector-retrieval/)和 [ColQwen2 视觉检索](/zh/docs/vchord/use-case/colqwen2-modal/)。
 
-此外，多向量方法并不仅限于纯文本检索任务，它同样适用于视觉文档理解。在多模态检索模型领域，诸如 [ColPali](https://huggingface.co/vidore/colpali-v1.3) 和 [ColQwen](https://huggingface.co/vidore/colqwen2-v1.0-merged) 等前沿模型能够直接将文档图像编码为多向量表示，展现出比传统“OCR 转文本”方案更强大的性能。
+<a id="Tutorial"></a><a id="tutorial"></a>
 
-本文将演示如何结合使用 PostgreSQL 扩展 [VectorChord](https://github.com/pgsty/vchord)、pgvector 以及 ColBERT 重排序技术。
+## 准备工作 {#prerequisites}
 
-<a id="Tutorial"></a>
-## 实战教程 {#tutorial}
+- PostgreSQL 15–19，按[概览](/zh/docs/vchord/getting-started/overview/)装好并预加载 vchord 1.5.0。
+- Python 3，以及编码模型和 PostgreSQL 驱动。用这两个模型为几万段文本编码需要 GPU。
 
-假设我们已经准备好了文档数据，首先创建一张表来存储所有文档：
+  ```bash
+  pip install torch sentence-transformers colbert-ai "psycopg[binary]" pgvector requests tqdm
+  ```
 
-```python
-import psycopg
-from pgvector.psycopg import register_vector
+## 搭建与查询 {#build}
 
-class PgClient:
-    def __init__(self, url: str, dataset: str, sentence_emb_dim: int, token_emb_dim: int):
-        self.dataset = dataset
-        self.sentence_emb_dim = sentence_emb_dim
-        self.token_emb_dim = token_emb_dim
-        self.conn = psycopg.connect(url, autocommit=True)
-        with self.conn.cursor() as cursor:
-            cursor.execute("CREATE EXTENSION IF NOT EXISTS vchord CASCADE;")
-        register_vector(self.conn)
+1. <a id="create-schema"></a>创建扩展和表。`emb` 存放 `gte-Qwen2-1.5B-instruct` 生成的 1536 维嵌入，`embs` 存放 ColBERT 词元向量。
 
-    def create(self):
-        with self.conn.cursor() as cursor:
-            cursor.execute(
-                f"CREATE TABLE IF NOT EXISTS {self.dataset}_corpus "
-                "(id INT BY DEFAULT AS IDENTITY PRIMARY KEY, text TEXT, "
-                f"emb vector({self.sentence_emb_dim}), embs vector({self.token_emb_dim})[]);"
-            )
-```
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
-在这里，我们创建了一张同时包含句级别嵌入（`emb`）和词元级别嵌入数组（`embs`）的表。
+   CREATE TABLE corpus (
+       id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+       doc_id text NOT NULL,
+       text text NOT NULL,
+       emb vector(1536) NOT NULL,
+       embs vector(128)[] NOT NULL
+   );
+   ```
 
-市面上有许多嵌入 API 和[开源模型](https://huggingface.co/spaces/mteb/leaderboard)，您可以根据实际业务场景选择合适的句向量模型。
+1. <a id="encode-tokens"></a>新建 `colbert_rerank.py`，先写两个编码器：
 
-对于词元级嵌入，我们使用 ColBERT 进行编码：
+   ```python
+   import io
+   import json
+   import sys
+   import zipfile
 
-```python
-from colbert.infra import ColBERTConfig
-from colbert.modeling.checkpoint import Checkpoint
+   import psycopg
+   import requests
+   from colbert.infra import ColBERTConfig
+   from colbert.modeling.checkpoint import Checkpoint
+   from pgvector.psycopg import register_vector
+   from sentence_transformers import SentenceTransformer
+   from tqdm import tqdm
 
-class TokenEncoder:
-    def __init__(self):
-        self.config = ColBERTConfig(doc_maxlen=220, query_maxlen=32)
-        self.checkpoint = Checkpoint(
-            "colbert-ir/colbertv2.0", colbert_config=self.config, verbose=0
-        )
+   DB_URL = "postgresql://postgres@localhost:5432/postgres"
+   DATASET = "fiqa"
+   BEIR_URL = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{}.zip"
 
-    def encode_doc(self, doc: str):
-        return self.checkpoint.docFromText([doc], keep_dims=False)[0].numpy()
 
-    def encode_query(self, query: str):
-        return self.checkpoint.queryFromText([query])[0].numpy()
-```
+   class SentenceEncoder:
+       def __init__(self):
+           self.model = SentenceTransformer(
+               "Alibaba-NLP/gte-Qwen2-1.5B-instruct", trust_remote_code=True
+           )
 
-ColBERT 模型默认生成 128 维的向量。
+       def encode_doc(self, doc):
+           return self.model.encode([doc])[0]
 
-插入数据的代码如下：
+       def encode_query(self, query):
+           return self.model.encode([query], prompt_name="query")[0]
 
-```python
-class PgClient:
-    ...
-    def insert(self, documents: list[str]):
-        with self.conn.cursor() as cursor:
-            for doc in tqdm(documents):
-                sentence_emb = sentence_encoder.encode_doc(doc)
-                token_embs = [emb for emb in token_encoder.encode(doc)]
-                cursor.execute(
-                    f"INSERT INTO {self.dataset}_corpus (text, emb, embs) VALUES (%s, %s, %s)"
-                    (doc, sentence_emb, token_embs)
-                )
-```
 
-在向量检索部分，我们可以使用 VectorChord 构建高性能的 RaBitQ 索引：
+   class TokenEncoder:
+       def __init__(self):
+           config = ColBERTConfig(doc_maxlen=220, query_maxlen=32)
+           self.checkpoint = Checkpoint("colbert-ir/colbertv2.0", colbert_config=config, verbose=0)
 
-```python
-class PgClient:
-    ...
-    def index(self, num_doc: int, workers: int):
-        n_cluster = 1 << math.ceil(math.log2(num_doc ** 0.5 * 4))
-        config = f"""
-        residual_quantization = true
-        [build.internal]
-        lists = [{n_cluster}]
-        build_threads = {workers}
-        spherical_centroids = false
-        """
-        with self.conn.cursor() as cursor:
-            cursor.execute(f"SET max_parallel_maintenance_workers TO {workers}")
-            cursor.execute(f"SET max_parallel_workers TO {workers}")
-            cursor.execute(
-                f"CREATE INDEX {self.dataset}_rabitq ON {self.dataset}_corpus USING "
-                f"vchordrq (emb vector_l2_ops) WITH (options = $${config}$$)"
-            )
-```
+       def encode_doc(self, doc):
+           return self.checkpoint.docFromText([doc], keep_dims=False)[0].cpu().numpy()
 
-为了加快索引构建速度，我们可以利用外部质心构建功能。更多详情请参阅《[VectorChord 外部质心构建的优势与操作步骤](/zh/blog/post/benefits-and-steps-of-external-centroids-building-in-vectorchord/)》。
+       def encode_query(self, query):
+           return self.checkpoint.queryFromText([query])[0].cpu().numpy()
+   ```
 
-现在，我们可以在 PostgreSQL 中执行初步向量查询：
+1. <a id="insert-and-index"></a>加上导入和建索引。脚本从 BEIR 下载数据集，为每段文本写入两种嵌入，然后建第一阶段的索引。psycopg 会把 NumPy 数组组成的列表当作 `vector[]` 传给数据库。
 
-```python
-class PgClient:
-    ...
-    def query(self, doc: str, topk: int):
-        sentence_emb = sentence_encoder.encode_query(doc)
-        with self.conn.cursor() as cursor:
-            cursor.execute(
-                f"SELECT id, text FROM {self.dataset}_corpus ORDER BY emb <-> %s LIMIT {topk}"
-            )
-            res = cursor.fetchall()
-        return res
-```
+   ```python
+   def load(conn, sentence, token):
+       url = BEIR_URL.format(DATASET)
+       archive = zipfile.ZipFile(io.BytesIO(requests.get(url, timeout=600).content))
+       with archive.open(f"{DATASET}/corpus.jsonl") as f:
+           docs = [json.loads(line) for line in f]
+       with conn.cursor() as cur:
+           for doc in tqdm(docs):
+               text = f"{doc['title']} {doc['text']}"
+               cur.execute(
+                   "INSERT INTO corpus (doc_id, text, emb, embs) VALUES (%s, %s, %s, %s)",
+                   (doc["_id"], text, sentence.encode_doc(text), list(token.encode_doc(text))),
+               )
+       lists = min(4 * int(len(docs) ** 0.5), len(docs) // 40)
+       conn.execute(f"""
+           CREATE INDEX corpus_emb_idx ON corpus USING vchordrq (emb vector_l2_ops)
+           WITH (options = $$
+           residual_quantization = true
+           [build.internal]
+           lists = [{lists}]
+           build_threads = 8
+           $$, probes = '{max(1, lists // 10)}')
+       """)
+   ```
 
-为了支持 `MaxSim` 重排序，我们需要在数据库中创建一个自定义函数：
+   `lists` 和 `probes` 的公式沿用了下文测试结果所用的配置。为自己的表选取这两个值，见 [vchordrq 索引](/zh/docs/vchord/usage/indexing/#lists)。
 
-```python
-class PgClient:
-    def __init__(self, url: str, dataset: str, sentence_emb_dim: int, token_emb_dim: int):
-        ...
-        self.conn.execute("""
-            CREATE OR REPLACE FUNCTION max_sim(document vector[], query vector[]) RETURNS double precision AS $$
-            WITH queries AS (
-                SELECT row_number() OVER () AS query_number, * FROM (SELECT unnest(query) AS query)
-            ),
-            documents AS (
-                SELECT unnest(document) AS document
-            ),
-            similarities AS (
-                SELECT query_number, document <=> query AS similarity FROM queries CROSS JOIN documents
-            ),
-            max_similarities AS (
-                SELECT MAX(similarity) AS max_similarity FROM similarities GROUP BY query_number
-            )
-            SELECT SUM(max_similarity) FROM max_similarities
-            $$ LANGUAGE SQL
-        """)
-```
+1. <a id="query-and-rerank"></a>加上检索。内层查询从索引取 100 个候选，外层查询按 MaxSim 重排：
 
-接下来，我们就可以对向量检索召回的候选文档进行重排序了：
+   ```python
+   SEARCH_SQL = """
+   SELECT doc_id, text
+   FROM (
+       SELECT doc_id, text, embs
+       FROM corpus
+       ORDER BY emb <-> %(emb)s
+       LIMIT %(candidates)s
+   ) AS candidates
+   ORDER BY embs @# %(embs)s::vector[]
+   LIMIT %(k)s
+   """
 
-```python
-class PgClient:
-    def rerank(self, query: str, ids: list[int], topk: int):
-        token_embs = [emb for emb in token_encoder.encode_query(query)]
-        with self.conn.cursor() as cursor:
-            cursor.execute(
-                f"SELECT id, text FROM {self.dataset}_corpus WHERE id = ANY(%s) ORDER BY "
-                f"max_sim(embs, %s) DESC LIMIT {topk}"
-                (ids, token_embs)
-            )
-            res = cursor.fetchall()
-        return res
-```
+
+   def search(conn, query, sentence, token, candidates=100, k=10):
+       params = {
+           "emb": sentence.encode_query(query),
+           "embs": list(token.encode_query(query)),
+           "candidates": candidates,
+           "k": k,
+       }
+       return conn.execute(SEARCH_SQL, params).fetchall()
+
+
+   if __name__ == "__main__":
+       sentence, token = SentenceEncoder(), TokenEncoder()
+       with psycopg.connect(DB_URL, autocommit=True) as conn:
+           register_vector(conn)
+           if sys.argv[1] == "load":
+               load(conn, sentence, token)
+           else:
+               for doc_id, text in search(conn, sys.argv[1], sentence, token):
+                   print(doc_id, text[:80])
+   ```
+
+1. 先导入一次语料，然后检索：
+
+   ```bash
+   python colbert_rerank.py load
+   python colbert_rerank.py "How do I report foreign income on my tax return?"
+   ```
+{.steps}
+
+`candidates` 决定了结果的上限：第一阶段漏掉的文本不可能被重排进前 10。重排结果里缺了你预期的文本时，调大它或 `probes`。
 
 <a id="Evaluation"></a>
-## 评估结果 {#evaluation}
 
-我们在多个 [BEIR](https://github.com/beir-cellar/beir) 数据集上测试了该方法，结果如下：
+## 测试结果 {#evaluation}
 
-| 数据集 | 初始检索 NDCG@10 | 重排序后 NDCG@10 |
+配套仓库 [kemingy/vectorchord-colbert](https://github.com/kemingy/vectorchord-colbert) 用这两个编码器在两个 BEIR 数据集上测量了 NDCG@10，重排的是向量检索的前 10 条。它用自己写的 SQL 函数给候选打分，而不是 `@#`，所以本教程的结果可能有出入。
+
+| 数据集 | 向量检索 | 加 ColBERT 重排 |
 | --- | --- | --- |
-| fiqa | 0.23211 | 0.3033 |
-| quora | 0.31599 | 0.3934 |
-{.wide .expand}
+| FiQA | 0.23211 | **0.30330** |
+| Quora | 0.31599 | **0.39340** |
 
-结果表明，ColBERT 重排序能够显著提升向量检索的结果质量。
+## 限制 {#limits}
 
-所有相关的基准测试代码均可在[此处](https://github.com/kemingy/vectorchord-colbert)获取。
+- 词元向量让行变得很大：220 个词元的文本要存约 110 KB 的 `vector(128)[]`。把列声明成 `halfvec(128)[]` 可以减半，`@#` 同样支持 `halfvec[]`。
+- 重排要读取每个候选的 `embs`，所以开销随 `candidates` 增长，而不随表的大小增长。
 
-## 未来规划 {#future-work}
-
-将向量检索、全文检索与 ColBERT 重排序相结合，可以进一步提升整体检索性能。我们目前也在积极开发 [PostgreSQL BM25 扩展](https://github.com/pgsty/vchord_bm25)，敬请期待。
-
-<a id="References"></a>
-### 参考资料 {#references}
-
-* [https://www.answer.ai/posts/colbert-pooling.html](https://www.answer.ai/posts/colbert-pooling.html)
-
-* [https://github.com/stanford-futuredata/ColBERT](https://github.com/stanford-futuredata/ColBERT)
-
-* [https://github.com/pgsty/vchord](https://github.com/pgsty/vchord)
-
-* [https://github.com/pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25)
-
-* [https://huggingface.co/blog/manu/colpali](https://huggingface.co/blog/manu/colpali)
+<a id="future-work"></a><a id="References"></a><a id="references"></a>

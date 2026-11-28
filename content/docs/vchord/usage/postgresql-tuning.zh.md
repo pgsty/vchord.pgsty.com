@@ -1,123 +1,135 @@
 ---
-title: "PostgreSQL 调优"
-linkTitle: "PostgreSQL 调优"
-description: "索引构建可以并行化执行。由于并行化会增加服务器负载，PostgreSQL 默认未启用它。请参考本文配置并行构建、I/O 与共享缓冲区。"
-weight: 60
+title: "性能调优"
+linkTitle: "性能调优"
+description: "决定 vchord 构建时间和查询延迟的 PostgreSQL 设置：并行构建、shared_buffers、重启后预热，以及从磁盘读取页面的方式。"
+weight: 100
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/postgresql-tuning.md"
 aliases:
-  - "/zh/docs/usage/postgresql-tuning/"
+  - "/docs/usage/postgresql-tuning/"
   - "/vectorchord/usage/postgresql-tuning/"
   - "/docs/vchord/usage/performance-tuning/"
   - "/vectorchord/usage/performance-tuning/"
+  - "/docs/vchord/usage/prewarm/"
+  - "/docs/usage/prewarm/"
+  - "/docs/vchord/usage/prefetch/"
+  - "/docs/usage/prefetch/"
 icon: fa-solid fa-gauge-high
 ---
 
-索引构建可以并行化执行。由于并行化会增加服务器负载，PostgreSQL 默认并未启用。如需启用并行构建，请参考以下 SQL 配置：
+索引的召回率调好之后，剩下的速度取决于 PostgreSQL：用多少个进程来构建、查询需要的页面是否在内存里、其余的页面怎样从磁盘读取。本页按这个顺序介绍相关设置。默认值已经合理；构建太慢、重启后查询变慢，或者索引比内存大时，再来调整。
+
+## 并行构建索引 {#parallel-index-builds}
+
+在 PostgreSQL 17 及以上版本，`CREATE INDEX` 和 `REINDEX` 会用并行工作进程向 vchordrq 和 vchordg 索引插入行。vchordrq 的 k-means 步骤是单独的，使用自己的 [`build_threads`](/zh/docs/vchord/usage/indexing/#build)。
+
+用 16 个进程（1 个主进程加 15 个工作进程）构建：
 
 ```sql
--- 设置数据库集群可支持的最大后台进程数。
--- 建议将其设置为至少等于您期望的并行度加上 8。
--- 例如，如果您希望使用 16 个线程进行并行处理，请将该值至少设置为 24。
--- 根据您的实际工作负载，将该值设置得更高可能会更有帮助。
--- 注意：此设置需要重启数据库才能生效。
+-- 需要重启；给其他后台工作进程留出余量。
 ALTER SYSTEM SET max_worker_processes = 24;
 
--- 设置数据库集群可用于并行操作的最大工作进程数。
--- 建议将其设置为您期望的并行度减 1。
--- 例如，如果您希望使用 16 个线程进行并行处理，请将该值设置为 15。
+-- 在执行 CREATE INDEX 的会话中：
 SET max_parallel_workers = 15;
-
--- 设置单个维护命令（如 CREATE INDEX）可启动的最大并行工作进程数。
--- 建议将其设置为您期望的并行度减 1。
--- 例如，如果您希望使用 16 个线程进行并行处理，请将该值设置为 15。
 SET max_parallel_maintenance_workers = 15;
 ```
 
-并行工作进程的数量还取决于表本身的配置。默认情况下，该值由 PostgreSQL 自动计算决定。如果 PostgreSQL 判定不启用并行，那么并行索引构建就不会生效。您可以通过调整表的 `parallel_workers` 存储参数来覆盖 PostgreSQL 的默认行为，强制启用并行索引构建。在 `vchord` 1.2.0 中，为基表设置 `parallel_workers` 或其他表存储参数不再阻碍 PostgreSQL 为 `vchordrq` 和 `vchordg` 规划并行索引构建工作进程。
+PostgreSQL 根据表的大小决定启动多少个工作进程，对刚导入数据的表可能启动得比允许的少。要固定这个数量，在表上设置：
 
 ```sql
-ALTER TABLE items set (parallel_workers = 15);
+ALTER TABLE items SET (parallel_workers = 15);
 ```
 
-您还需要调整以下几个设置以提升 I/O 性能：
+临时表上的构建，以及带有并行不安全表达式或 `WHERE` 谓词的索引，只用单个进程构建。
+
+## 让索引留在内存里 {#shared-buffers}
+
+查询读的页面都在 `shared_buffers` 里时最快。要读哪些页面取决于索引类型：
+
+- **vchordrq**：每次查询都读聚类中心，再加上被探查列表的 RaBitQ 编码。全精度向量只为需要重排的候选读取。
+- **vchordg**：遍历路径上的 RaBitQ 编码和邻居列表，以及最终候选的全精度向量。
+
+`shared_buffers` 至少要放得下聚类中心，最好也放得下编码。专门做向量检索的服务器，可以分给它比通常的 25% 更大的内存比例。修改需要重启：
 
 ```sql
--- 设置 PostgreSQL 预期可同时执行的并发磁盘 I/O 操作数。
--- 使用 SSD 存储时，建议将其设置为 20。
+ALTER SYSTEM SET shared_buffers = '16GB';
+```
+
+### 重启后预热 {#prewarm}
+
+<a id="usage"></a><a id="privileges"></a>
+
+重启或故障切换之后，`shared_buffers` 是空的，最初的查询都要读磁盘。对索引执行 `pg_prewarm` 会载入所有页面，包括全精度向量，索引比内存大时反而会挤掉更有用的页面。vchord 自带的函数只载入查询需要的部分：
+
+```sql
+-- vchordrq：聚类中心和所有列表的 RaBitQ 编码
+SELECT vchordrq_prewarm('items_embedding_idx');
+
+-- vchordrq：列表放不进 shared_buffers 时，只载入聚类中心
+SELECT vchordrq_prewarm('items_embedding_idx', 1);
+
+-- vchordg：图的编码和邻居列表
+SELECT vchordg_prewarm('items_graph_idx');
+```
+
+每个函数都会返回一段已载入内容的简要汇总。调用者需要拥有该表或有表的 `SELECT` 权限。
+
+## 高效读取磁盘 {#prefetch}
+
+<a id="prefetch-modes"></a><a id="io-and-jit"></a>
+
+页面不在内存里时，vchord 会提前请求接下来要用的页面，让存储在 CPU 计算距离的同时工作。在 PostgreSQL 17 及以上版本，它在合适的地方使用 PostgreSQL 的 read stream，其余情况使用 `posix_fadvise` 提示。这一行为默认开启。在 NVMe 上，可以让 PostgreSQL 同时发出更多读取：
+
+```sql
 SET effective_io_concurrency = 20;
 SET maintenance_io_concurrency = 20;
 ```
 
-我们观察到在某些情况下，工作异常的 JIT（即时编译）可能会对性能产生负面影响。如果您并不依赖它，可以选择将其禁用。
+[参考](#reference)中的 `io_search` 和 `io_rerank` 决定查询各阶段的读取方式。除非在做测量，否则保持默认；索引能完全放进 `shared_buffers` 时，各模式的表现相同。
+
+JIT 编译会增加向量查询的规划时间，却加速不了其中任何部分。为提供向量检索的数据库关闭它：
 
 ```sql
-SET jit = off;
+ALTER DATABASE app SET jit = off;
 ```
 
-最后，您需要设置 PostgreSQL 共享缓冲区（shared buffers）的大小。
+### PostgreSQL 18 的异步 I/O {#asynchronous-i-o}
+
+<a id="worker"></a><a id="io-uring"></a><a id="sync"></a>
+
+PostgreSQL 18 以异步方式执行 read stream，让更多读取相互重叠。`io_method` 决定具体方式，修改需要重启：
+
+- `worker`（默认）把读取交给后台 I/O 工作进程。索引远大于内存时调高 `io_workers`。
+- `io_uring` 直接向 Linux 内核提交读取，省去转交的开销。它需要为 PostgreSQL 调高打开文件数和锁定内存的上限，而且一些容器运行时的默认 seccomp 配置会禁止它；遇到这种情况就退回 `worker`。
+- `sync` 关闭异步读取，只用于对比测试。
 
 ```sql
--- 设置数据库服务器用于共享内存缓冲区的内存量。
--- 根据您的工作负载，通常建议将该值设置为总内存的 25%~40%。
--- 对于向量数据库工作负载，将该值设置为总内存的 80% 往往更有优势。
--- 注意：此设置需要重启数据库才能生效。
-ALTER SYSTEM SET shared_buffers = '16GB';
-```
-
-## 异步 I/O {#asynchronous-i-o}
-
-PostgreSQL 17 首次引入了流式 I/O（streaming I/O）API。在此基础上，PostgreSQL 18 引入了异步 I/O（Asynchronous I/O）。借助异步 I/O，PostgreSQL 可以同时发起多个读取操作，并在等待结果返回的同时继续处理其他任务。这能够显著提升需要从磁盘读取大量数据的查询性能。PostgreSQL 提供了多种异步 I/O 方式，您可以根据需要进行调整。
-
-本节内容仅适用于 PostgreSQL 18。
-
-<a id="io-uring"></a>
-### `io_uring` {#io_uring}
-
-`io_uring` 方式使用 Linux 内核的 `io_uring` 接口，能够减少上下文切换的开销。该接口在 Linux 内核 5.1 及更高版本中可用。您可以通过 GUC 参数 `io_method` 启用此方式。
-
-```sql
--- 注意：此设置需要重启数据库才能生效。
 ALTER SYSTEM SET io_method = 'io_uring';
 ```
 
-由于 `io_uring` 会使用额外的文件描述符和锁定内存（locked memory），PostgreSQL 可能会触及系统的 `RLIMIT_NOFILE` 和 `RLIMIT_MEMLOCK` 限制。您可能需要在操作系统层面调高这些限制。另请参阅：
+[Tuning AIO in PostgreSQL 18](https://vondra.me/posts/tuning-aio-in-postgresql-18/) 对其中的取舍有更深入的说明。
 
-* [limits.conf (PAM)](https://www.man7.org/linux/man-pages/man5/limits.conf.5.html)
-* [Process Properties (systemd)](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Process%20Properties)
-* [Set ulimits in container (Docker)](https://docs.docker.com/reference/cli/docker/container/run/#ulimit)
+## 参考 {#reference}
 
-出于安全考虑，容器运行时、云服务商或系统管理员可能会禁用 `io_uring`。如果遇到此类情况，请向您的服务提供商咨询详情。另请参阅：
+### I/O 设置 {#io-settings}
 
-* [Consider removing io_uring syscalls in from RuntimeDefault (containerd)](https://github.com/containerd/containerd/issues/9048)
+<a id="search-parameters"></a><a id="search-parameters-vchordrq"></a><a id="search-parameters-vchordg"></a><a id="vchordrq-io-search"></a><a id="vchordrq-io-rerank"></a><a id="vchordg-io-search"></a><a id="vchordg-io-rerank"></a>
 
-通常推荐使用 `io_uring`，但实际性能表现仍取决于您的具体工作负载。另请参阅：
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `vchordrq.io_search` | enum | PG 17+ 为 `mixed`，15–16 为 `prefetch_buffer` | 读取列表页面的方式。`mixed` 在页面大多连续的地方用 read stream，其他地方用 `prefetch_buffer`；`io_method` 不是 `worker` 时全程用 read stream。 |
+| `vchordrq.io_rerank` | enum | `prefetch_buffer` | 重排时读取向量和表页面的方式。重排的页面是分散的，所以默认不用 read stream。 |
+| `vchordg.io_search` | enum | PG 17+ 为 `read_stream`，15–16 为 `prefetch_buffer` | 遍历图时读取页面的方式。 |
+| `vchordg.io_rerank` | enum | PG 17+ 为 `read_stream`，15–16 为 `prefetch_buffer` | 重排时读取全精度向量的方式。 |
+{.fields meta="type default"}
 
-* [Tuning AIO in PostgreSQL 18 (Tomas Vondra)](https://vondra.me/posts/tuning-aio-in-postgresql-18/)
-* [Benchmarking Postgres 17 vs 18 (planetscale)](https://planetscale.com/blog/benchmarking-postgres-17-vs-18)
+可选值为 `read_buffer`（不预读）、`prefetch_buffer`（`posix_fadvise` 提示），以及 PostgreSQL 17 及以上版本才有的 `read_stream` 和仅 `vchordrq.io_search` 可用的 `mixed`。
 
-本小节仅适用于 Linux 系统。
+### 预热函数 {#functions}
 
-### `worker` {#worker}
+<a id="functions-vchordrq"></a><a id="functions-vchordg"></a><a id="vchordrq-prewarm"></a><a id="vchordg-prewarm"></a><a id="vchordrq-prewarm-func"></a><a id="vchordg-prewarm-func"></a>
 
-这是 PostgreSQL 18 中的默认设置。PostgreSQL 通过将 I/O 请求发送到专门的进程池来避免阻塞后端进程。您可以通过 GUC 参数 `io_method` 显式启用此方式。
-
-```sql
--- 注意：此设置需要重启数据库才能生效。
-ALTER SYSTEM SET io_method = 'worker';
-
--- 选择要使用的 I/O 工作进程数量。
--- 建议将其设置为您的并行度与参数上限值之间的较小者。
--- 例如，如果您的并行度为 16，请将该值设置为 16。
--- 该参数的最大值为 32，因此不能设置超过 32 的值。
--- 注意：此设置需要重启数据库才能生效。
-ALTER SYSTEM SET io_workers = 16;
-```
-
-### `sync` {#sync}
-
-`sync` 方式的工作机制与 PostgreSQL 17 相同：读取操作是同步且阻塞的，并使用 `posix_fadvise` 向操作系统提供即将发生的读取提示。通常只有在调试时才会使用此方式。您可以通过 GUC 参数 `io_method` 启用此方式。
-
-```sql
--- 注意：此设置需要重启数据库才能生效。
-ALTER SYSTEM SET io_method = 'sync';
-```
+| 函数 | 返回 | 说明 |
+| --- | --- | --- |
+| `vchordrq_prewarm(index regclass, height integer DEFAULT 0)` | text | 从根部向下载入索引直到 `height` 层：`0` 包括所有列表的 RaBitQ 编码，`1` 只载入聚类中心。全精度向量永远不会载入。 |
+| `vchordg_prewarm(index regclass)` | text | 载入图的 RaBitQ 编码和邻居列表。 |
+{.fields meta="type"}

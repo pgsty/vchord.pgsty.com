@@ -1,8 +1,7 @@
 ---
-math: true
 title: "vchord_bm25 Documentation"
 linkTitle: "vchord_bm25"
-description: "Native Okapi BM25 ranking index and Block-WeakAnd full-text search for PostgreSQL (`vchord_bm25`)."
+description: "BM25 relevance ranking for PostgreSQL full-text search: an index that returns the best-matching rows of a tsvector column without scoring every match."
 weight: 200
 icon: fa-solid fa-magnifying-glass
 type: docs
@@ -17,38 +16,31 @@ cascade:
   upstream_modified: true
 ---
 
-> [!IMPORTANT]
-> **1.1.0** is the current PGSTY release. It keeps the native `tsvector` API and format 4 introduced in 1.0.0, so healthy 1.0.0 indexes do not need a rebuild. Examples labeled 0.3.x use the historical `bm25vector` API; read the [migration guide](/docs/bm25/reference/migration/) before changing binaries.
-
-
-**`vchord_bm25`** (maintained by Pigsty at [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)) is a native PostgreSQL extension built in Rust (`pgrx`) that implements the **Okapi BM25** ranking algorithm and the **Block-WeakAnd (Block-Max WAND)** Top-K index scan access method inside PostgreSQL.
-
-Paired with **[`pg_tokenizer`](/docs/tokenizer/)** (maintained by Pigsty at [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) for customizable multilingual tokenization and vocabulary models) or PostgreSQL's built-in `tsvector` analyzer, `vchord_bm25` brings Elasticsearch/Lucene-class lexical full-text ranking directly into your relational database—and combines seamlessly with **[`vchord`](/docs/vchord/)** and **[`pgvector`](/docs/vector/)** for hybrid semantic + lexical search.
+`vchord_bm25` is a PostgreSQL extension that ranks rows by BM25 relevance through an index on a `tsvector` column. It scores with statistics of the whole table and returns the top results of `ORDER BY ... LIMIT k` without scoring every matching row, which `ts_rank` with a GIN index cannot do. Use it for keyword search and retrieval for RAG inside PostgreSQL, on its own or next to vector search with [vchord](/docs/vchord/).
 
 {{< cards >}}
-  {{< card link="/docs/bm25/getting-started/" title="Getting Started" icon="fa-solid fa-rocket" >}}
-Understand why Okapi BM25 outperforms native `ts_rank`, install `vchord_bm25` and `pg_tokenizer` via Pigsty or Docker (Obsolete), and run your first ranked query.
+  {{< card link="/docs/bm25/getting-started/overview/" title="Overview and quick start" icon="fa-solid fa-compass" >}}
+Why BM25 needs its own index in PostgreSQL, how a ranked query runs, and a first query in five steps.
 {{< /card >}}
-  {{< card link="/docs/bm25/usage/" title="Usage & Indexing" icon="fa-solid fa-magnifying-glass" >}}
-Build and maintain `bm25` inverted indexes, run Top-K Block-WeakAnd queries, apply `WHERE` prefilters during ranking, and inspect internal index pages.
+  {{< card link="/docs/bm25/getting-started/installation/" title="Installation" icon="fa-solid fa-download" >}}
+Install from Pigsty packages, GitHub release packages, or source, then preload and create the extension.
 {{< /card >}}
-  {{< card link="/docs/bm25/usage/hybrid-search/" title="Hybrid Search" icon="fa-solid fa-code-merge" >}}
-Fuse sparse BM25 lexical search with [`vchord`](/docs/vchord/) dense vector and ColBERT multi-vector retrieval using Reciprocal Rank Fusion (RRF) in SQL.
+  {{< card link="/docs/bm25/usage/indexing/" title="Indexing" icon="fa-solid fa-database" >}}
+Produce the `tsvector` for any language, build the index, choose `k1` and `b`, and keep the index fast as rows change.
 {{< /card >}}
-  {{< card link="/docs/bm25/reference/" title="Reference & Benchmarks" icon="fa-solid fa-book" >}}
-Consult the complete reference for SQL types, operators, functions, session GUC parameters, API version history, and BEIR benchmark evaluations.
+  {{< card link="/docs/bm25/usage/querying/" title="Querying" icon="fa-solid fa-ranking-star" >}}
+Write ranked queries, read the scores, size the scan batch, and make the planner use the index.
 {{< /card >}}
-  {{< card link="/docs/bm25/reference/migration/" title="0.3.x to 1.0.0 Migration" icon="fa-solid fa-right-left" >}}
-Follow the step-by-step migration guide from the historical `bm25vector` + `pg_tokenizer` (`0.3.x`) workflow to the native `tsvector` engine in `1.0.0` and later releases.
+  {{< card link="/docs/bm25/usage/filtering/" title="Filtering" icon="fa-solid fa-filter" >}}
+Combine ranking with `WHERE`, prefiltering, partial indexes, and row-level security.
 {{< /card >}}
-  {{< card link="/docs/tokenizer/" title="pg_tokenizer Documentation" icon="fa-solid fa-language" >}}
-Configure modular text analyzers, Snowball stemmers, stopwords, synonyms, HuggingFace vocabularies, Chinese Jieba, and Japanese Lindera segmentation.
+  {{< card link="/docs/bm25/usage/hybrid-search/" title="Hybrid search" icon="fa-solid fa-code-merge" >}}
+Merge BM25 and vchord vector rankings with Reciprocal Rank Fusion in one SQL statement.
+{{< /card >}}
+  {{< card link="/docs/bm25/reference/" title="Reference" icon="fa-solid fa-book" >}}
+SQL objects, settings and index options, upgrades, the legacy `bm25vector` API, and benchmarks.
+{{< /card >}}
+  {{< card link="/docs/tokenizer/" title="pg_tokenizer" icon="fa-solid fa-language" >}}
+Produce `tsvector` values for Chinese, Japanese, Korean, custom analyzers, and model vocabularies.
 {{< /card >}}
 {{< /cards >}}
-
-## Highlights
-
-- **True Okapi BM25 Scoring**: Supports inverse document frequency (IDF), term frequency saturation (\(k_1\)), and quantized 1-byte document length normalization (\(b\) and average document length \(\text{avgdl}\))—solving fundamental relevance limitations of PostgreSQL's native `ts_rank`.
-- **Block-WeakAnd Index Acceleration**: Stores compressed posting lists with per-block maximum score upper bounds using delta-bitpacking, skipping non-competitive document blocks during Top-K queries without scanning entire inverted lists.
-- **Multilingual Tokenization**: Works with [`pg_tokenizer`](/docs/tokenizer/) (`llmlingua2`, `bert_base_uncased`, `wiki_tocken`, `gemma2b`, custom corpus-trained models, Chinese `jieba`, Japanese `lindera`) through integer arrays in `v0.1`–`v0.3`; `1.0.0` indexes PostgreSQL's native `tsvector`, including the output of pg_tokenizer 1.0.0's `tokenize_to_tsvector` and `analyze_to_tsvector`.
-- **Native Hybrid Search with Vchord**: Run lexical BM25 (`vchord_bm25`) and dense vector search (`vchordrq`) inside a single SQL query using Reciprocal Rank Fusion (RRF) or ColBERT MaxSim reranking.

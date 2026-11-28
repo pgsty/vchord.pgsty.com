@@ -1,135 +1,167 @@
 ---
-title: "安装指南"
-description: "通过 Pigsty 原生 Linux 软件包、Docker 镜像、Debian/ZIP 归档包或 cargo-pgrx 源码安装 pg_tokenizer。"
-weight: 5
-icon: fa-solid fa-download
+title: "安装"
+linkTitle: "安装"
+description: "通过 Pigsty 软件包、GitHub 发布包或源码安装 pg_tokenizer，预加载并创建扩展，以及原地升级。"
+weight: 20
 upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/01-installation.md"
+icon: fa-solid fa-download
 ---
 
-## 通过 `pig` 安装原生 Linux 软件包（推荐） {#linux-packages-via-pig}
+pg_tokenizer 1.3.0 支持 Linux `x86_64` 与 `aarch64` 上的 PostgreSQL 15–19，不依赖其他扩展。要做 BM25 排序，还需要安装 [vchord_bm25](/zh/docs/bm25/)。从下面选一种方式安装文件，之后都按同样的步骤[启用扩展](#enable)。
 
-1.1.0 的发布验收范围是 PostgreSQL 14–18 上的全新安装。升级兼容、默认权限迁移与跨升级旧快照不在本轮验收范围内，详见[发布说明](/zh/blog/release/pg-tokenizer-1.1.0/)。
+<a id="supported-versions"></a>
 
-在 EL 8/9/10、Debian 12/13 与 Ubuntu 22.04/24.04/26.04（支持 PostgreSQL 14–18）上，可以从 [Pigsty 软件仓库](https://pigsty.cc/ext/e/pg_tokenizer)安装与目标发行版、CPU 架构匹配的原生软件包（完整包可用性矩阵见 [pgext.cloud](https://pgext.cloud/ext/pg_tokenizer)）：
+| 方式 | 适用场景 | 日文 IPADIC 词典 |
+| --- | --- | --- |
+| [Pigsty 软件包](#pigsty) | 运行 EL 8/9/10、Debian 12/13 或 Ubuntu 22.04/24.04。 | 不含，需要提供[外部词典](/zh/docs/tokenizer/models/#lindera) |
+| [Debian 与 Ubuntu 软件包](#debian) | 运行 Ubuntu 24.04+ 或 Debian 13+，PostgreSQL 来自 PGDG。 | 内置 |
+| [ZIP 压缩包](#zip) | 其他 glibc 2.39 及以上的 Linux。 | 内置 |
+| [源码](#source) | 更旧或其他发行版，或者需要内置其他 Lindera 词典。 | 默认内置 |
+
+## Pigsty 软件包 {#pigsty}
+
+<a id="linux-packages-via-pig"></a>
+
+[`pig`](https://pigsty.io/ext/e/pg_tokenizer) 会添加 PostgreSQL 与 Pigsty 软件源，并为它找到的 PostgreSQL 安装对应的包：
 
 ```bash
-curl -fsSL https://repo.pigsty.cc/pig | bash
+curl -fsSL https://repo.pigsty.io/pig | bash
 pig repo add pgsql -u
 pig ext add pg_tokenizer
+pig ext add vchord_bm25    # 用于 BM25 排序
 ```
 
-原生 RPM/DEB 不内嵌 Lindera 词典，需提供用 Lindera 6 编译的外部词典。GitHub `.deb`/ZIP 包启用 `lindera-ipadic` 并内嵌 IPADIC；其他词典仍是可选编译特性。
+装了多个 PostgreSQL 大版本时，需要指定一个：`pig ext add pg_tokenizer -v 18`。全部软件包见 [PGEXT 目录](https://pgext.cloud/ext/pg_tokenizer)。
 
-## 使用 Docker（`vchord-suite`） {#docker}
+为了控制体积，这些包没有内置 Lindera 词典。除了日文和韩文切分，其他功能都能直接使用；要切分日文和韩文，需要让 Lindera 模型指向服务器上的词典目录，见[模型](/zh/docs/tokenizer/models/#lindera)。
 
-> [!WARNING]
-> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
+## Debian 与 Ubuntu 软件包 {#debian}
 
-[`tensorchord/vchord-suite`](/zh/docs/vchord/getting-started/vectorchord-suite/) Docker 镜像已预装完整的 Vchord 检索扩展套件：
-- [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) —— 独立多语言分词器（`pgsty/pg_tokenizer`）
-- [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) —— 原生 BM25 排序索引（`pgsty/vchord_bm25`）
-- [`vchord`](https://github.com/pgsty/vchord) —— 可扩展、磁盘友好的向量相似性检索（`pgsty/vchord`）
-- [`pgvector`](/zh/docs/vector/) —— 标准 PostgreSQL 向量数据类型
+<a id="from-debian-package-or-zip-archive"></a>
+
+每个 [GitHub 发布版本](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.3.0)都为每个 PostgreSQL 大版本和架构（`amd64`、`arm64`）提供一个 `.deb`。它们在 Ubuntu 24.04 上构建，要求 glibc 2.39 及以上，即 Ubuntu 24.04+ 或 Debian 13+。更旧的系统请用 Pigsty 软件包或从源码构建。
 
 ```bash
-docker run \
-  --name vchord-suite \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d tensorchord/vchord-suite:pg18-latest
+V=1.3.0; PG=18; ARCH=amd64
+F=postgresql-${PG}-pg-tokenizer_${V}-1_${ARCH}.deb
+wget https://github.com/pgsty/pg_tokenizer/releases/download/v${V}/${F} \
+     https://github.com/pgsty/pg_tokenizer/releases/download/v${V}/SHA256SUMS
+sha256sum --ignore-missing -c SHA256SUMS
+sudo apt install ./${F}
 ```
 
-使用 `psql` 连接数据库并启用扩展：
+> [!IMPORTANT]
+> 发布包中的二进制可能要求较新的 PostgreSQL 小版本：对应大版本至少为 15.20、16.16、17.12 或 18.7。服务器版本更旧时动态库加载失败，只要它还在 `shared_preload_libraries` 里，PostgreSQL 就无法启动。`.deb` 把这个要求声明为软件包依赖；ZIP 包则写在 `pg_tokenizer.control` 的最后一行。请先升级服务器小版本，或者针对现有服务器从源码构建。
 
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-```
+## ZIP 压缩包 {#zip}
 
-## 参数配置（`shared_preload_libraries` 与 `search_path`） {#configuration}
-
-`pg_tokenizer` 没有必需的 PostgreSQL 扩展依赖。`vchord_bm25` 是可选组件：其 0.3.x 接口通过 `bm25vector` 消费 `INT[]`，1.0.0 接口可以直接消费原生 `tsvector`。`pg_tokenizer` 动态库必须在 PostgreSQL 启动前通过 `shared_preload_libraries` 预加载；如果希望省略模式限定调用函数，再将 `tokenizer_catalog` 加入 `search_path`：
-
-以下示例假设没有其他预加载库。若 `shared_preload_libraries` 已有配置，添加 `pg_tokenizer.so` 时应保留原有条目。
+同一个发布版本还为每个 PostgreSQL 大版本和架构（`x86_64`、`aarch64`）提供一个 `.zip`，glibc 要求相同。动态库、控制文件和 SQL 脚本都在同一个目录里：
 
 ```bash
-psql -U postgres -c "ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer.so';"
-psql -U postgres -c "ALTER SYSTEM SET search_path TO \"\$user\", public, tokenizer_catalog;"
-sudo systemctl restart postgresql.service
-```
-
-随后在目标数据库中创建扩展：
-
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-```
-
-## 从 Debian 软件包或 ZIP 归档包安装 {#from-debian-package-or-zip-archive}
-
-[pg_tokenizer 1.1.0 GitHub Release](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.1.0) 提供在 Ubuntu 24.04 上构建、覆盖 PostgreSQL 14–18 及 `x86_64`/`aarch64` 的 `.deb` 与 `.zip` 归档。草稿正式发布后，附件才会向公众开放。软件包必须匹配目标发行版、PostgreSQL 主版本和架构；其他发行版的原生包请使用 Pigsty 软件仓库。ZIP 不包含软件包管理器依赖元数据，安装前必须自行验证共享库与目标系统 libc 的兼容性。
-
-```bash
-# Ubuntu 24.04、PostgreSQL 17、amd64
-sudo apt install ./postgresql-17-pg-tokenizer_1.1.0-1_amd64.deb
-```
-
-将匹配的 ZIP 归档下载为 `pg_tokenizer.zip` 后执行：
-
-```bash
-unzip pg_tokenizer.zip -d pg_tokenizer
+V=1.3.0; PG=18; ARCH=x86_64
+F=postgresql-${PG}-pg-tokenizer_${V}_${ARCH}-linux-gnu.zip
+curl -fsSLO https://github.com/pgsty/pg_tokenizer/releases/download/v${V}/${F}
+unzip ${F} -d pg_tokenizer
+tail -n 1 pg_tokenizer/pg_tokenizer.control    # 最低 PostgreSQL 版本
 sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"
-sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control "$(pg_config --sharedir)/extension/"
+sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control \
+     "$(pg_config --sharedir)/extension/"
 ```
 
-使用 `install` 替换共享库，避免就地截断 PostgreSQL 可能已经加载的文件。安装后按上面的配置步骤重启 PostgreSQL，以加载安装的共享库。
+请用 `install` 而不是 `cp`：`install` 是替换动态库文件而不是原地覆盖，正在运行的服务器在重启前会继续使用旧文件。
 
-## 从源码编译安装（`cargo-pgrx`） {#from-source}
+## 从源码构建 {#source}
+
+<a id="from-source"></a>
+
+需要 PostgreSQL 15–19 的开发文件（`pg_config`）、Rust 1.99.1 及以上、Python 3.11+、GNU Make，以及版本相互匹配的 Clang、libclang 和 LLVM 工具。
 
 ```bash
-git clone https://github.com/pgsty/pg_tokenizer.git
+git clone --branch v1.3.0 --depth 1 https://github.com/pgsty/pg_tokenizer.git
 cd pg_tokenizer
-git checkout v1.1.0
-cargo pgrx install --sudo --release --pg-config "$(command -v pg_config)" --features lindera-ipadic
+cargo install cargo-pgrx --version 0.20.0 --locked
+PG_CONFIG=/path/to/pg_config make build
+sudo make PG_CONFIG=/path/to/pg_config install
 ```
 
-## 升级到 1.1.0 {#upgrade-110}
+构建结果会内置日文 IPADIC 词典。要内置其他词典，在 `FEATURES` 中列出，例如 `make build FEATURES="lindera-ipadic lindera-ko-dic"`；可选项有 `lindera-ipadic`、`lindera-ipadic-neologd`、`lindera-unidic`、`lindera-ko-dic`（韩文）和 `lindera-cc-cedict`。如果装了多个 LLVM 版本，用 `CLANG_PATH` 和 `LIBCLANG_PATH` 指定其中一个；如果你的 Clang 会加载默认配置文件，设置 `CLANG_NO_DEFAULT_CONFIG=1`。
 
-以下内容保留作为参考，不代表本轮已经完成升级验收。默认权限迁移及持有跨升级快照的事务需要单独验证。
+## 启用扩展 {#enable}
 
-在主库和备库安装匹配的 1.1.0 共享库与 SQL 文件，分别重启以重新加载预加载库，然后由扩展拥有者或管理员在每个主库数据库执行：
+<a id="configuration"></a>
+
+1. 把 `pg_tokenizer` 加入 `shared_preload_libraries`，保留列表里已有的库，然后重启 PostgreSQL。列表中的顺序无关紧要。跳过这一步，`CREATE EXTENSION` 会报 `pg_tokenizer must be loaded via shared_preload_libraries.`
+
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer, vchord_bm25';
+   ```
+
+1. 在每个需要它的数据库中创建扩展：
+
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+   ```
+
+   这会创建两个模式：`tokenizer_catalog` 存放函数和各类定义表，`tokenizer_data` 存放自定义模型的词表。
+
+1. 可选：把 `tokenizer_catalog` 加入数据库的搜索路径，调用函数时就不必写模式前缀。本文档的示例都带前缀，两种情况下都能运行。
+
+   ```sql
+   ALTER DATABASE app SET search_path = "$user", public, tokenizer_catalog;
+   ```
+
+1. 检查版本：
+
+   ```sql
+   SELECT extversion FROM pg_extension WHERE extname = 'pg_tokenizer';
+   ```
+{.steps}
+
+接下来可以跟着[快速上手](/zh/docs/tokenizer/overview/#quick-start)操作，或者挑一个[配方](/zh/docs/tokenizer/multilingual/)。
+
+## 角色与权限 {#database-owner-permissions}
+
+数据库属主不必是超级用户也能创建和删除定义：扩展已经为 `pg_database_owner` 角色授予了所需权限。其他角色需要单独授权：
+
+- 角色要分析或分词文本（包括它的插入操作触发的触发器），需要能读取定义，否则调用会报 `permission denied for schema tokenizer_catalog`。
+
+  ```sql
+  GRANT USAGE ON SCHEMA tokenizer_catalog TO app;
+  GRANT SELECT ON ALL TABLES IN SCHEMA tokenizer_catalog TO app;
+  ```
+
+- 角色要向挂了[自定义模型](/zh/docs/tokenizer/models/#custom)的表插入数据，还需要模式 `tokenizer_data` 的 `USAGE` 权限，以及该模型词表的 `SELECT` 和 `INSERT` 权限。
+- 预加载列表作用于整个服务器，因此只有超级用户能用 `add_preload_model` 和 `remove_preload_model` 修改它，除非你对这两个函数 `GRANT EXECUTE`。
+- 从服务器上的文件加载 Lindera 词典需要超级用户或 `pg_read_server_files` 成员身份，见[模型](/zh/docs/tokenizer/models/#lindera)。
+
+## 升级 {#upgrading}
+
+<a id="upgrade-120"></a><a id="upgrade-110"></a><a id="compatibility-100"></a>
+
+从 1.2.0 升级：在主库和每个副本上安装新文件，在每个节点上重启 PostgreSQL，然后在主库的每个数据库中执行：
 
 ```sql
-ALTER EXTENSION pg_tokenizer UPDATE TO '1.1.0';
+ALTER EXTENSION pg_tokenizer UPDATE;
 ```
 
-1.0.0 直接升级到 1.1.0；更早的 0.1.0 和 0.1.1 通过原有路径先经过 1.0.0。未发布的 1.0.1 候选不作为升级步骤。迁移会保留目录数据、已有自定义词表 ID，以及原六参便捷函数的依赖关系（包括其函数 OID）。标准 `cargo pgrx install/package` 与 `tools/package.sh` 均会包含升级脚本；备库缓存失效信号在本次 SQL 升级提交并回放后生效。Lindera 词典版本变化引起的 ID 迁移须按照[模型说明](/zh/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model)重新分词。
+定义、自定义词表及其 ID、表上的触发器都会保留，已存储的值无需重新计算。在执行这条更新之前，新动态库也能配合 1.2.0 的 SQL 定义正常工作。
 
-升级前应明确限定缺失或有歧义的旧 `pg_dict` 名称，也应限定刻意覆盖内置词典的自定义词典。批量导入前检查[新增资源预算](/zh/docs/tokenizer/reference/#analysis-budgets)。已登记的词表及其索引、身份序列从 `tokenizer_catalog` 移至 `tokenizer_data`，保留 OID、所有者、表与序列 ACL、词元 ID 和依赖关系。直接引用旧词表名的 SQL 需要修改。原有非 schema owner 的模式权限及授权选项复制到数据模式，目录模式的 CREATE 授权撤销。若存在无关的 `tokenizer_data` 模式，或已登记词表缺失、对象名冲突，整个升级回滚。升级者需要每张词表的所有者权限；若模型分属不同角色，应由超级用户升级。迁移前应结束耗时的模型管理事务；持有升级前快照的语句可能返回 SQLSTATE `40001`，此时重试整个事务。新版本表只向 PUBLIC 开放 SELECT，内部触发器以 SECURITY DEFINER 和固定 search_path 运行，不向 PUBLIC 开放 EXECUTE。
+`ALTER EXTENSION pg_tokenizer UPDATE` 会从任意更早的版本沿升级链一路升到最新。如果起点更早，途经的每个版本还要做以下操作：
 
-PGXN 源码包要求与发布步骤见[发布指南](https://github.com/pgsty/pg_tokenizer/blob/main/docs/08-release.md)。项目已准备源码 ZIP 和供 PGXN 使用的 Makefile，上传发布仍是单独步骤。
+| 起始版本 | 更新前后需要做的事 |
+| --- | --- |
+| 1.1.0 | 先把 PostgreSQL 14 集群升级到 15 或更高版本。如果有模型使用外部 Lindera 词典，要在每个节点上、PostgreSQL 停止期间，把它换成用 Lindera 7 构建的词典（format v3）。Lindera 7、一处正则表达式修复以及更新的 Unicode 表可能改变部分文本的切分结果：对比升级前后文档和查询的词元，对有差异的已存储值重新计算。 |
+| 1.0.0 | 在 `READ COMMITTED` 隔离级别下执行更新：`BEGIN ISOLATION LEVEL READ COMMITTED; ALTER EXTENSION pg_tokenizer UPDATE; COMMIT;`。事先给在多个模式中重名的 `pg_dict` 词典名加上模式限定，并确认不存在无关的 `tokenizer_data` 模式；如果自定义模型分属多个角色，请以超级用户身份执行更新。词表从 `tokenizer_catalog` 迁到 `tokenizer_data`，直接读取词表的 SQL 需要相应修改。结巴的 `full` 与 `precise` 模式在此前版本中是互换的，用这两种模式生成的值要重新计算。 |
+| 0.1.x | 先删除用到 `apply_text_analyzer` 的表达式索引、生成列、分区键和扩展统计信息，因为它已不再是 `IMMUTABLE`。重新计算已存储的 Lindera 词元 ID。`lucene_english`、`nltk_english` 和 `iso_english` 这几个名称保留给内置停用词表。 |
+{.wide}
 
-### 数据库拥有者权限 {#database-owner-permissions}
+每个版本的全部变更见 [1.3.0](/zh/release/pg-tokenizer-1.3.0/)、[1.2.0](/zh/release/pg-tokenizer-1.2.0/)、[1.1.0](/zh/release/pg-tokenizer-1.1.0/) 和 [1.0.0](/zh/release/pg-tokenizer-1.0.0/) 的发布说明。仍在存储 vchord_bm25 0.x `bm25vector` 值的索引，需要按 [BM25 迁移](/zh/docs/bm25/reference/migration/)处理。
 
-安装与升级向 `pg_database_owner` 授予 `tokenizer_catalog` 的 USAGE、`tokenizer_data` 的 USAGE/CREATE、数据库内管理函数的 EXECUTE，目录表与词表的 SELECT/INSERT/UPDATE/DELETE，以及序列的 USAGE/SELECT。新建自定义模型会显式授权，授权随数据库拥有者变更而生效。模式所有者及拥有其权限的角色仍保留 PostgreSQL 固有的所有者权限。API 函数仍在 `tokenizer_catalog` 中，无需把数据模式加入 search_path。
+## 副本与备份 {#logical-backups}
 
-管理员安装扩展后，非超级用户的数据库拥有者可以创建、删除自己创建的模型、分析器、分词器、停用词及同义词。授权不转移对象所有权：删除其他角色创建的模型仍需原对象拥有者或管理员。其他应用角色需要显式授权；扩展不会向 PUBLIC 开放模式访问或目录写权限，函数继续以调用者权限执行。
+定义和自定义词表都是普通的表：它们会复制到备库，`pg_dump` 也会导出它们。有两样东西在数据库之外，需要在每个节点上单独处理：
 
-数据库服务器上的 Lindera 词典和用户词典路径只有超级用户或拥有 `pg_read_server_files` 权限的角色可以加载；其他角色可以使用 `embedded://` 词典。检查发生在创建模型以及后端首次从目录加载模型时。已经加载或由 postmaster 预加载、且目录配置匹配的模型可以继续被复用。
+- 预加载列表，位于 `$PGDATA/pg_tokenizer/preload_models`。每个服务器启动时读取自己的那一份。备库沿用克隆时的副本，之后的改动要自己复制到每个节点，并单独备份这个目录。
+- 外部 Lindera 词典目录。在每个节点的相同路径下安装同一份构建。
 
-`add_preload_model` 与 `remove_preload_model` 管理整个集群的数据目录文件，仅扩展拥有者及获得显式授权的管理员可执行；PUBLIC 和 `pg_database_owner` 没有执行权限。文件修改不随 SQL 事务回滚，重启后生效。无效预加载条目会记录 WARNING 并跳过，不会阻止 PostgreSQL 启动。
-
-### 1.0.0 兼容性变化 {#compatibility-100}
-
-- `apply_text_analyzer` 改为 `STABLE`，与 `tokenize` 一致：分析器定义属于目录数据，标记为 `IMMUTABLE` 并不正确，还会让缓存计划绕过失效。只要有索引、存储生成列、分区键或扩展统计对象依赖它，升级就会拒绝执行。请先把这些表达式改为由应用或触发器维护的普通列，并为列建立索引，再执行升级。
-- Lindera 从 0.42 升级到 6.2。内嵌 IPADIC 由 2007-08-01 版更新为 2025-09-20 版，词元 ID 随之变化；外部编译词典须用 Lindera 6 重新构建。用户词典 ID 改为 `1073741824 + 词典内编号`，不再与系统词典 ID 重叠。需重新生成已存储的 Lindera 词元数组并重建相关索引。
-- 自定义模型中，匹配行的源列为 NULL 时，embedding 现在设为 NULL，包括 INSERT 显式提供的值；0.1.x 会保留目标列原值。不匹配过滤条件的行保留原有 embedding。
-- 向自定义模型新增词元的写入事务按模型取 advisory lock，持有至提交；所含词元均已存在的写入不等待。`REPEATABLE READ` 与 `SERIALIZABLE` 写入可能返回 SQLSTATE `40001`，需重试整个事务。
-- 调用过定义变更接口的事务不支持 `PREPARE TRANSACTION`；只读事务仍可 prepare。
-- `add_preload_model` 与 `remove_preload_model` 仅限管理员；无效预加载条目会记录 WARNING 并跳过。升级前，请移除仍使用未经 Lindera 6 重建的外部词典的 Lindera 模型预加载条目。
-- 内置停用词表 `lucene_english`、`nltk_english` 与 `iso_english` 为保留名：`drop_stopwords` 与 `create_stopwords` 拒绝这些名称。若旧版本替换过其中之一，升级会给出 WARNING；请把该词表复制为新名称，并改为引用新名称。
-- `pg_dump` 现在包含定义表，见[逻辑备份](#logical-backups)。
-
-### 逻辑备份 {#logical-backups}
-
-五张定义表（`text_analyzer`、`tokenizer`、`model`、`stopwords`、`synonym`）已通过 `pg_extension_config_dump` 登记，普通 `pg_dump` 会导出其中的行，以及自定义词表、对应的标识列序列和源表触发器。`CREATE EXTENSION` 会重新创建内置的 `lucene_english`、`nltk_english` 与 `iso_english` 停用词表，因此这三个名称不会被导出。它们是保留名，不能删除或替换，因此恢复后得到的词表与原来相同。
-
-外部 Lindera 词典和集群的 `pg_tokenizer/preload_models` 目录不在数据库内，需要单独备份。物理备份包含目录表数据和预加载目录，但不包含外部词典路径。
+所有节点要安装相同版本的 pg_tokenizer，这样在备库上分析的查询才会与主库上写入的文档得到相同的词元。

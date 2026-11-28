@@ -1,8 +1,8 @@
 ---
 title: "External Build"
 linkTitle: "External Build"
-description: "In addition to using the methods in Partitioning Tuning to achieve shorter build time and lower memory consumption at the cost of QPS and recall, you can also c"
-weight: 150
+description: "Run the k-means step of a vchordrq build outside PostgreSQL, for example on a GPU, and build the index from the centroids it produces."
+weight: 90
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/external-build.md"
 aliases:
   - "/docs/usage/external-build/"
@@ -12,106 +12,89 @@ aliases:
 icon: fa-solid fa-server
 ---
 
-In addition to using the methods in [Partitioning Tuning](/docs/vchord/usage/partitioning-tuning/) to achieve shorter build time and lower memory consumption at the cost of QPS and recall, you can also choose to run the partitioning phase offline on other machines or on GPUs. This feature is not supported by `vchordg`, since it does not have a partitioning phase.
+The k-means step is the slowest and most memory-hungry part of building a large vchordrq index. An external build moves it out of the database: you train the centroids wherever you like, for example on a GPU with [Faiss](https://github.com/facebookresearch/faiss), write them to a table, and `CREATE INDEX` only assigns rows to them. Use it when the database server lacks the memory or CPU for k-means, or when you rebuild often and want to reuse centroids. Before reaching for it, try the in-database options in [Building large indexes](/docs/vchord/usage/partitioning-tuning/).
 
-Assume the table is `t` and the column to be indexed is `val`.
+## Workflow {#workflow}
 
-```sql
-CREATE TABLE t (val vector(3));
-```
+1. Sample vectors from the table. A few dozen per leaf list is enough, such as 64 × 160,000 for `lists = [400, 160000]`:
 
-Specifically, you need to sample the column for which the index will be built.
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS tsm_system_rows;
+   SELECT embedding FROM public.items TABLESAMPLE SYSTEM_ROWS(10240000);
+   ```
 
-```sql
-CREATE EXTENSION IF NOT EXISTS tsm_system_rows;
-SELECT val FROM t TABLESAMPLE SYSTEM_ROWS(1000);
-```
+1. Train the centroids and turn them into rows `(id, parent, vector)`. The function below does both with Faiss; pass `gpu=True` to `Kmeans` to train on a GPU, and `spherical=True` for cosine or normalized inner-product embeddings.
 
-Based on these samples, you can partition the vector space into Voronoi cells. After that, you will create a table and insert your partitions.
+   ```python
+   import numpy as np
+   from faiss import Kmeans
 
-```sql
-CREATE TABLE public.t_build (id INTEGER NOT NULL UNIQUE, parent INTEGER, vector vector NOT NULL);
-INSERT INTO public.t_build (id, parent, vector) VALUES (0, NULL, '[0.1, 0.2, 0.3]');
-INSERT INTO public.t_build (id, parent, vector) VALUES (1, 0, '[0.1, 0.2, 0.3]');
-INSERT INTO public.t_build (id, parent, vector) VALUES (2, 0, '[0.4, 0.5, 0.6]');
-INSERT INTO public.t_build (id, parent, vector) VALUES (3, 0, '[0.7, 0.8, 0.9]');
-```
 
-The index can be created using the following syntax.
+   def centroid_rows(samples, lists, spherical=False):
+       """Rows (id, parent, vector) for build.external.table.
 
-```sql
-CREATE INDEX ON t USING vchordrq (val vector_l2_ops) WITH (options = $$
-build.external.table = 'public.t_build'
-$$);
-```
+       `lists` is the index's `lists`, such as [400, 160000]. Each level is trained
+       on the centroids of the level below, and each centroid's parent is its
+       nearest centroid one level up.
+       """
+       samples = np.ascontiguousarray(samples, dtype=np.float32)
+       levels, data = [], samples
+       for k in reversed(lists):
+           kmeans = Kmeans(samples.shape[1], k, niter=10, seed=42, spherical=spherical)
+           kmeans.train(data)
+           data = kmeans.centroids
+           levels.append(data)
+       levels.append(data.mean(axis=0, keepdims=True))  # the root
+       levels.reverse()
 
-In 1.3.0, `build.external.table` must use `schema.table`, for example `public.t_build`. Index builds use a restricted `search_path`; unqualified names are rejected instead of assuming `public`. Existing queries remain usable until an operation needs to rebuild or replace the index. This includes `REINDEX` (with or without `CONCURRENTLY`), `TRUNCATE`, `VACUUM FULL`, `CLUSTER`, column-type changes that rebuild indexes, and restoring the index from a dump. Update a legacy index before rebuilding it, preserving any other settings in its `options`:
+       rows, upper, upper_ids, next_id = [], None, None, 0
+       for level in levels:
+           ids = np.arange(next_id, next_id + len(level))
+           next_id += len(level)
+           if upper is None:
+               parents = [None] * len(level)
+           else:
+               # squared L2 distance to every centroid one level up, without a 3-D array
+               d = (upper * upper).sum(axis=1) - 2 * level @ upper.T
+               parents = upper_ids[d.argmin(axis=1)].tolist()
+           rows += [(int(i), p, v.tolist()) for i, p, v in zip(ids, parents, level)]
+           upper, upper_ids = level, ids
+       return rows
+   ```
 
-```sql
-ALTER INDEX my_index SET (options = $$
-[build.external]
-table = 'public.t_build'
-$$);
-```
+1. Load the rows into a table with exactly these three columns, for example with `COPY`. A vector literal is the list written as text, such as `[0.1, 0.2, 0.3]`.
 
-Use this query to find external-build options that need review before upgrading:
+   ```sql
+   CREATE TABLE public.items_centroids (
+       id integer NOT NULL UNIQUE,
+       parent integer,
+       vector vector NOT NULL
+   );
+   ```
 
-```sql
-SELECT c.oid::regclass AS index_name, o.option_value
-FROM pg_class AS c
-JOIN pg_am AS am ON am.oid = c.relam
-CROSS JOIN LATERAL pg_options_to_table(c.reloptions) AS o
-WHERE am.amname = 'vchordrq'
-  AND o.option_name = 'options'
-  AND o.option_value LIKE '%external%';
-```
+1. Build the index from it. The table name must include its schema:
 
-Review the returned TOML options, including both `build.external.table = ...` and `[build.external]` forms. Each external table must name both a schema and a table. Identifiers use the existing unquoted syntax and are folded to lowercase.
+   ```sql
+   CREATE INDEX ON public.items USING vchordrq (embedding vector_cosine_ops)
+   WITH (options = $$
+   residual_quantization = true
+   [build.external]
+   table = 'public.items_centroids'
+   $$);
+   ```
 
-<a id="Format"></a>
-## Format
+   Query it as usual, with `vchordrq.probes` giving one value per level of the tree, here two.
+{.steps}
 
-The table that stores the partition information must strictly follow the following schema:
+## Rules for the centroid table {#format}
 
-- The first column must be `id`. Its type is `integer`. It must not be null. It must be unique.
-- The second column must be `parent`. Its type is `integer`; the root has a NULL parent.
-- The third column must be `vector`. Its type is `vector`. It must not be null. `halfvec` or other types are not supported yet.
+<a id="Format"></a><a id="schema-qualification"></a><a id="partitioning"></a><a id="Partitioning"></a>
 
-Logically, this forms a tree: the root has `parent = NULL`, and every other parent must reference an existing `id`. All nodes must be reachable from the root, and all leaves must have the same depth. The tree must have 2–9 levels including the root. Cycles, unreachable nodes, and excessive height raise errors. Centroid dimensions must match the indexed column.
+`CREATE INDEX` and every later rebuild check the table and stop with an error if a rule is broken:
 
-A flat partition can omit the explicit root: supply at least two centroids with all `parent` values set to `NULL`, and the build generates the root automatically.
+- **Columns**: `id integer NOT NULL` and unique, `parent integer` (`NULL` only for the root), and `vector vector NOT NULL` with the same dimension as the indexed column. Use `vector` even when the indexed column is `halfvec`.
+- **Shape**: one root, every node reachable from it, every leaf at the same depth, and 2 to 9 levels counting the root, which matches 1 to 8 levels of `lists`.
+- **Single level**: you may leave out the root and give at least two centroids with `parent = NULL`; vchordrq adds the root itself.
+- **Name**: `table` must be written as `schema.table`. The build runs with a restricted `search_path`, so an unqualified name is rejected.
 
-If any of the above properties are not satisfied, an error will be reported.
-
-<a id="Partitioning"></a>
-## Partitioning
-
-To get started, here is a minimal code example for performing partitioning using [faiss](https://github.com/facebookresearch/faiss).
-
-```python
-from typing import List
-from faiss import Kmeans
-import numpy
-
-def partition(
-    samples: numpy.ndarray, lists: List[int]
-) -> List[numpy.ndarray]:
-    dim = samples.shape[1]
-    results = []
-    for i in range(len(lists) + 1):
-        kmeans = Kmeans(
-            dim,
-            lists[len(lists) - 1 - i] if len(lists) - 1 - i >= 0 else 1,
-            gpu=False,
-            verbose=True,
-            niter=10,
-            seed=42,
-            spherical=False,
-        )
-        kmeans.train(samples)
-        results.append(kmeans.centroids)
-        samples = kmeans.centroids
-    return results
-```
-
-This computes the generators of all Voronoi cells across different levels. The parent-child relationships in the tree are determined by computing the shortest distances, but the details are omitted here. Any algorithm capable of generating multi-level Voronoi cells can be used, such as spherical K-means, balanced K-means or GPU K-means.
+The index reads the table at every build, including `REINDEX`, `VACUUM FULL`, `CLUSTER`, `TRUNCATE`, and restoring a dump, so keep it as long as the index exists.

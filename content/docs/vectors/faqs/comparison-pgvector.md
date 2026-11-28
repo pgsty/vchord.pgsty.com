@@ -10,7 +10,7 @@ aliases:
 icon: fa-solid fa-scale-balanced
 ---
 
-Original post: [pgvector vs. pgvecto.rs in 2024: A Comprehensive Comparison for Vector Search in PostgreSQL](/blog/post/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/)
+Original post: [pgvector vs. pgvecto.rs in 2024: A Comprehensive Comparison for Vector Search in PostgreSQL](/blog/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/)
 
 TL; DR: Please navigate directly to the [final section](#summary) that contains a table showcasing the main distinctions.
 

@@ -15,11 +15,11 @@ aliases:
 | **扩展名称** | **代码仓库** | **版本** | **许可证** | **Rust / `pgrx`** | **PG 支持** | **内部 Crate** | **锁定包数** |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **[`vchord`](/zh/docs/vchord/)** | [`pgsty/vchord`](https://github.com/pgsty/vchord) | `1.5.0` | `AGPL-3.0-only` | `2024` / `=0.20.1` | `pg15`–`pg19` | 15 | 245 |
-| **[`vchord_bm25`](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.0.0` | `AGPL-3.0-only` | `2024` / `=0.19.3` | `pg14`–`pg18` | 8 | 194 |
-| **[`pg_tokenizer`](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.0.0` | `Apache-2.0` | `2021` / `=0.19.3` | `pg14`–`pg18` | 1 | 405 |
+| **[`vchord_bm25`](/zh/docs/bm25/)** | [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) | `1.3.0` | `AGPL-3.0-only` | `2024` / `=0.20.1` | `pg15`–`pg19` | 8 | 185 |
+| **[`pg_tokenizer`](/zh/docs/tokenizer/)** | [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | `1.3.0` | `Apache-2.0` | `2021` / `=0.20.0` | `pg15`–`pg19` | 1 | 368 |
 {.wide .expand}
 
-vchord 1.5.0 的 Linux 构建矩阵覆盖 PostgreSQL 15–19。完整依赖版本见发布标签对应的 [Cargo.lock](https://github.com/pgsty/vchord/blob/1.5.0/Cargo.lock)。
+Linux 构建、测试与二进制发布矩阵覆盖 `x86_64` 与 `aarch64` 上的 **PostgreSQL 15–19**。每个发布标签下的 `Cargo.lock` 记录了全部锁定依赖。
 
 ---
 
@@ -54,8 +54,8 @@ vchord 1.5.0 的 Linux 构建矩阵覆盖 PostgreSQL 15–19。完整依赖版�
 |:---|:---:|:---|:---:|:---|:---|
 | `pgrx` | `0.20.1` | `MIT` | 运行时 (`cshim`) | PostgreSQL 扩展 Rust 开发框架（支持 `pg15`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `pgrx-pg-sys` | `0.20.1` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `rusqlite` | `0.43.0` | `MIT` | 运行时 (`bundled`) | 内嵌 SQLite 引擎（`libsqlite3-sys 0.40.0`），用于记录采样查询 | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
-| `mimalloc` | `0.1.52` | `MIT` | 运行时 (`x86_64`/`aarch64`) | Linux 平台高性能内存分配器（`libmimalloc-sys 0.1.49`，启用 `local_dynamic_tls`） | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
+| `rusqlite` | `0.43.0` | `MIT` | 运行时 (`bundled`) | 内嵌 SQLite 引擎（`libsqlite3-sys 0.40.0`），用于查询采样记录 | [rusqlite/rusqlite](https://github.com/rusqlite/rusqlite) |
+| `mimalloc` | `0.1.52` | `MIT` | 运行时 (Linux `x86_64`/`aarch64`) | Linux `x86_64` 与 `aarch64` 平台高性能内存分配器（`libmimalloc-sys 0.1.49`，启用 `local_dynamic_tls`） | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
 | `rayon` | `1.12.0` | `MIT OR Apache-2.0` | 运行时 | 数据并行工作窃取线程池，用于并行 K-means 训练与索引构建 | [rayon-rs/rayon](https://github.com/rayon-rs/rayon) |
 | `crossbeam-channel` | `0.5.17` | `MIT OR Apache-2.0` | 运行时 | 多生产者多消费者并发通道，用于并行索引构建协调 | [crossbeam-rs/crossbeam](https://github.com/crossbeam-rs/crossbeam) |
 | `zerocopy` | `0.8.64` | `BSD-2-Clause OR Apache-2.0 OR MIT` | 运行时 | 面向 PostgreSQL 磁盘索引页面的安全零拷贝字节转换 | [google/zerocopy](https://github.com/google/zerocopy) |
@@ -68,7 +68,7 @@ vchord 1.5.0 的 Linux 构建矩阵覆盖 PostgreSQL 15–19。完整依赖版�
 | `min-max-heap` | `1.3.0` | `MIT OR Apache-2.0` | 运行时 | 双端最小-最大堆，用于 `vchordg` 有界波束搜索 | [tov/min-max-heap-rs](https://github.com/tov/min-max-heap-rs) |
 | `wyhash` | `0.6.0` | `MIT OR Apache-2.0` | 运行时 | 高速非加密哈希算法，用于图遍历已访问顶点去重 | [eldruin/wyhash-rs](https://github.com/eldruin/wyhash-rs) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | 运行时 | 索引 `options` 参数结构化反序列化框架 | [serde-rs/serde](https://github.com/serde-rs/serde) |
-| `toml` | `1.2.2+spec-1.1.0` | `MIT OR Apache-2.0` | 运行时 | `vchordrq` 与 `vchordg` 索引构建选项的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2` | `MIT OR Apache-2.0` | 运行时 | `vchordrq` 与 `vchordg` 索引构建选项的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | 运行时 | 索引配置参数的范围与合法性校验 | [Keats/validator](https://github.com/Keats/validator) |
 | `humansize` | `2.1.3` | `MIT OR Apache-2.0` | 运行时 | 字节体积的人类可读格式化输出 | [LeopoldArkham/humansize](https://github.com/LeopoldArkham/humansize) |
 | `paste` | `1.0.15` | `MIT OR Apache-2.0` | 宏 | 标识符拼接宏，用于生成多类型距离操作符绑定 | [dtolnay/paste](https://github.com/dtolnay/paste) |
@@ -101,20 +101,20 @@ vchord 1.5.0 的 Linux 构建矩阵覆盖 PostgreSQL 15–19。完整依赖版�
 
 | **Crate 名称** | **锁定版本** | **SPDX 许可证** | **作用范围** | **功能用途** | **上游仓库** |
 |:---|:---:|:---|:---:|:---|:---|
-| `pgrx` | `0.19.3` | `MIT` | 运行时 | PostgreSQL 扩展 Rust 开发框架（支持 `pg14`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `pgrx-pg-sys` | `0.19.3` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx` | `0.20.1` | `MIT` | 运行时 | PostgreSQL 扩展 Rust 开发框架（支持 `pg15`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx-pg-sys` | `0.20.1` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `blake3` | `1.8.7` | `CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception` | 运行时 | 高速哈希计算，用于词项哈希与段数据完整性校验 | [BLAKE3-team/BLAKE3](https://github.com/BLAKE3-team/BLAKE3) |
 | `memmap2` | `0.9.12` | `MIT OR Apache-2.0` | 运行时 | 跨平台内存映射文件 I/O，用于大规模索引构建时的外部归并排序 | [RazrFalcon/memmap2-rs](https://github.com/RazrFalcon/memmap2-rs) |
-| `mimalloc` | `0.1.52` | `MIT` | 运行时 (`x86_64`/`aarch64`) | Linux 与 macOS 平台高性能内存分配器（`libmimalloc-sys 0.1.49`，启用 `local_dynamic_tls`） | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
-| `zerocopy` | `0.8.63` | `BSD-2-Clause OR Apache-2.0 OR MIT` | 运行时 (`derive`, `simd`) | 倒排链数据块与 BM25 元数据页的零拷贝序列化 | [google/zerocopy](https://github.com/google/zerocopy) |
+| `mimalloc` | `0.1.52` | `MIT` | 运行时 (Linux `x86_64`/`aarch64`) | Linux `x86_64` 与 `aarch64` 平台高性能内存分配器（`libmimalloc-sys 0.1.49`，启用 `local_dynamic_tls`） | [purpleprotocol/mimalloc_rust](https://github.com/purpleprotocol/mimalloc_rust) |
+| `zerocopy` | `0.8.64` | `BSD-2-Clause OR Apache-2.0 OR MIT` | 运行时 (`derive`, `simd`) | 倒排链数据块与 BM25 元数据页的零拷贝序列化 | [google/zerocopy](https://github.com/google/zerocopy) |
 | `getrandom` | `0.4.3` | `MIT OR Apache-2.0` | 运行时 | 操作系统熵源接口，用于生成临时排序文件名 | [rust-random/getrandom](https://github.com/rust-random/getrandom) |
-| `rand` | `0.10.3` | `MIT OR Apache-2.0` | 运行时 | 随机数生成工具 | [rust-random/rand](https://github.com/rust-random/rand) |
+| `rand` | `0.10.4` | `MIT OR Apache-2.0` | 运行时 | 随机数生成工具 | [rust-random/rand](https://github.com/rust-random/rand) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | 运行时 | `USING bm25` 索引选项反序列化框架 | [serde-rs/serde](https://github.com/serde-rs/serde) |
-| `toml` | `1.1.8` | `MIT OR Apache-2.0` | 运行时 | 索引配置选项的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2` | `MIT OR Apache-2.0` | 运行时 | 索引配置选项的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | 运行时 | BM25 索引选项合法性校验 | [Keats/validator](https://github.com/Keats/validator) |
 | `seq-macro` | `0.3.6` | `MIT OR Apache-2.0` | 宏 | 编译期循环展开宏，用于位打包内核 | [dtolnay/seq-macro](https://github.com/dtolnay/seq-macro) |
-| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.9` | `MIT OR Apache-2.0` | 过程宏 | `simd_macros` 语法树解析与代码生成 | [dtolnay/syn](https://github.com/dtolnay/syn) |
-| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.7` / `0.40.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | 构建 (`xtask`) | 构建命令行解析、符号检查与 SQL 模式一致性校验（`pgrx-sql-entity-graph 0.19.3`） | [clap-rs/clap](https://github.com/clap-rs/clap) |
+| `proc-macro2` / `quote` / `syn` | `1.0.107` / `1.0.47` / `3.0.10` | `MIT OR Apache-2.0` | 过程宏 | `simd_macros` 语法树解析与代码生成 | [dtolnay/syn](https://github.com/dtolnay/syn) |
+| `clap` / `object` / `serde_json` / `target-tuple` | `4.6.9` / `0.41.0` / `1.0.154` / `1.0.2` | `MIT OR Apache-2.0` | 构建 (`xtask`) | 构建命令行解析、符号检查与 SQL 模式一致性校验（`pgrx-sql-entity-graph 0.20.1`） | [clap-rs/clap](https://github.com/clap-rs/clap) |
 {.wide .expand}
 
 ---
@@ -127,27 +127,27 @@ vchord 1.5.0 的 Linux 构建矩阵覆盖 PostgreSQL 15–19。完整依赖版�
 
 | **Crate 名称** | **锁定版本** | **SPDX 许可证** | **作用范围** | **功能用途** | **上游仓库** |
 |:---|:---:|:---|:---:|:---|:---|
-| `pgrx` | `0.19.3` | `MIT` | 运行时 | PostgreSQL 扩展 Rust 开发框架（支持 `pg14`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
-| `pgrx-pg-sys` | `0.19.3` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx` | `0.20.0` | `MIT` | 运行时 | PostgreSQL 扩展 Rust 开发框架（支持 `pg15`–`pg19` 绑定） | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `pgrx-pg-sys` | `0.20.0` | `MIT` | 运行时 | PostgreSQL 服务端头文件与内核函数的底层 FFI 绑定 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 | `tokenizers` | `0.23.2` | `Apache-2.0` | 运行时 | HuggingFace 高速分词引擎（支持 WordPiece、BPE、Unigram 模型） | [huggingface/tokenizers](https://github.com/huggingface/tokenizers) |
 | `tocken` | `0.1.0` | `Apache-2.0` | 运行时 | 内置预训练词表分词器（`bert_base_uncased`、`wiki_tocken`、`gemma2b`、`llmlingua2`） | [kemingy/tocken](https://github.com/kemingy/tocken) |
 | `jieba-rs` | `0.11.0` | `MIT` | 运行时 | 结巴中文分词引擎（支持精确/全模式/搜索引擎模式、HMM 新词发现与自定义词典） | [messense/jieba-rs](https://github.com/messense/jieba-rs) |
-| `lindera` | `6.2.0` | `MIT` | 运行时 | 日文/中日韩形态学分析与分词框架（`lindera` 模型与预分词器） | [lindera/lindera](https://github.com/lindera/lindera) |
-| `lindera-analysis` | `6.2.0` | `MIT` | 运行时 | 字符过滤器、词元过滤器及内嵌 IPADIC / UniDic / ko-dic / CC-CEDICT 词典支持 | [lindera/lindera](https://github.com/lindera/lindera) |
+| `lindera` | `7.0.0` | `MIT` | 运行时 | 日文/中日韩形态学分析与分词框架（`lindera` 模型与预分词器） | [lindera/lindera](https://github.com/lindera/lindera) |
+| `lindera-analysis` | `7.0.0` | `MIT` | 运行时 | 字符过滤器、词元过滤器及内嵌 IPADIC / UniDic / ko-dic / CC-CEDICT 词典支持 | [lindera/lindera](https://github.com/lindera/lindera) |
 | `rust-stemmers` | `1.2.1` | `MIT OR BSD-3-Clause` | 运行时 | Snowball 多语言词干提取算法，支持 30 种语言（Git 标签 `v1.2.1`，提交 `61e8ea11`） | [pgsty/rust-stemmers](https://github.com/pgsty/rust-stemmers) |
 | `unicode-segmentation` | `1.13.3` | `MIT OR Apache-2.0` | 运行时 | Unicode 标准附件 #29（`UAX #29`）词边界切分（`unicode` 预分词器） | [unicode-rs/unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) |
 | `unicode-normalization` | `0.1.26` | `(MIT OR Apache-2.0) AND Unicode-3.0` | 运行时 | Unicode NFC / NFD / NFKC / NFKD 字符规范化过滤器 | [unicode-rs/unicode-normalization](https://github.com/unicode-rs/unicode-normalization) |
-| `regex` | `1.13.1` | `MIT OR Apache-2.0` | 运行时 | 基于有限自动机的正则表达式引擎，用于正则分词与模式替换过滤 | [rust-lang/regex](https://github.com/rust-lang/regex) |
+| `regex` | `1.13.2` | `MIT OR Apache-2.0` | 运行时 | 基于有限自动机的正则表达式引擎，用于正则分词与模式替换过滤 | [rust-lang/regex](https://github.com/rust-lang/regex) |
 | `dashmap` | `6.2.1` | `MIT` | 运行时 | 高并发分片哈希表，用于数据库会话内词表模型与分析器缓存 | [xacrimon/dashmap](https://github.com/xacrimon/dashmap) |
 | `serde` | `1.0.229` | `MIT OR Apache-2.0` | 运行时 | TOML / JSON 流水线与词表模型配置的序列化框架 | [serde-rs/serde](https://github.com/serde-rs/serde) |
 | `serde_json` | `1.0.154` | `MIT OR Apache-2.0` | 运行时 | HuggingFace 分词器模型 JSON 规范解析器 | [serde-rs/json](https://github.com/serde-rs/json) |
-| `toml` | `1.1.8` | `MIT OR Apache-2.0` | 运行时 | `create_tokenizer` / `create_text_analyzer` 配置块的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
+| `toml` | `1.2.2` | `MIT OR Apache-2.0` | 运行时 | `create_tokenizer` / `create_text_analyzer` 配置块的 TOML 解析器 | [toml-rs/toml](https://github.com/toml-rs/toml) |
 | `validator` | `0.21.0` | `MIT` | 运行时 | 分析器与模型配置结构体的声明式校验 | [Keats/validator](https://github.com/Keats/validator) |
 | `anyhow` | `1.0.104` | `MIT OR Apache-2.0` | 运行时 | 分词流水线各阶段的上下文错误处理与传递 | [dtolnay/anyhow](https://github.com/dtolnay/anyhow) |
 | `onig_sys` | `69.9.3` | `MIT` | 传递依赖 (`tokenizers`) | HuggingFace `tokenizers` 使用的 Oniguruma 正则表达式 C 库绑定 | [iwillspeak/rust-onig](https://github.com/iwillspeak/rust-onig) |
 | `esaxx-rs` | `0.1.10` | `Apache-2.0` | 传递依赖 (`tokenizers`) | Unigram 词表训练使用的增强后缀数组 C++ 库绑定 | [Narsil/esaxx-rs](https://github.com/Narsil/esaxx-rs) |
-| `zstd-sys` | `2.1.2+zstd.1.5.7` | `BSD-3-Clause` | 传递依赖 (`lindera`) | 形态学压缩词典使用的 Zstandard C 库绑定 | [gyscos/zstd-rs](https://github.com/gyscos/zstd-rs) |
-| `pgrx-tests` | `0.19.3` | `MIT` | 开发 / 测试 | `cargo pgrx test` 集成测试框架 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
+| `zstd-sys` | `2.1.3+zstd.1.5.7` | `BSD-3-Clause` | 传递依赖 (`lindera`) | 形态学压缩词典使用的 Zstandard C 库绑定 | [gyscos/zstd-rs](https://github.com/gyscos/zstd-rs) |
+| `pgrx-tests` | `0.20.0` | `MIT` | 开发 / 测试 | `cargo pgrx test` 集成测试框架 | [pgcentralfoundation/pgrx](https://github.com/pgcentralfoundation/pgrx) |
 {.wide .expand}
 
 ---

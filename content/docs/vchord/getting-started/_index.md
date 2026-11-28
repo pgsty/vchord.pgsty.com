@@ -1,7 +1,7 @@
 ---
 title: "Getting Started"
 linkTitle: "Getting Started"
-description: "Overview, installation packages, Docker (Obsolete) images, and the Vchord retrieval suite."
+description: "What vchord is, how to install it, and how it combines with BM25 ranking and tokenization."
 weight: 10
 icon: fa-solid fa-rocket
 upstream_link: ""

@@ -8,7 +8,7 @@ math: true
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#how-does-it-work
 ---
 
-## `pg_bestmatch` 工作原理
+## `pg_bestmatch` 工作原理 {#how-does-pg_bestmatch-work}
 
 给定文档 \(D\) 与分词为词元序列 \(q_1, q_2, \dots, q_n\) 的查询 \(Q\)，标准的 **Okapi BM25** 相关性得分公式为：
 
@@ -28,13 +28,13 @@ $$
 
 ---
 
-## 安装扩展
+## 安装扩展 {#installation}
 
-### 前置依赖
+### 前置依赖 {#prerequisites}
 
 请先安装 [`pgvector`](/zh/docs/vector/)（需 `v0.7.0+` 以支持 `sparsevec` 类型）或 [`pgvecto.rs`](/zh/docs/vectors/)（需 `v0.3.0+` 以支持 `svector` 类型）。
 
-### 通过预编译包安装（Debian / Ubuntu）
+### 通过预编译包安装（Debian / Ubuntu） {#install-from-release-packages-debian-ubuntu}
 
 从 [GitHub Releases](https://github.com/tensorchord/pg_bestmatch.rs/releases) 下载对应 PostgreSQL 大版本的 `.deb` 安装包：
 
@@ -44,7 +44,7 @@ wget https://github.com/tensorchord/pg_bestmatch.rs/releases/download/v0.0.1/pg-
 sudo dpkg -i pg-bestmatch-pg16_0.0.1_amd64.deb
 ```
 
-### 从源码编译安装（`cargo pgrx`）
+### 从源码编译安装（`cargo pgrx`） {#build-from-source-cargo-pgrx}
 
 确保系统已安装 Rust 工具链与 `cargo-pgrx`：
 
@@ -56,7 +56,7 @@ cargo pgrx install --release
 
 ---
 
-## 启用扩展
+## 启用扩展 {#enable-the-extension}
 
 连接到 PostgreSQL，创建扩展并将 `bm25_catalog` 加入 `search_path`：
 

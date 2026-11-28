@@ -1,134 +1,117 @@
 ---
-title: "Partitioning Tuning"
-linkTitle: "Partitioning Tuning"
-description: "For large tables, the partitioning phase dominates both build time and memory consumption."
-weight: 140
+title: "Building Large Indexes"
+linkTitle: "Large Builds"
+description: "Keep vchordrq builds on 100 million to billions of rows within time and memory budgets, and follow a build's progress."
+weight: 80
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/partitioning-tuning.md"
 math: true
 aliases:
   - "/docs/usage/partitioning-tuning/"
   - "/vectorchord/usage/partitioning-tuning/"
+  - "/docs/vchord/usage/monitoring/"
+  - "/docs/usage/monitoring/"
+  - "/vectorchord/usage/monitoring/"
 icon: fa-solid fa-table-columns
 ---
 
-For large tables, the partitioning phase dominates both build time and memory consumption.
+On tables of tens of millions of rows and more, the k-means step of a vchordrq build takes most of the time and nearly all of the memory. Three options shrink it, and they combine: with all three, 100 million 768-dimensional vectors build in 18 minutes using 6 GiB. To move k-means off the database server entirely, see [External build](/docs/vchord/usage/external-build/).
 
-Time complexity of partitioning is \(O(FC^{2}DL)\), and the memory consumption in bytes can be approximated by \(4DC(F + T + 1)\),
+## Where the time and memory go {#where}
 
-where:
-* \(D\) is the vector dimension, or `build.internal.kmeans_dimension` if set.
-* \(F\) is `build.internal.sampling_factor`.
-* \(C\) is `build.internal.lists[-1]`.
-* \(T\) is `build.internal.build_threads`.
-* \(L\) is `build.internal.kmeans_iterations`.
+k-means trains on `sampling_factor` sampled vectors per leaf list. With the standard algorithm, its working memory is about
 
-This page introduces some tuning techniques to improve build time and memory consumption.
+\[
+4 \cdot D \cdot C \cdot (F + T + 1) \text{ bytes}
+\]
 
-## Hierarchical K-means
+and its time grows with \(F \cdot C^2 \cdot D\), where \(C\) is the number of leaf lists (the last value of `lists`), \(D\) the dimension used for clustering, \(F\) the `sampling_factor`, and \(T\) the `build_threads`. Each option below shrinks one of these terms.
 
-Hierarchical K-means is an algorithm that is faster than [Lloyd's algorithm](https://en.wikipedia.org/wiki/Lloyd%27s_algorithm). When applied this algorithm, the asymptotic time complexity is reduced to \(O(FC^{1.5}DL)\). As a trade-off, it has a slight negative impact on search performance and recall.
+If k-means does not fit in memory, the build stops with an `out of memory` error and the server keeps running.
 
-Usage:
+## Hierarchical k-means {#hierarchical-k-means}
 
-```toml
-build.internal.kmeans_algorithm.hierarchical = {}
-```
-
-## Reduce Sampling Factor
-
-Reducing sampling factor improves build time and memory consumption linearly. As a trade-off, it has a moderate negative impact on search performance and recall.
-
-Usage:
+With a two-level `lists`, hierarchical k-means clusters the coarse level first and then each coarse cluster separately. Time grows with \(C^{1.5}\) instead of \(C^2\), with little effect on recall:
 
 ```toml
-build.internal.sampling_factor = 64
+[build.internal]
+lists = [400, 160000]
+kmeans_algorithm = { hierarchical = {} }
 ```
 
-## Dimensionality reduction
+## Sample fewer vectors {#reduce-sampling-factor}
 
-Dimensionality reduction uses the fast Johnson–Lindenstrauss transform, reducing the dimensionality of the vectors involved in clustering to below their original dimension, thereby improving build time and memory consumption linearly. As a trade-off, it has a slight negative impact on search performance and recall.
-
-Usage:
+Lowering `sampling_factor` from its default of `256` reduces time and memory in proportion, at the cost of slightly less accurate centroids:
 
 ```toml
-build.internal.kmeans_dimension = 100
+[build.internal]
+sampling_factor = 64
 ```
 
-## Reference settings
+## Cluster in fewer dimensions {#dimensionality-reduction}
 
-### LAION 100M
+`kmeans_dimension` clusters vectors reduced to that many dimensions and expands the centroids back to full size afterwards. For 768-dimensional embeddings, `100` cuts k-means work by nearly 8×. A value at or above the column's dimension is ignored with a warning.
 
-Dataset:
+```toml
+[build.internal]
+kmeans_dimension = 100
+```
 
-* Source: https://sisap-challenges.github.io/2024/datasets/
-* Metric: Inner Product
-* Dimension: 768
-* Number of vectors: 100,000,000
-* Number of test vectors: 1,000
+## Reference configurations {#reference-settings}
 
-Test machine (AWS EC2 i7i.4xlarge):
+### LAION-100M {#laion-100m}
 
-* CPU: Intel Xeon Platinum 8559C
-* Number of vCPUs: 16
-* Memory: 128 GiB
-* Storage: 3750 GiB NVMe SSD
+100 million 768-dimensional vectors, inner product, from [SISAP 2024](https://sisap-challenges.github.io/2024/datasets/). Built on an AWS `i7i.4xlarge` (16 vCPUs, 128 GiB RAM, local NVMe) in **18 minutes** with **6 GiB** of peak build memory. At `probes = '40,140'` and `epsilon = 1.4`, it serves 120 queries per second at 0.949 top-10 recall.
 
 ```sql
-CREATE INDEX ON laion USING vchordrq (embedding vector_ip_ops) WITH (options = $$
+CREATE INDEX ON laion USING vchordrq (embedding vector_ip_ops)
+WITH (options = $$
 build.pin = 2
-build.internal.lists = [400, 160000]
-build.internal.build_threads = 16
-build.internal.spherical_centroids = true
-build.internal.kmeans_algorithm.hierarchical = {}
-build.internal.kmeans_dimension = 100
-build.internal.sampling_factor = 64
+[build.internal]
+lists = [400, 160000]
+build_threads = 16
+spherical_centroids = true
+kmeans_algorithm = { hierarchical = {} }
+kmeans_dimension = 100
+sampling_factor = 64
 $$);
 ```
 
-Result:
+### DEEP-1B {#deep-1b}
 
-* Total Build Time: 18 minutes
-* Peak Memory: 6 GiB
-* Test Case 1
-  * Parameters
-    * `vchordrq.probes = '40,140'`
-    * `vchordrq.epsilon = 1.4`
-  * QPS @ Top10: 120
-  * Recall @ Top10: 0.949
-
-### DEEP 1B
-
-Dataset:
-
-* Source: https://big-ann-benchmarks.com/neurips21.html
-* Metric: Euclidean
-* Dimension: 96
-* Number of vectors: 1,000,000,000
-* Number of test vectors: 10,000
-
-Test machine (AWS EC2 i7ie.6xlarge):
-
-* CPU: Intel Xeon Platinum 8559C
-* Number of vCPUs: 24
-* Memory: 192 GiB
-* Storage: 7500 GiB NVMe SSD
+1 billion 96-dimensional vectors, L2 distance, from [BIG-ANN](https://big-ann-benchmarks.com/neurips21.html). Built on an AWS `i7ie.6xlarge` (24 vCPUs, 192 GiB RAM, local NVMe) in **107 minutes** with **64 GiB** of peak build memory. At `probes = '40,250'`, it serves 68 queries per second at 0.951 top-10 recall.
 
 ```sql
-CREATE INDEX ON deep USING vchordrq (embedding vector_l2_ops) WITH (options = $$
-build.pin = 2
+CREATE INDEX ON deep USING vchordrq (embedding vector_l2_ops)
+WITH (options = $$
 residual_quantization = true
-build.internal.lists = [800, 640000]
-build.internal.build_threads = 24
-build.internal.kmeans_algorithm.hierarchical = {}
+build.pin = 2
+[build.internal]
+lists = [800, 640000]
+build_threads = 24
+kmeans_algorithm = { hierarchical = {} }
 $$);
 ```
 
-Result:
+## Monitor a build {#monitoring}
 
-* Total Build Time: 107 minutes
-* Peak Memory: 64 GiB
-* Test Case 1
-  * Parameters
-    * `vchordrq.probes = '40,250'`
-  * QPS @ Top10: 68
-  * Recall @ Top10: 0.951
+<a id="phases"></a><a id="Phases"></a><a id="phases-vchordrq"></a><a id="phases-vchordg"></a><a id="catalog-statistics"></a>
+
+Both index types report progress in PostgreSQL's [`pg_stat_progress_create_index`](https://www.postgresql.org/docs/current/progress-reporting.html#CREATE-INDEX-PROGRESS-REPORTING) view:
+
+```sql
+SELECT phase, tuples_done, tuples_total,
+       round(100.0 * blocks_done / nullif(blocks_total, 0), 1) AS blocks_pct
+FROM pg_stat_progress_create_index;
+```
+
+A vchordrq build goes through these phases. The k-means phase reports its own percentage in the phase name; inserting rows is usually the longest.
+
+| Phase | What happens |
+| --- | --- |
+| `initializing` | Options are checked. |
+| `initializing index, by internal build (n %)` | k-means runs on the sample. `by default build` and `by external build` replace it when there is a single list or precomputed centroids. |
+| `initializing index` | Centroids are written to the index. |
+| `inserting tuples from table to index` | Every row is quantized and appended to its list; `tuples_done` and `blocks_done` advance. |
+| `compacting tuples in index` | The lists are compacted. |
+
+A vchordg build has two phases: `initializing`, then `inserting tuples from table to index`.

@@ -1,117 +1,100 @@
 ---
 title: "外部构建"
 linkTitle: "外部构建"
-description: "除了使用分区调优中的方法外，您还可以选择在其他机器或 GPU 上离线运行分区阶段，以缩短索引构建时间并降低内存消耗。"
-weight: 150
+description: "在 PostgreSQL 之外（例如在 GPU 上）运行 vchordrq 构建中的 k-means 步骤，再用得到的聚类中心构建索引。"
+weight: 90
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/external-build.md"
 aliases:
-  - "/zh/docs/usage/external-build/"
+  - "/docs/usage/external-build/"
   - "/vectorchord/usage/external-build/"
   - "/docs/vchord/usage/external-index-precomputation/"
   - "/vectorchord/usage/external-index-precomputation/"
 icon: fa-solid fa-server
 ---
 
-除了使用[分区调优](/zh/docs/vchord/usage/partitioning-tuning/)中的方法（以牺牲一定 QPS 和召回率为代价来缩短构建时间并降低内存消耗）之外，您还可以选择在其他机器或 GPU 上离线运行分区阶段。由于 `vchordg` 没有分区阶段，因此该特性不支持 `vchordg`。
+构建大型 vchordrq 索引时，k-means 是最慢、最耗内存的一步。外部构建把这一步移出数据库：你在任何地方训练聚类中心（例如用 [Faiss](https://github.com/facebookresearch/faiss) 在 GPU 上），把结果写进一张表，`CREATE INDEX` 只负责把行分配给这些中心。数据库服务器的内存或 CPU 不足以跑 k-means，或者需要经常重建、想复用聚类中心时，就用它。在此之前，先试试[构建大型索引](/zh/docs/vchord/usage/partitioning-tuning/)里的库内选项。
 
-假设表名为 `t`，待建索引的列名为 `val`。
+## 流程 {#workflow}
 
-```sql
-CREATE TABLE t (val vector(3));
-```
+1. 从表中采样向量。每个叶子列表几十个就够了，例如 `lists = [400, 160000]` 取 64 × 160,000 个：
 
-具体而言，您需要先对待建索引的列进行采样。
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS tsm_system_rows;
+   SELECT embedding FROM public.items TABLESAMPLE SYSTEM_ROWS(10240000);
+   ```
 
-```sql
-CREATE EXTENSION IF NOT EXISTS tsm_system_rows;
-SELECT val FROM t TABLESAMPLE SYSTEM_ROWS(1000);
-```
+1. 训练聚类中心，并转换成 `(id, parent, vector)` 形式的行。下面的函数用 Faiss 完成这两件事；给 `Kmeans` 传入 `gpu=True` 即可在 GPU 上训练，余弦距离或归一化内积的嵌入传 `spherical=True`。
 
-基于这些样本，您可以将向量空间划分为多个 Voronoi 单元（Voronoi cells）。完成划分后，创建一张表并将分区质心插入其中。
+   ```python
+   import numpy as np
+   from faiss import Kmeans
 
-```sql
-CREATE TABLE public.t_build (id INTEGER NOT NULL UNIQUE, parent INTEGER, vector vector NOT NULL);
-INSERT INTO public.t_build (id, parent, vector) VALUES (0, NULL, '[0.1, 0.2, 0.3]');
-INSERT INTO public.t_build (id, parent, vector) VALUES (1, 0, '[0.1, 0.2, 0.3]');
-INSERT INTO public.t_build (id, parent, vector) VALUES (2, 0, '[0.4, 0.5, 0.6]');
-INSERT INTO public.t_build (id, parent, vector) VALUES (3, 0, '[0.7, 0.8, 0.9]');
-```
 
-随后可以使用以下语法创建索引：
+   def centroid_rows(samples, lists, spherical=False):
+       """Rows (id, parent, vector) for build.external.table.
 
-```sql
-CREATE INDEX ON t USING vchordrq (val vector_l2_ops) WITH (options = $$
-build.external.table = 'public.t_build'
-$$);
-```
+       `lists` is the index's `lists`, such as [400, 160000]. Each level is trained
+       on the centroids of the level below, and each centroid's parent is its
+       nearest centroid one level up.
+       """
+       samples = np.ascontiguousarray(samples, dtype=np.float32)
+       levels, data = [], samples
+       for k in reversed(lists):
+           kmeans = Kmeans(samples.shape[1], k, niter=10, seed=42, spherical=spherical)
+           kmeans.train(data)
+           data = kmeans.centroids
+           levels.append(data)
+       levels.append(data.mean(axis=0, keepdims=True))  # the root
+       levels.reverse()
 
-1.3.0 要求 `build.external.table` 使用 `schema.table` 格式，例如 `public.t_build`。索引构建使用受限的 `search_path`，未限定 schema 的名称会被拒绝，不会自动假定为 `public`。在需要重建或替换索引之前，已有索引仍可用于查询；相关操作包括带或不带 `CONCURRENTLY` 的 `REINDEX`、`TRUNCATE`、`VACUUM FULL`、`CLUSTER`、会重建索引的列类型变更，以及从转储恢复索引。升级前请先更新旧索引的配置，并保留 `options` 中的其他设置：
+       rows, upper, upper_ids, next_id = [], None, None, 0
+       for level in levels:
+           ids = np.arange(next_id, next_id + len(level))
+           next_id += len(level)
+           if upper is None:
+               parents = [None] * len(level)
+           else:
+               # squared L2 distance to every centroid one level up, without a 3-D array
+               d = (upper * upper).sum(axis=1) - 2 * level @ upper.T
+               parents = upper_ids[d.argmin(axis=1)].tolist()
+           rows += [(int(i), p, v.tolist()) for i, p, v in zip(ids, parents, level)]
+           upper, upper_ids = level, ids
+       return rows
+   ```
 
-```sql
-ALTER INDEX my_index SET (options = $$
-[build.external]
-table = 'public.t_build'
-$$);
-```
+1. 把这些行导入一张恰好有下面三列的表，例如用 `COPY`。向量字面量就是把列表写成文本，如 `[0.1, 0.2, 0.3]`。
 
-可以用下面的查询找出需要检查的外部构建配置：
+   ```sql
+   CREATE TABLE public.items_centroids (
+       id integer NOT NULL UNIQUE,
+       parent integer,
+       vector vector NOT NULL
+   );
+   ```
 
-```sql
-SELECT c.oid::regclass AS index_name, o.option_value
-FROM pg_class AS c
-JOIN pg_am AS am ON am.oid = c.relam
-CROSS JOIN LATERAL pg_options_to_table(c.reloptions) AS o
-WHERE am.amname = 'vchordrq'
-  AND o.option_name = 'options'
-  AND o.option_value LIKE '%external%';
-```
+1. 用这张表构建索引，表名必须带模式名：
 
-请检查返回的 TOML 配置，包括 `build.external.table = ...` 和 `[build.external]` 两种写法；外部表名都必须同时包含 schema 和 table。标识符沿用不带引号的语法，并转换为小写。
+   ```sql
+   CREATE INDEX ON public.items USING vchordrq (embedding vector_cosine_ops)
+   WITH (options = $$
+   residual_quantization = true
+   [build.external]
+   table = 'public.items_centroids'
+   $$);
+   ```
 
-<a id="Format"></a>
-## 表结构格式 {#format}
+   查询方式不变，`vchordrq.probes` 按树的层数给值，这里是两个。
+{.steps}
 
-存储分区信息的表必须严格遵循以下表结构（Schema）：
+## 聚类中心表的规则 {#format}
 
-- 第一列必须为 `id`，类型为 `integer`，不可为 null（`NOT NULL`），且必须唯一（`UNIQUE`）。
-- 第二列必须为 `parent`，类型为 `integer`，允许为 null（根节点为 `NULL`）。
-- 第三列必须为 `vector`，类型为 `vector`，不可为 null（`NOT NULL`）。目前尚不支持 `halfvec` 或其他类型。
+<a id="Format"></a><a id="schema-qualification"></a><a id="partitioning"></a><a id="Partitioning"></a>
 
-在逻辑上，这些数据构成一棵树：根节点的 `parent` 为 `NULL`，其他节点的 `parent` 必须指向已有的 `id`。所有节点必须从根可达，所有叶子深度相同；包含根在内的树高为 2–9 层。循环、不可达节点或超出高度限制都会报错。质心维度必须与索引列一致。
+`CREATE INDEX` 以及之后的每次重建都会检查这张表，违反规则就报错终止：
 
-也支持不显式提供根节点的单层分区：至少提供两个质心，并将所有 `parent` 设为 `NULL`，构建时会自动生成根节点。
+- **列**：`id integer NOT NULL` 且唯一；`parent integer`（只有根节点为 `NULL`）；`vector vector NOT NULL`，维度与被索引列相同。即使被索引的列是 `halfvec`，这里也用 `vector`。
+- **形状**：只有一个根，所有节点都能从根到达，所有叶子深度相同，算上根共 2 到 9 层，对应 1 到 8 层的 `lists`。
+- **单层**：可以省略根节点，给出至少两个 `parent = NULL` 的聚类中心，vchordrq 会自己补上根。
+- **表名**：`table` 必须写成 `schema.table`。构建在受限的 `search_path` 下运行，不带模式名会被拒绝。
 
-如果上述任何属性未得到满足，系统都会报错。
-
-<a id="Partitioning"></a>
-## 分区示例 {#partitioning}
-
-为了帮助您快速上手，下面给出一个使用 [faiss](https://github.com/facebookresearch/faiss) 执行向量空间分区的最小代码示例。
-
-```python
-from typing import List
-from faiss import Kmeans
-import numpy
-
-def partition(
-    samples: numpy.ndarray, lists: List[int]
-) -> List[numpy.ndarray]:
-    dim = samples.shape[1]
-    results = []
-    for i in range(len(lists) + 1):
-        kmeans = Kmeans(
-            dim,
-            lists[len(lists) - 1 - i] if len(lists) - 1 - i >= 0 else 1,
-            gpu=False,
-            verbose=True,
-            niter=10,
-            seed=42,
-            spherical=False,
-        )
-        kmeans.train(samples)
-        results.append(kmeans.centroids)
-        samples = kmeans.centroids
-    return results
-```
-
-这段代码会计算出不同层级上所有 Voronoi 单元的生成元（质心）。树中的父子关系可通过计算最短距离来确定，此处省略具体细节。您可以使用任何能够生成多级 Voronoi 单元的算法，例如球面 K-means（spherical K-means）、平衡 K-means（balanced K-means）或 GPU K-means。
+每次构建都会读取这张表，包括 `REINDEX`、`VACUUM FULL`、`CLUSTER`、`TRUNCATE` 和恢复备份，所以只要索引还在，就要保留它。

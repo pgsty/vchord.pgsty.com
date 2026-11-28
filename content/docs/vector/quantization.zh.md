@@ -23,7 +23,7 @@ math: true
 
 ---
 
-## 半精度浮点向量（`halfvec`）
+## 半精度浮点向量（`halfvec`） {#half-precision-vectors-halfvec}
 
 使用 `halfvec` 类型（自 `pgvector 0.7.0` 起引入）存储 16 位半精度浮点向量，相比 `vector` 可将表与索引体积直接缩减 50%：
 
@@ -36,7 +36,7 @@ CREATE TABLE items (
 CREATE INDEX ON items USING hnsw (embedding halfvec_l2_ops);
 ```
 
-### 半精度表达式索引（标量量化）
+### 半精度表达式索引（标量量化） {#half-precision-expression-indexing-scalar-quantization}
 
 如果您希望在表中保留完整的 32 位 `vector` 精度（或者需要为 2,001 至 4,000 维的向量建索引，例如 3,072 维的 OpenAI `text-embedding-3-large`），可以通过表达式索引将 `vector` 转换为 `halfvec`：
 
@@ -56,7 +56,7 @@ LIMIT 5;
 
 ---
 
-## 二值向量（`bit`）与二值量化
+## 二值向量（`bit`）与二值量化 {#binary-vectors-bit-binary-quantization}
 
 结合 PostgreSQL 内置的 `bit(n)` 类型与 `pgvector` 的汉明距离（`<~>`）及杰卡德距离（`<%>`）操作符，可存储并索引高达 **64,000 位**的二值向量：
 
@@ -75,7 +75,7 @@ SELECT * FROM items ORDER BY embedding <~> '101' LIMIT 5;
 CREATE INDEX ON items USING hnsw (embedding bit_hamming_ops);
 ```
 
-### 二值量化索引 + 全精度重排序（Re-Ranking）
+### 二值量化索引 + 全精度重排序（Re-Ranking） {#binary-quantization-with-full-precision-re-ranking}
 
 使用 `binary_quantize(vector)` 函数在表达式索引中将每个维度压缩为 1 比特（大于 `0` 为 `1`，否则为 `0`），并在子查询召回候选集后使用原始 `vector` 列执行精确重排：
 
@@ -93,11 +93,11 @@ LIMIT 5;
 
 ---
 
-## 稀疏向量（`sparsevec`）
+## 稀疏向量（`sparsevec`） {#sparse-vectors-sparsevec}
 
 使用 `sparsevec`（自 `pgvector 0.7.0` 起引入）存储绝大部分维度为零的稀疏向量（例如 SPLADE、BGE-M3 稀疏输出，或由 [`pg_bestmatch`](/zh/docs/bestmatch/) 生成的 BM25 词频权重向量）。
 
-### 稀疏向量字面量格式
+### 稀疏向量字面量格式 {#sparse-literal-format}
 
 语法格式为 `'{下标1:值1,下标2:值2}/总维度'`，其中下标**从 1 开始计数**：
 
@@ -118,7 +118,7 @@ CREATE INDEX ON items USING hnsw (embedding sparsevec_l2_ops);
 
 ---
 
-## 套娃（Matryoshka）子向量索引（`subvector`）
+## 套娃（Matryoshka）子向量索引（`subvector`） {#matryoshka-sub-vector-indexing-subvector}
 
 对于支持套娃表示学习（Matryoshka Representation Learning, MRL）的嵌入模型，可以使用 `subvector(vector, start, count)` 仅对前 \(M\) 个维度建立轻量级索引，再利用完整向量执行精确重排：
 

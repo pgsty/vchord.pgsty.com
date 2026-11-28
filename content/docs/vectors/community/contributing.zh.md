@@ -26,7 +26,7 @@ icon: fa-solid fa-handshake-angle
 我们的社区始终欢迎热心开发者以各种方式参与其中。
 
 <a id="simply-start-using-pgvecto-rs"></a>
-### ⚽ 开始使用 `pgvecto.rs` {#simply-start-using-pgvecto-rs}
+### ⚽ 开始使用 `pgvecto.rs` {#simply-start-using-pgvectors}
 
 阅读并跟随[快速开始](/zh/docs/vectors/getting-started/overview/)指南操作。一切是否都符合预期？如果遇到问题，我们随时欢迎改进建议。你可以在 [💬 Discord](https://discord.gg/KqswhpVgdU) 上与我们交流，或在 GitHub 上[提交 Issue](https://github.com/tensorchord/pgvecto.rs/issues/new/choose)。
 
@@ -40,7 +40,7 @@ icon: fa-solid fa-handshake-angle
 - 询问测试计划并协助审查代码（Code Review）。
 
 <a id="contribute-to-pgvecto-rs"></a>
-### 👨‍💻 为 `pgvecto.rs` 贡献代码 {#contribute-to-pgvecto-rs}
+### 👨‍💻 为 `pgvecto.rs` 贡献代码 {#contribute-to-pgvectors}
 
 如果你发现了想要修复的 Issue，欢迎提交 Pull Request。请先阅读[开发教程](/zh/docs/vectors/developers/development/)以快速上手。
 
@@ -49,6 +49,6 @@ icon: fa-solid fa-handshake-angle
 大家都喜欢清晰易读的文档。如果你发现任何令人困惑或可以改进的地方，可以点击大多数文档页面底部的“编辑此页”，直接跳转到 GitHub 界面进行修改并提交更改建议。
 
 <a id="discuss-pgvecto-rs-on-discord"></a>
-### 💬 在 Discord 上交流 `pgvecto.rs` {#discuss-pgvecto-rs-on-discord}
+### 💬 在 Discord 上交流 `pgvecto.rs` {#discuss-pgvectors-on-discord}
 
 欢迎加入我们的 [💬 Discord](https://discord.gg/KqswhpVgdU) 与社区一起交流讨论。

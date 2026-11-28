@@ -20,7 +20,7 @@
 {{- $inner = $inner | replaceRE `<span class="k">(true|false)</span>` `<span class="kc">$1</span>` -}}
 {{- $inner = $inner | replaceRE `<span class="n">(bigserial|vector|halfvec|rabitq4|rabitq8|tsvector|bm25vector|bm25query)</span>` `<span class="kt">$1</span>` -}}
 {{- $inner = $inner | replaceRE `<span class="n">(vchord|vchord_bm25|pg_tokenizer)</span>` `<span class="nc">$1</span>` -}}
-{{- $inner = $inner | replaceRE `<span class="n">(vchordrq|vchordg|bm25|vector_l2_ops|vector_ip_ops|vector_cosine_ops|vector_maxsim_ops|bm25_ops|to_bm25query|tokenize)</span>` `<span class="nf">$1</span>` -}}
-{{- $inner = $inner | replaceRE `<span class="n">(residual_quantization|lists|m|ef_construction|alpha|bits)</span>` `<span class="na">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(vchordrq|vchordg|bm25|vector_l2_ops|vector_ip_ops|vector_cosine_ops|vector_maxsim_ops|halfvec_l2_ops|halfvec_ip_ops|halfvec_cosine_ops|rabitq8_l2_ops|rabitq8_ip_ops|rabitq8_cosine_ops|rabitq4_l2_ops|rabitq4_ip_ops|rabitq4_cosine_ops|bm25_ops|to_bm25query|to_tsvector|analyze_to_tsvector|tokenize_to_tsvector|create_text_analyzer|create_tokenizer|tokenize)</span>` `<span class="nf">$1</span>` -}}
+{{- $inner = $inner | replaceRE `<span class="n">(residual_quantization|lists|m|ef_construction|ef_search|beam_construction|beam_search|alpha|bits)</span>` `<span class="na">$1</span>` -}}
 {{- $inner = $inner | replaceRE `<span class="p">\[</span><span class="n">build</span><span class="p">\.</span><span class="n">internal</span><span class="p">\]</span>` `<span class="nt">[build.internal]</span>` -}}
 {{- `<span class="chroma">` | safeHTML -}}{{- $inner | safeHTML -}}{{- `</span>` | safeHTML -}}

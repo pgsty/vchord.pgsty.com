@@ -1,7 +1,7 @@
 ---
 title: "迁移指南"
 linkTitle: "迁移指南"
-description: "从 pgvector 迁移到 PGVecto.rs 的完整步骤与注意事项。"
+description: "从 pgvector 迁移列类型与索引至历史扩展 pgvecto.rs（vectors）的操作参考。"
 weight: 60
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/pgvecto_rs/admin/migration.md"
 aliases:
@@ -9,187 +9,123 @@ aliases:
 icon: fa-solid fa-right-left
 ---
 
-# PGVecto.rs 迁移概览 {#pgvecto-rs-migration-overview}
+<a id="pgvecto-rs-migration-overview"></a>
 
-## 从 pgvector 迁移 {#from-pgvector}
+> [!IMPORTANT] 历史扩展维护提示（推荐使用 `vchord`）
+> `pgvecto.rs`（`vectors`）已停止演进并由 **[`vchord`](/zh/docs/vchord/)** 正式接替。`vchord` 直接复用 `pgvector` 的 `vector` 与 `halfvec` 列类型，无需转换表列即可直接建索引。新建项目或从 `pgvecto.rs` 升级至 `vchord`，请参阅 [`vchord` 升级与迁移指南](/zh/docs/vchord/admin/migration/)。
+
+## 从 `pgvector` 迁移 {#from-pgvector}
 
 <a id="Prerequisites"></a>
+
 ### 前置条件 {#prerequisites}
 
-从 `pgvector` 迁移到 `PGVecto.rs` 时，你通常已经有一张包含 `vector` 类型列的表。例如：
+假设现有业务已包含一张 `pgvector` 向量表与 HNSW 索引：
 
 ```sql
 CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
-```
-
-并且表中已经插入了一些数据行：
-
-```sql
 INSERT INTO items (embedding) VALUES ('[1,2,3]'), ('[4,5,6]');
-```
-
-在大多数情况下，表上还会有一个或多个向量索引：
-
-```sql
 CREATE INDEX ON items USING hnsw (embedding vector_l2_ops);
 ```
 
-这是使用 `pgvector` 时的典型场景。如果满足以下条件，即可开始迁移：
-
-- 请确认你的 `pgvector` 扩展并未安装在 `vectors` Schema 中。这意味着你可以在同一个数据库中同时安装 `pgvector` 和 `PGVecto.rs`。
+请确认 `pgvector`（`vector`）未安装在 `vectors` 模式下，以便 `pgvector` 与 `pgvecto.rs`（`vectors`）在迁移期间共存。
 
 ### 迁移步骤 {#steps-to-migration}
 
-<a id="1-install-pgvecto-rs"></a>
-#### 1. 安装 PGVecto.rs {#1-install-pgvecto-rs}
+#### 1. 安装 `pgvecto.rs` {#1-install-pgvecto-rs}
 
-请按照[安装指南](/zh/docs/vectors/getting-started/installation/)安装 `PGVecto.rs`，并确保 PostgreSQL 已加载该扩展。
+参照 [`pgvecto.rs` 安装指南](/zh/docs/vectors/getting-started/installation/)安装并预加载 `vectors` 扩展，随后创建扩展：
 
 ```sql
 CREATE EXTENSION vectors;
 ```
 
-此时，`pgvector` 和 `PGVecto.rs` 两个扩展已同时安装在 PostgreSQL 中。
-
-要验证安装结果，请在 `psql` 中运行 `\dx`。你会看到代表 `pgvector` 的 `vector` 扩展，以及代表 `PGVecto.rs` 的 `vectors` 扩展。
-
-```shell
-postgres=# \dx
-                                                 List of installed extensions
-  Name   | Version |   Schema   |                                         Description                                          
----------+---------+------------+----------------------------------------------------------------------------------------------
- plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
- vector  | 0.7.2   | public     | vector data type and ivfflat and hnsw access methods
- vectors | 0.3.0   | vectors    | vectors: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
-```
-
-请注意，这两个扩展中存在一些同名的类型和符号，这可能会在迁移过程中引起混淆。为了区分二者，请先确认当前的 `search_path` 中**不包含** `PGVecto.rs` 的 `vectors` Schema：
+运行 `\dx` 确认 `vector`（位于 `public`）与 `vectors`（位于 `vectors`）均已启用，并确保转换期间 `search_path` 中**暂不包含** `vectors`：
 
 ```sql
 SHOW search_path;
--- 如果显示为：`"$user", public` -> 正常
--- 如果显示为：`"$user", public, vectors` -> 请通过以下命令移除 `vectors`：
-SET search_path = "$user, public";
+-- 保持 "$user", public（转换列期间不要包含 vectors）：
+SET search_path = "$user", public;
 ```
 
 #### 2. 检查现有索引 {#2-check-existing-indexes}
 
-对于在向量列上创建的索引，请先查询其定义并记录下来，以便在后续阶段重建索引。
+在修改列类型前记录向量列上的索引定义：
 
 ```sql
-postgres=# SELECT indexdef FROM pg_indexes WHERE tablename = 'items';
-                                       indexdef                                        
----------------------------------------------------------------------------------------
- CREATE UNIQUE INDEX items_pkey ON public.items USING btree (id)
- CREATE INDEX items_embedding_idx ON public.items USING hnsw (embedding vector_l2_ops)
-(2 rows)
+SELECT indexdef FROM pg_indexes WHERE tablename = 'items';
 ```
 
 #### 3. 迁移向量列 {#3-migrate-vector-columns}
 
-要迁移 `pgvector` 的向量列，第一步是创建一个对应类型的 `PGVecto.rs` 向量列，第二步是将原列中的向量数据复制到新列中。
+从 `pgvector` 到 `pgvecto.rs` 的类型转换路径：
 
-以下是 `pgvector` 各向量类型的转换路径：
+- `vector` -> `real[]` -> `vectors.vector`
+- `halfvec` -> `vector` -> `real[]` -> `vectors.vector` -> `vectors.vecf16`
+- `bit` -> `text[]` -> `real[]` -> `vectors.vector` -> `vectors.bvector`
+- （`sparsevec` 暂不支持该转换路径。）
 
-- `vector(pgvector) -> real[] -> vector(PGVecto.rs)`
-- `halfvec -> vector(pgvector) -> real[] -> vector(PGVecto.rs) -> vecf16`
-- `bit -> text[] -> real[] -> vector(PGVecto.rs) -> bvector`
+**方法一：新增列复制并验证后再切换**
 
-目前暂不支持迁移以下向量类型：
-- `sparsevec`
-
-**方法一：先验证再替换**
-
-使用此方法，你可以在迁移过程中检查向量数据的正确性，而且无需担心原向量列上已创建的索引（在删除原列时索引会自动删除）。
-但这种方法需要额外的存储空间来同时保存迁移前后的向量数据。
-
-> [!WARNING]
-> 此步骤会导致一定的停机时间，原因包括：
-> - `ALTER TABLE ADD COLUMN` 会获取短暂的 `ACCESS EXCLUSIVE` 锁
-> - `UPDATE` 会持有较长时间的 `ROW EXCLUSIVE` 锁
-> - `ALTER TABLE DROP COLUMN` 会获取短暂的 `ACCESS EXCLUSIVE` 锁
+> [!WARNING] 锁开销提示
+> `ALTER TABLE ADD/DROP COLUMN` 会短暂获取 `ACCESS EXCLUSIVE` 锁，`UPDATE` 全表复制期间会持有 `ROW EXCLUSIVE` 锁并临时占用双倍存储空间。
 
 ```sql
--- 从 vector 类型转换
+-- 从 vector 转换
 ALTER TABLE items ADD COLUMN migrate_embedding vectors.vector(3);
 UPDATE items SET migrate_embedding = embedding::real[]::vectors.vector;
 
--- 从 halfvec 类型转换
+-- 从 halfvec 转换
 ALTER TABLE items ADD COLUMN migrate_embedding vectors.vecf16(3);
 UPDATE items SET migrate_embedding = embedding::vector::real[]::vectors.vector::vectors.vecf16;
 
--- 从 bit 类型转换
+-- 从 bit 转换
 ALTER TABLE items ADD COLUMN migrate_embedding vectors.bvector(3);
 UPDATE items SET migrate_embedding = string_to_array(embedding::text, NULL)::real[]::vectors.vector::vectors.bvector;
-```
 
-数据复制完成后，你可以通过 `SELECT` 检查数据，然后用新列替换旧列：
-
-```sql
+-- 校验无误后替换原列
 ALTER TABLE items DROP COLUMN embedding;
 ALTER TABLE items RENAME COLUMN migrate_embedding TO embedding;
 ```
 
-**方法二：原地转换（无需额外存储空间）**
+**方法二：原地转换列类型（`ALTER COLUMN TYPE`）**
 
-使用此方法，可以在一条命令内完成列类型转换，无需占用额外的列存储空间。
-但你需要提前手动删除该向量列上的索引。
-
-> [!WARNING]
-> 此步骤会导致一定的停机时间，原因包括：
-> - `ALTER TABLE ALTER COLUMN` 会持有较长时间的 `ACCESS EXCLUSIVE` 锁
+> [!WARNING] 锁开销提示
+> `ALTER TABLE ... ALTER COLUMN ... TYPE` 重写表期间会持续持有 `ACCESS EXCLUSIVE` 排他锁。
 
 ```sql
--- 索引名称来自第 2 步的查询结果
 DROP INDEX IF EXISTS items_embedding_idx;
 
--- 从 vector 类型转换
+-- 从 vector 转换
 ALTER TABLE items ALTER COLUMN embedding TYPE vectors.vector(3) USING embedding::real[]::vectors.vector;
 
--- 从 halfvec 类型转换
+-- 从 halfvec 转换
 ALTER TABLE items ALTER COLUMN embedding TYPE vectors.vecf16(3) USING embedding::vector::real[]::vectors.vector::vectors.vecf16;
 
--- 从 bit 类型转换
+-- 从 bit 转换
 ALTER TABLE items ALTER COLUMN embedding TYPE vectors.bvector(3) USING string_to_array(embedding::text, NULL)::real[]::vectors.vector::vectors.bvector;
 ```
 
 #### 4. 重建索引 {#4-recreate-index}
 
-要为 `PGVecto.rs` 的 `vector` 列重建索引，可以开启[兼容模式](/zh/docs/vectors/usage/compatibility/)并直接执行之前的索引创建语句：
+对于 `vectors.vector` 列可启用 [`pgvector` 兼容模式](/zh/docs/vectors/usage/compatibility/)，或直接使用 `USING vectors` 创建索引（详见 [`pgvecto.rs` 索引指南](/zh/docs/vectors/usage/indexing/)）：
 
 ```sql
-SET vectors.pgvector_compatibility=on;
--- 执行第 2 步中记录的命令
+SET vectors.pgvector_compatibility = on;
 CREATE INDEX items_embedding_idx ON public.items USING hnsw (embedding vector_l2_ops);
 ```
 
-对于其他向量类型（如 `halfvec`、`sparsevec` 和 `bit`），请参考[索引指南](/zh/docs/vectors/usage/indexing/)重新创建索引。目前 `pgvector_compatibility` 兼容模式暂不支持这些类型。
-
 #### 5. 清理环境 {#5-clean-the-environment}
 
-如果不再需要 `pgvector` 扩展，现在可以安全地将其卸载：
-
-```
-DROP extension vector;
-```
-
-卸载 `pgvector` 扩展后，建议重新设置 `search_path`，以确保可以在全局直接访问 `PGVecto.rs` 中的符号：
+确认不再需要 `pgvector` 后，可卸载 `vector` 并将 `vectors` 加入全局 `search_path`：
 
 ```sql
-SET search_path = "$user, public, vectors";
--- 或在全局级别设置
-ALTER SYSTEM SET search_path = "$user, public, vectors";
+DROP EXTENSION vector;
+ALTER SYSTEM SET search_path = "$user", public, vectors;
 ```
 
-### 验证结果 {#verify-the-result}
-
-迁移任务执行完毕后，你可以通过 `SELECT` 语句验证新列的数据与类型：
+### 验证迁移结果 {#verify-the-result}
 
 ```sql
-SELECT embedding, pg_typeof("embedding") from items limit 3;
-
--- embedding |   pg_typeof    
--------------+----------------
--- [1, 2, 3] | vectors.vector
--- [4, 5, 6] | vectors.vector
+SELECT embedding, pg_typeof(embedding) FROM items LIMIT 3;
 ```

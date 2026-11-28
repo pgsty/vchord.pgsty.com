@@ -1,170 +1,104 @@
 ---
-title: "安装指南"
-description: "通过 Pigsty、Docker、Debian 软件包或源码编译安装 VectorChord-BM25 (vchord_bm25) 与 pg_tokenizer。"
+title: "安装"
+linkTitle: "安装"
+description: "从 Pigsty 软件包、GitHub Release 软件包或源码安装 vchord_bm25，然后预加载并创建扩展。"
 weight: 20
 icon: fa-solid fa-download
 ---
 
-> [!IMPORTANT]
-> **1.1.0** 是当前 PGSTY 版本，沿用 1.0.0 引入的原生 `tsvector` API 与格式 4，健康的 1.0.0 索引可以原地升级且无需重建。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版；更换动态库前请阅读[迁移指南](/zh/docs/bm25/reference/migration/)。
+vchord_bm25 1.3.0 支持 Linux `x86_64` 与 `aarch64` 上的 PostgreSQL 15–19。任选一种方式安装文件，之后的[启用扩展](#enable)步骤都一样。
 
+| 方式 | 适用场景 |
+| --- | --- |
+| [Pigsty 软件包](#pigsty) | 运行 EL 8/9/10、Debian 12/13 或 Ubuntu 22.04/24.04，希望软件源一并配好。 |
+| [Debian/Ubuntu 软件包](#debian) | PostgreSQL 来自 PGDG（`apt.postgresql.org`），想直接用 GitHub 上的发布文件。 |
+| [ZIP 归档](#zip) | 其他基于 glibc 的 Linux，或自定义的 PostgreSQL 目录布局。 |
+| [源码编译](#source) | 其他平台，或 PostgreSQL 的编译选项与预编译包不一致。 |
 
-`vchord_bm25` 支持 Linux（`x86_64` 与 `aarch64`）及 macOS 平台上的 **PostgreSQL 14、15、16、17 和 18**。
+## Pigsty 软件包 {#pigsty}
 
-## 方式一：Pigsty / 原生操作系统软件包（推荐） {#method-1-pigsty--native-os-packages-recommended}
-
-[**Pigsty**](https://pgsty.com) 为 EL 8/9/10、Debian 12/13 以及 Ubuntu 22.04/24.04/26.04 上的 PostgreSQL 14–18 提供了预构建的 `vchord`、`vchord_bm25` 和 `pg_tokenizer` 原生 RPM 与 DEB 软件包。请选择与目标发行版、PostgreSQL 主版本和 CPU 架构匹配的软件包。
+[`pig`](https://pigsty.io/ext/e/vchord_bm25/) 会添加 PostgreSQL 与 Pigsty 软件源，并为它找到的 PostgreSQL 安装对应的包：
 
 ```bash
-# 通过 Pigsty CLI 安装（自动识别 PG 版本与操作系统发行版）
-pig ext install vchord_bm25
-pig ext install pg_tokenizer
+curl -fsSL https://repo.pigsty.io/pig | bash
+pig repo add pgsql -u
+pig ext add vchord_bm25
 ```
 
-配置好 Pigsty 软件源后，也可以直接通过 `apt` 或 `dnf` 安装：
+装了多个 PostgreSQL 大版本时，指定一个：`pig ext add vchord_bm25 -v 18`。要处理中文、日文或韩文，用同样的方式再装上 `pg_tokenizer`。[下载页](/zh/download/)和 [PGEXT 目录](https://pgext.cloud/ext/vchord_bm25)列出了各个软件包及其版本。
+
+## Debian/Ubuntu 软件包 {#debian}
+
+每个 [GitHub Release](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0) 都为每个 PostgreSQL 大版本和架构（`amd64`、`arm64`）提供一个 `.deb`。这些包在 Ubuntu 22.04 上构建，要求 `libc6 >= 2.35`，并依赖 PGDG 的服务端包 `postgresql-<大版本>`。
 
 ```bash
-# Debian / Ubuntu（将 17 替换为你的 PostgreSQL 主版本号）
-sudo apt-get install postgresql-17-vchord-bm25 postgresql-17-pg-tokenizer
-
-# RHEL / Rocky / AlmaLinux（将 17 替换为你的 PostgreSQL 主版本号）
-sudo dnf install vchord_bm25_17 pg_tokenizer_17
+V=1.3.0; PG=18; ARCH=amd64
+F=postgresql-${PG}-vchord-bm25_${V}-1_${ARCH}.deb
+wget https://github.com/pgsty/vchord_bm25/releases/download/${V}/${F}{,.sha256}
+sha256sum -c ${F}.sha256
+sudo apt install ./${F}
 ```
 
-## 方式二：Docker（`tensorchord/vchord-suite`） {#method-2-docker-tensorchordvchord-suite}
+## ZIP 归档 {#zip}
 
-> [!WARNING]
-> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
-
-官方 `tensorchord/vchord-suite` Docker 镜像开箱即用地集成了 **PostgreSQL**、**VectorChord (`vchord`)**、**VectorChord-BM25 (`vchord_bm25`)** 以及 **`pg_tokenizer`**：
+同一个 Release 还为每个 PostgreSQL 大版本和架构（`x86_64`、`aarch64`）提供 `.zip`。共享库在 `pkglibdir/` 下，控制文件和 SQL 文件在 `sharedir/extension/` 下，复制到 `pg_config` 报告的目录即可：
 
 ```bash
-docker run \
-  --name vchord-suite \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d tensorchord/vchord-suite:pg18-latest
+V=1.3.0; PG=18; ARCH=x86_64
+curl -fsSLO https://github.com/pgsty/vchord_bm25/releases/download/${V}/postgresql-${PG}-vchord-bm25_${V}_${ARCH}-linux-gnu.zip
+unzip postgresql-${PG}-vchord-bm25_${V}_${ARCH}-linux-gnu.zip -d vchord_bm25
+sudo install -m 755 vchord_bm25/pkglibdir/vchord_bm25.so "$(pg_config --pkglibdir)/"
+sudo install -m 644 vchord_bm25/sharedir/extension/* "$(pg_config --sharedir)/extension/"
 ```
 
-> [!NOTE]
-> 你也可以从 GitHub Container Registry 拉取镜像：`ghcr.io/tensorchord/vchord-suite:pg18-latest`（或 `pg17-latest`、`pg16-latest`、`pg15-latest`、`pg14-latest`）。
+`install` 会写出一个新文件，而不是原地覆盖旧文件，这样已加载该库的服务器进程不会因此崩溃。归档基于 glibc 2.35 上的 PGDG PostgreSQL 构建；编译选项不同的 PostgreSQL 可能需要[从源码编译](#source)。
 
-使用 `psql` 连接数据库：
+## 从源码编译 {#source}
 
-```bash
-psql -h localhost -p 5432 -U postgres
-```
-
-## 方式三：GitHub Release 发行归档（`.deb` 与 `.zip`） {#method-3-github-release-deb-packages}
-
-从 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25) 与 [`pgsty/pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) 的 GitHub Releases 页面下载与你的 PostgreSQL 主版本（`14`–`18`）和 CPU 架构（`amd64` / `x86_64` 或 `arm64` / `aarch64`）匹配的发行归档。`.deb` 必须匹配确切的 Debian/Ubuntu 发行版；ZIP 不包含软件包管理器依赖元数据，安装前必须验证目标主机的 libc 兼容性。EL 系统有对应原生 RPM 时应优先使用 RPM：
-
-### Debian / Ubuntu（`.deb`） {#debian--ubuntu-deb}
+需要 PostgreSQL 15–19 的开发文件（`pg_config`）、GNU Make、Rust 1.100.0 或更高版本，以及版本匹配的 Clang、libclang 与 LLVM 工具，平台为 `x86_64` 或 `aarch64`。
 
 ```bash
-# 安装 vchord_bm25（以 x86_64 上的 PostgreSQL 16 为例）
-curl -LO https://github.com/pgsty/vchord_bm25/releases/download/1.1.0/postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-vchord-bm25_1.1.0-1_amd64.deb
-
-# 安装 pg_tokenizer 1.1.0（Ubuntu 24.04、PostgreSQL 16、x86_64）
-curl -LO https://github.com/pgsty/pg_tokenizer/releases/download/v1.1.0/postgresql-16-pg-tokenizer_1.1.0-1_amd64.deb
-sudo apt-get install ./postgresql-16-pg-tokenizer_1.1.0-1_amd64.deb
-```
-
-### 手工安装 ZIP 归档 {#rhel-9--enterprise-linux-zip-archive}
-
-如果没有匹配的原生软件包，可以在确认 PostgreSQL 主版本、CPU 架构和目标系统 libc 兼容后手工安装 ZIP 归档：
-
-```bash
-# 1. 查询 PostgreSQL 的动态库目录与扩展共享目录
-pg_config --pkglibdir
-# 示例输出：/usr/pgsql-16/lib
-pg_config --sharedir
-# 示例输出：/usr/pgsql-16/share
-
-# 2. 下载并解压发布归档包
-wget https://github.com/pgsty/pg_tokenizer/releases/download/v1.1.0/postgresql-16-pg-tokenizer_1.1.0_x86_64-linux-gnu.zip
-unzip postgresql-16-pg-tokenizer_1.1.0_x86_64-linux-gnu.zip -d pg_tokenizer
-
-# 3. 安装共享库 (.so) 与扩展控制/SQL 脚本文件
-sudo install -m 755 pg_tokenizer/pg_tokenizer.so "$(pg_config --pkglibdir)/"
-sudo install -m 644 pg_tokenizer/pg_tokenizer--*.sql pg_tokenizer/pg_tokenizer.control "$(pg_config --sharedir)/extension/"
-```
-
-使用 `install` 替换共享库，避免就地截断 PostgreSQL 可能已经加载的文件。安装后重启 PostgreSQL，以加载安装的共享库。
-
-## 方式四：从源码编译 {#method-4-build-from-source-cargo-pgrx}
-
-如需从源码编译 [`pgsty/vchord_bm25`](https://github.com/pgsty/vchord_bm25)：
-
-```bash
-# 1. 安装 Rust 工具链及系统构建依赖（clang、libclang、pkg-config、PostgreSQL 开发头文件）
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# 2. 编译并安装 vchord_bm25
-git clone https://github.com/pgsty/vchord_bm25.git
+git clone --branch 1.3.0 --depth 1 https://github.com/pgsty/vchord_bm25.git
 cd vchord_bm25
 PG_CONFIG=/path/to/pg_config make build
-PG_CONFIG=/path/to/pg_config make install
+sudo make PG_CONFIG=/path/to/pg_config install
 ```
 
-> [!TIP]
-> **编译期启用可选的 Lindera 词典特性**：如果希望将 Lindera 中日韩形态学词典（`ipadic`、`ipadic-neologd`、`unidic`、`ko-dic`、`cc-cedict`）直接内嵌编译到 `pg_tokenizer.so` 中，请在编译 `pg_tokenizer` 时传入 `--features` 参数：
-> ```bash
-> cargo pgrx install --release --pg-config $(which pg_config) \
->   --features "lindera-ipadic lindera-ipadic-neologd lindera-unidic lindera-ko-dic lindera-cc-cedict"
-> ```
+装有多个 LLVM 版本时，用 `CLANG_PATH` 和 `LIBCLANG_PATH` 指定其中一个。如果 Clang 会加载默认配置文件（例如 Homebrew 的 Clang），设置 `CLANG_NO_DEFAULT_CONFIG=1`。
 
-### 本地开发与调试 {#development--debugging-cargo-pgrx}
+## 启用扩展 {#enable}
 
-使用 `dev` 构建配置，在开启 BM25 编译优化的同时保留调试符号：
+1. 把 `vchord_bm25` 加入 `shared_preload_libraries`（保留列表里已有的库），然后重启 PostgreSQL。跳过这一步，`CREATE EXTENSION` 会报错：`vchord_bm25 must be loaded via shared_preload_libraries.`
 
-```bash
-PG_CONFIG=/path/to/pg_config PROFILE=dev make build
-PG_CONFIG=/path/to/pg_config PROFILE=dev make install
-```
+   同一个实例里还有 vchord 和 pg_tokenizer 时，三个都要列上：
 
-在配置预加载 `vchord_bm25` 后重启一个可丢弃的 PostgreSQL 测试实例，再通过 `psql` 连接。需要附加调试器时，可查询当前会话的后端进程 PID：
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'vchord,vchord_bm25,pg_tokenizer';
+   ```
 
-```sql
-SELECT pg_backend_pid();
-```
+1. 以超级用户身份，在每个需要它的数据库中创建扩展：
 
-## 配置 PostgreSQL 并启用扩展 {#configure-postgresql--enable-extensions}
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+   ```
 
-### 1. 配置 `shared_preload_libraries`（1.1.0 必需） {#1-shared-preload-libraries-optional--recommended-for-pg_tokenizer}
+   对象会建在当前模式下，通常是 `public`；用 `WITH SCHEMA` 可以换一个模式。如果这个模式不在查询角色的 `search_path` 中，运算符、运算符类和函数都要写全限定名：`OPERATOR(search.<&>)`、`search.bm25_ops`、`search.to_bm25query(...)`。
 
-1.1.0 必须通过 `shared_preload_libraries` 预加载 `vchord_bm25`。请保留其他所需扩展；原生 `to_tsvector` 工作流不需要 `pg_tokenizer`，如果安装它来使用自定义分词，则应在 PostgreSQL 启动前将其加入同一设置：
+1. 确认版本：
 
-```ini
-shared_preload_libraries = 'vchord_bm25'
-# 如果使用 pg_tokenizer 1.0.0 做自定义分词：
-# shared_preload_libraries = 'vchord_bm25, pg_tokenizer'
-```
+   ```sql
+   SELECT extversion FROM pg_extension WHERE extname = 'vchord_bm25';
+   ```
+{.steps}
 
-修改 `shared_preload_libraries` 后请重启 PostgreSQL。
+vchord_bm25 会创建名为 `bm25` 的索引访问方法。另一个扩展如果也有同名的访问方法（例如 ParadeDB 的 `pg_search`），就不能装在同一个数据库里：后执行的 `CREATE EXTENSION` 会报错 `access method "bm25" already exists`。
 
-### 2. 创建扩展并设置 `search_path` {#2-create-extensions-and-set-search_path}
+接下来，跟着[快速上手](/zh/docs/bm25/getting-started/overview/#quick-start)走一遍，或者直接看[建索引](/zh/docs/bm25/usage/indexing/)。
 
-连接到目标数据库并启用扩展：
+## 升级 {#upgrade}
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vchord_bm25;
--- pg_tokenizer 是旧版 bm25vector 工作流的独立可选扩展。
-```
+安装新版本文件，重启 PostgreSQL，然后在每个数据库中执行 `ALTER EXTENSION vchord_bm25 UPDATE;`。1.0.0 及之后版本建的索引无需重建即可继续使用。从 PostgreSQL 14 升级、降级，或从 0.x 的 `bm25vector` 接口迁移，见[升级与迁移](/zh/docs/bm25/reference/migration/)。
 
-在 `v0.1.0`–`v0.3.0` 版本中，`vchord_bm25` 会将其对象安装到 `bm25_catalog` 模式，而 `pg_tokenizer` 会安装到 `tokenizer_catalog` 模式。请将这两个模式加入你的 `search_path`：
+## Docker {#docker}
 
-```sql
--- 仅在当前会话生效
-SET search_path TO "$user", public, bm25_catalog, tokenizer_catalog;
-
--- 或针对数据库 / 角色持久化保存
-ALTER DATABASE postgres SET search_path TO "$user", public, bm25_catalog, tokenizer_catalog;
-```
-
-验证已安装的扩展版本：
-
-```sql
-SELECT extname, extversion FROM pg_extension WHERE extname IN ('vchord_bm25', 'pg_tokenizer');
-```
+PGSTY 不发布容器镜像。`tensorchord/vchord-suite` 镜像里是 0.x 的 `bm25vector` 接口，不是本文档描述的接口。要在容器里运行当前版本，请在自己的镜像中安装 `.deb` 包。

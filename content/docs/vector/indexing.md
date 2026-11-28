@@ -19,11 +19,11 @@ By default, `pgvector` performs exact nearest-neighbor search (sequential scan),
 
 ---
 
-## HNSW Indexes
+## HNSW Indexes {#hnsw-indexes}
 
 An HNSW index constructs a multilayer navigation graph. Unlike IVFFlat, it has no training phase, so you can create an HNSW index on an empty table before loading data.
 
-### Creating an HNSW Index
+### Creating an HNSW Index {#creating-an-hnsw-index}
 
 Create an index matching the distance operator used in your queries:
 
@@ -53,7 +53,7 @@ Supported dimensionality limits for HNSW:
 - `bit`: up to **64,000** dimensions
 - `sparsevec`: up to **1,000** non-zero elements
 
-### HNSW Build Parameters
+### HNSW Build Parameters {#hnsw-build-parameters}
 
 - `m` (default `16`, range `2`–`100`): Maximum number of bidirectional links per node per layer. Higher `m` improves recall on high-intrinsic-dimensionality datasets at the cost of larger index size and longer build times.
 - `ef_construction` (default `64`, range `4`–`1000`): Size of the dynamic candidate list during graph construction. Must be \(\ge 2 \times m\).
@@ -63,7 +63,7 @@ CREATE INDEX ON items USING hnsw (embedding vector_l2_ops)
 WITH (m = 16, ef_construction = 64);
 ```
 
-### HNSW Query Options
+### HNSW Query Options {#hnsw-query-options}
 
 Specify the size of the dynamic candidate list during search (`hnsw.ef_search`, default `40`, range `1`–`1000`). Higher values increase recall at the cost of latency:
 
@@ -77,7 +77,7 @@ SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 COMMIT;
 ```
 
-### Accelerating HNSW Index Builds
+### Accelerating HNSW Index Builds {#accelerating-hnsw-index-builds}
 
 HNSW construction speed drops sharply once the graph no longer fits into `maintenance_work_mem`. Before building an HNSW index on a large table, increase `maintenance_work_mem` and `max_parallel_maintenance_workers`:
 
@@ -91,14 +91,14 @@ SET max_parallel_maintenance_workers = 7; -- plus leader = 8 total workers
 
 ---
 
-## IVFFlat Indexes
+## IVFFlat Indexes {#ivfflat-indexes}
 
 An IVFFlat index partitions vectors into `lists` Voronoi cells using k-means clustering, and at query time inspects the closest `ivfflat.probes` lists.
 
 > [!WARNING] Create IVFFlat After Loading Data
 > Because IVFFlat computes k-means centroids during `CREATE INDEX`, you **must** load representative data into the table before creating the index.
 
-### Creating an IVFFlat Index
+### Creating an IVFFlat Index {#creating-an-ivfflat-index}
 
 Choose `lists` based on table size:
 - Up to 1 million rows: `rows / 1000`
@@ -123,7 +123,7 @@ Supported dimensionality limits for IVFFlat:
 - `halfvec`: up to **4,000** dimensions
 - `bit`: up to **64,000** dimensions
 
-### IVFFlat Query Options
+### IVFFlat Query Options {#ivfflat-query-options}
 
 Set the number of lists probed per query (`ivfflat.probes`, default `1`). A good starting point is `sqrt(lists)`:
 
@@ -136,9 +136,9 @@ COMMIT;
 
 ---
 
-## Index Build Progress & Maintenance
+## Index Build Progress & Maintenance {#index-build-progress-maintenance}
 
-### Monitoring Index Build Progress
+### Monitoring Index Build Progress {#monitoring-index-build-progress}
 
 Query `pg_stat_progress_create_index` while `CREATE INDEX` is running:
 
@@ -152,7 +152,7 @@ FROM pg_stat_progress_create_index;
 - **HNSW phases**: `initializing` \(\rightarrow\) `loading tuples`
 - **IVFFlat phases**: `initializing` \(\rightarrow\) `performing k-means` \(\rightarrow\) `assigning tuples` \(\rightarrow\) `loading tuples`
 
-### Vacuuming HNSW Indexes
+### Vacuuming HNSW Indexes {#vacuuming-hnsw-indexes}
 
 Vacuuming an HNSW index after heavy deletes can be slow because graph links must be repaired. To speed up `DELETE` + `VACUUM` cycles on HNSW tables, rebuild the index concurrently first:
 

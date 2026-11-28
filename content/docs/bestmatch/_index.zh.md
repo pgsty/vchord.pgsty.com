@@ -10,7 +10,7 @@ upstream_source: bestmatch
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs
 upstream_modified: true
 aliases:
-  - "/zh/bestmatch/"
+  - "/bestmatch/"
 no_list: true
 cascade:
   type: docs
@@ -23,13 +23,13 @@ cascade:
 > [!IMPORTANT] 演进推荐：`vchord_bm25` + `pg_tokenizer`
 > `pg_bestmatch.rs` 是 TensorChord 第一代基于稀疏向量内积的 BM25 检索方案。对于新建生产环境，我们推荐使用新一代 [`vchord_bm25`](/zh/docs/bm25/) 搭配 [`pg_tokenizer`](/zh/docs/tokenizer/)——它采用专门设计的 **Block-WeakAnd（WAND）** 倒排索引替代了稀疏向量 HNSW 近似图检索，支持 100% 精确的 Top-K BM25 计分与更高吞吐量。
 
-## 核心能力
+## 核心能力 {#key-capabilities}
 
 - **数据库内原生生成 BM25 稀疏向量**：在 `bm25_catalog` 模式中维护语料库词频（TF）、逆文档频率（IDF）与平均文档长度统计信息，直接为文档与查询生成 BM25 稀疏向量。
 - **无缝对接 [`pgvector`](/zh/docs/vector/) 与 [`pgvecto.rs`](/zh/docs/vectors/)**：支持直接输出标准 `sparsevec`（`pgvector 0.7.0+`）或 `svector`（`pgvecto.rs`），使用负内积操作符 `<#>` 即可计算 BM25 得分并利用 HNSW 索引加速。
 - **内置分词器**：内置 HuggingFace `bert-base-uncased` WordPiece 词表（`30,522` 维），并提供独立的 `tokenize(text)` SQL 分词函数。
 
-## 文档章节导航
+## 文档章节导航 {#documentation-sections}
 
 {{< cards >}}
 {{< card title="安装与工作原理" icon="fa-solid fa-rocket" link="/zh/docs/bestmatch/getting-started/" >}}

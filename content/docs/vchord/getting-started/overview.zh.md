@@ -1,108 +1,90 @@
 ---
 title: "概览"
 linkTitle: "概览"
-description: "vchord 是一款专为可扩展、高性能及高磁盘效率的向量相似性检索而设计的 PostgreSQL 扩展。"
+description: "vchord 是什么、为 pgvector 用户解决什么问题、两种索引怎么选，以及五分钟上手。"
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/getting-started/overview.md"
 aliases:
-  - "/zh/docs/getting-started/overview/"
+  - "/docs/getting-started/overview/"
   - "/vectorchord/getting-started/overview/"
 icon: fa-solid fa-compass
 ---
 
-`vchord` 是一款专为可扩展、高性能且磁盘高效的向量相似性检索而设计的 PostgreSQL 扩展。
+`vchord` 是一个 PostgreSQL 扩展，为 [pgvector](/zh/docs/vector/) 的向量列提供两种近似最近邻（ANN）索引。表结构、向量类型和查询语句都不用改：把 `hnsw` 或 `ivfflat` 换成 `vchordrq` 或 `vchordg` 索引，原来的 `ORDER BY embedding <-> $1 LIMIT 10` 就会走新索引。
 
-借助 `vchord`，您仅需 1 美元即可存储 400,000 个向量，从而显著节省成本：在同等价格下，可存储的向量数量是 Pinecone 优化型存储的 6 倍，是 pgvector/pgvecto.rs 的 26 倍[^1]。欲了解更多详情，请参阅我们的[发布博文](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)。
+## 为什么需要 vchord {#why}
 
-<a id="Features"></a>
-## 核心特性 {#features}
+pgvector 的 HNSW 索引在整张图都放得进内存时很快。但它的每个索引条目都存着一份完整向量，索引至少和向量本身一样大，而且在图上每走一步都是一次随机页读取。向量到了几千万条，索引就装不进内存了：构建要花上几个小时，查询延迟取决于磁盘。
 
-相较于 pgvecto.rs 和 pgvector，`vchord` 带来了显著的增强：
+vchord 的主力索引 `vchordrq` 就是为这个规模设计的：
 
-**⚡ 性能大幅提升**：与 pgvector 的 HNSW 实现相比，经过全面优化的操作可提供最高 5 倍的查询加速、16 倍的写入吞吐量提升，以及 16 倍的索引构建提速[^1]。
+- **内存占用小。** 向量按聚类中心分成若干列表（IVF），每个向量还会存成每维只占几个比特的 [RaBitQ](https://arxiv.org/abs/2405.12497) 编码。查询时只需要聚类中心常驻内存，需要的列表从磁盘顺序读取。
+- **构建快。** 聚类只在样本上做，可以多线程并行，也可以[放到数据库外的 GPU 上](/zh/docs/vchord/usage/external-build/)。在一台 16 vCPU 的机器上，1 亿条 768 维向量 18 分钟建完索引，构建内存 6 GiB（[配置](/zh/docs/vchord/usage/partitioning-tuning/#laion-100m)）。
+- **最终用精确距离。** 压缩编码只负责筛出候选，返回之前，vchord 会用与 SQL 相同的 `<->`、`<#>` 或 `<=>` 精确距离对候选重新排序。
 
-[^1]: 基于 [MyScale Benchmark](https://myscale.github.io/benchmark/) 测试（768 维向量，95% 召回率）。更多详情请参阅我们的[博文](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)。
+在一台 4 vCPU、32 GB 内存的服务器上，1 亿条 768 维向量可以在 top-10 召回率 0.95 下提供查询服务（[基准测试](/zh/docs/vchord/benchmark/performance/#laion-100m-on-i4ixlarge)）。
 
-**💰 高性价比向量检索**：仅需 32GB 内存即可查询 1 亿条 768 维向量，在保持 Top-10 召回率达 95% 的同时实现 35ms 的 P50 延迟，助您在保障高质量检索的同时大幅降低基础设施成本。
+## 选择索引 {#choose-an-index}
 
-**🔌 无缝集成**：完全兼容 pgvector 的数据类型与语法，并提供开箱即用的最优默认配置——无需手动调优参数。只需直接引入 `vchord`，即可获得性能跃升。
+| | `vchordrq` | `vchordg` |
+| --- | --- | --- |
+| 结构 | RaBitQ 编码组成的 IVF 列表，精确重排 | 基于 RaBitQ 编码的图，精确重排 |
+| 适合 | 表比内存大、需要快速构建、按租户或类别过滤 | 索引放得进内存，想要低延迟又不想选列表数 |
+| 需要调的参数 | 构建时 `lists`；查询时 `probes` 和 `epsilon` | 构建时 `m`、`ef_construction`；查询时 `ef_search` |
+| 独有功能 | [过滤键](/zh/docs/vchord/usage/filtering/#filter-keys)、[多向量 MaxSim](/zh/docs/vchord/usage/multi-vector-retrieval/)、[外部构建](/zh/docs/vchord/usage/external-build/) | |
+| 最大维度 | 60,000 | 30,000 |
+{.wide}
 
-**🔧 加速索引构建**：支持利用 IVF 在外部（例如 GPU 上）构建索引以加快 KMeans 聚类速度，并结合 RaBitQ[^2] 压缩算法高效存储向量，同时通过自适应重排序（reranking）确保检索质量。
+拿不准就先用 `vchordrq`：它支持全部功能，数据超出内存后也照样能用。两种索引都支持 pgvector 的 `vector`、`halfvec`，以及 vchord 自带的压缩类型 [`rabitq8` 和 `rabitq4`](/zh/docs/vchord/usage/quantization-types/)。
 
-[^2]: Gao, Jianyang, and Cheng Long. "RaBitQ: Quantizing High-Dimensional Vectors with a Theoretical Error Bound for Approximate Nearest Neighbor Search." Proceedings of the ACM on Management of Data 2.3 (2024): 1-27.
+## 快速上手 {#quick-start}
 
-**📏 超长向量支持**：支持存储和检索最高达 60,000[^3] 维的向量，让您轻松使用 `text-embedding-3-large` 等顶尖高维模型。
+vchord 1.5.0 支持 Linux `x86_64` 与 `aarch64` 上的 PostgreSQL 15–19，依赖 pgvector。其他安装方式见[安装](/zh/docs/vchord/getting-started/installation/)。
 
-[^3]: 目前 pgvector 存在 16,000 维的[限制](https://github.com/pgvector/pgvector#vector-type)。如果您确实需要处理更高维度的向量（`16,000<dim<60,000`），可以考虑修改 [VECTOR_MAX_DIM](https://github.com/pgvector/pgvector/blob/fef635c9e5512597621e5669dce845c744170822/src/vector.h#L4) 并自行编译 pgvector。
+1. 从 Pigsty 软件源安装：
 
-**🌐 按需灵活扩展**：基于水平扩展架构，针对 500 万或 1 亿条 768 维向量的查询可轻松扩展至 10,000+ QPS（Top-10 召回率达 90%），且具备极具竞争力的成本优势[^4]。
+   ```bash
+   curl -fsSL https://repo.pigsty.io/pig | bash
+   pig repo add pgsql -u
+   pig ext add vchord
+   ```
 
-[^4]: 更多详情请参阅我们的[博文](/zh/blog/post/vector-search-at-10000-qps-in-postgresql-with-vectorchord/)，其中 PostgreSQL 的水平扩展能力由 [CloudNative-PG](https://github.com/cloudnative-pg/cloudnative-pg) 提供支持。
+1. 预加载动态库并重启 PostgreSQL。跳过这一步，`CREATE EXTENSION` 会报错 `vchord must be loaded via shared_preload_libraries`。列表里已有的库要保留。
 
-## 快速开始 {#quick-start}
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'vchord';
+   ```
 
-对于新用户，建议从 Pigsty 安装当前的 `vchord` 1.2.0 软件包，或构建
-`pgsty/vchord` 1.2.0 源码版本。软件包、源码以及历史上游 Docker 方式请参阅[安装指南](/zh/docs/vchord/getting-started/installation/)。
+1. 在数据库中创建扩展。`CASCADE` 会一并创建 pgvector 的 `vector` 扩展。
 
-```bash
-pig ext add vchord
-```
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+   ```
 
-将 `vchord` 加入 `shared_preload_libraries`，重启 PostgreSQL，然后使用
-`psql` 连接。安装指南中的 Docker 镜像链接属于 TensorChord 历史镜像，包含较早的上游构建。
+1. 建表、建索引、查询：
 
-然后使用您为 PostgreSQL 集群配置的凭据，通过 `psql` 命令行工具连接：
+   ```sql
+   CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
 
-```bash
-psql -U postgres
-```
+   INSERT INTO items (embedding)
+   SELECT ARRAY[random(), random(), random()]::real[]
+   FROM generate_series(1, 1000);
 
-现在，您可以开始体验 VectorChord 了！
+   CREATE INDEX ON items USING vchordrq (embedding vector_l2_ops);
 
-VectorChord 依赖于 pgvector（包括其向量数据表示形式）。由于您可以直接使用它们，您的应用程序可以毫无痛点地轻松完成迁移！
+   SELECT id FROM items ORDER BY embedding <-> '[3, 1, 2]' LIMIT 5;
+   ```
+{.steps}
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-```
+这个索引只有一个列表，适合小表。正式的表要按行数选 `lists`，见 [vchordrq 索引](/zh/docs/vchord/usage/indexing/#lists)。
 
-与 pgvector 类似，您可以创建一张包含向量列的表，并向其中插入一些数据。
+## 接下来 {#next-steps}
 
-```sql
-CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
-INSERT INTO items (embedding) SELECT ARRAY[random(), random(), random()]::real[] FROM generate_series(1, 1000);
-```
+- **给生产表建索引**：[vchordrq 索引](/zh/docs/vchord/usage/indexing/)，再用[召回率评估](/zh/docs/vchord/usage/measure-recall/)调参。
+- **过滤结果**（按租户、类别或距离）：[过滤](/zh/docs/vchord/usage/filtering/)。
+- **从 pgvector 或 pgvecto.rs 迁移**：[迁移](/zh/docs/vchord/admin/migration/)。
+- **加上关键词检索**：[Vchord 套件](/zh/docs/vchord/getting-started/vectorchord-suite/)在同一个数据库里把 vchord 和 BM25 排序组合起来。
 
-借助 VectorChord，您可以创建 `vchordrq` 索引：
+## 许可证 {#license}
 
-```SQL
-CREATE INDEX ON items USING vchordrq (embedding vector_l2_ops);
-```
-
-然后使用 `SELECT ... ORDER BY ... LIMIT ...` 执行向量检索：
-
-```SQL
-SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
-```
-
-欲了解更多用法，请阅读：
-
-- [构建索引](/zh/docs/vchord/usage/indexing/)
-- [多向量检索](/zh/docs/vchord/usage/multi-vector-retrieval/)
-- [图索引](/zh/docs/vchord/usage/graph-index/)
-- [量化类型](/zh/docs/vchord/usage/quantization-types/)
-- [相似度过滤](/zh/docs/vchord/usage/similarity-filter/)
-- [PostgreSQL 调优](/zh/docs/vchord/usage/postgresql-tuning/)
-- [监控](/zh/docs/vchord/usage/monitoring/)
-- [回退参数](/zh/docs/vchord/usage/fallback-parameters/)
-- [评估召回率](/zh/docs/vchord/usage/measure-recall/)
-- [索引预热](/zh/docs/vchord/usage/prewarm/)
-- [预过滤](/zh/docs/vchord/usage/prefilter/)
-- [预取优化](/zh/docs/vchord/usage/prefetch/)
-- [表内重排序](/zh/docs/vchord/usage/rerank-in-table/)
-- [分区调优](/zh/docs/vchord/usage/partitioning-tuning/)
-- [外部构建](/zh/docs/vchord/usage/external-build/)
-
-<a id="License"></a>
-## 开源许可 {#license}
-
-`vchord` 采用 **GNU Affero 通用公共许可证 v3.0（[`AGPL-3.0-only`](https://github.com/pgsty/vchord/blob/main/LICENSE)）** 发布。我们欢迎任何商业合作或支持咨询，如有任何问题或需求，请发送邮件至 [rh@vonng.com](mailto:rh@vonng.com)。
+vchord 以 [AGPL-3.0](https://github.com/pgsty/vchord/blob/main/LICENSE) 许可证发布，是 TensorChord VectorChord 的分支，由 [PGSTY](https://pgsty.com) 维护。商业授权或技术支持请联系 [rh@vonng.com](mailto:rh@vonng.com)。

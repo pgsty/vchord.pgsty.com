@@ -1,24 +1,24 @@
 ---
-title: "Reference & Benchmarks"
-description: "Complete SQL reference, GUC parameters, benchmarks, and version history for vchord_bm25 and pg_tokenizer."
+title: "Reference"
+description: "SQL objects, settings and index options, upgrade and migration, and benchmarks for vchord_bm25."
 weight: 40
 icon: fa-solid fa-book
 no_list: true
 ---
 
-Complete technical reference for **`vchord_bm25`** and **`pg_tokenizer`**:
+Each operator, function, setting, and index option is defined once in these pages; the usage guides link here. The migration page also holds the release history.
 
 {{< cards >}}
-  {{< card link="/docs/bm25/reference/sql/" title="SQL Reference (Types, Operators, Functions)" icon="fa-solid fa-code" >}}
-Complete reference for `bm25vector`, `bm25query`, `tsvector`, `<&>`, `to_bm25query`, `bm25_page_inspect`, and `pg_tokenizer` SQL functions.
+  {{< card link="/docs/bm25/reference/sql/" title="SQL reference" icon="fa-solid fa-code" >}}
+The `bm25query` type, the `<&>` operator and its score formula, `to_bm25query`, `bm25_maintain`, and the `bm25` access method.
 {{< /card >}}
-  {{< card link="/docs/bm25/reference/gucs/" title="GUC & Index Parameters" icon="fa-solid fa-sliders" >}}
-Detailed guide to session GUCs, precedence rules, and index storage reloptions across `v0.1`–`v0.3` (`bm25_catalog.*`) and the current `1.1.0` API (`bm25.*`).
+  {{< card link="/docs/bm25/reference/gucs/" title="Settings and index options" icon="fa-solid fa-sliders" >}}
+`bm25.*` settings, index storage options, and which one wins when both are set.
 {{< /card >}}
-  {{< card link="/docs/bm25/reference/benchmarks/" title="Benchmarks (BEIR / MS MARCO)" icon="fa-solid fa-chart-bar" >}}
-Reproducible QPS throughput and NDCG@10 accuracy comparisons against Elasticsearch, Lucene, ParadeDB, and native PostgreSQL GIN indexes.
+  {{< card link="/docs/bm25/reference/migration/" title="Upgrade and migration" icon="fa-solid fa-right-left" >}}
+Releases, in-place upgrades within 1.x, downgrades, and moving from the 0.x `bm25vector` API.
 {{< /card >}}
-  {{< card link="/docs/bm25/reference/versions/" title="Release History & API Evolution" icon="fa-solid fa-clock-rotate-left" >}}
-Comprehensive changelog and SQL schema evolution from `v0.1.0` through `v0.3.0` to the native `tsvector` engine in `1.0.0` and the current `1.1.0` release.
+  {{< card link="/docs/bm25/reference/benchmarks/" title="Benchmarks" icon="fa-solid fa-chart-bar" >}}
+Published throughput and relevance measurements, with their datasets, versions, and sources.
 {{< /card >}}
 {{< /cards >}}

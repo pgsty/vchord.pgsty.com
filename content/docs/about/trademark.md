@@ -8,11 +8,11 @@ aliases:
   - "/about/trademark/"
 ---
 
-## Statement of Independence
+## Statement of Independence {#statement-of-independence}
 
-`pgsty/vchord`, `pgsty/vchord_bm25`, `pgsty/pg_tokenizer`, and `vchord.pgsty.com` are maintained by the [Pigsty](https://pigsty.io/) community. None of these repositories or websites is affiliated with, endorsed by, or sponsored by **TensorChord Inc.**
+`pgsty/vchord`, `pgsty/vchord_bm25`, `pgsty/pg_tokenizer`, and `vchord.pgsty.com` are maintained by [PGSTY](https://pigsty.io/). None of these repositories or websites is affiliated with, endorsed by, or sponsored by **TensorChord Inc.**
 
-## Third-Party Trademarks
+## Third-Party Trademarks {#third-party-trademarks}
 
 - **VectorChord**, **pgvecto.rs**, and **TensorChord** are names and marks associated with TensorChord Inc. They are used on this site solely for nominative fair use to identify the upstream open-source projects, extension names (`vchord`, `vchord_bm25`, `pg_tokenizer`, `vectors`), SQL access methods (`vchordrq`, `vchordg`, `bm25`), and historical engineering articles.
 - **PostgreSQL** and **Postgres** are registered trademarks of the PostgreSQL Community Association of Canada.

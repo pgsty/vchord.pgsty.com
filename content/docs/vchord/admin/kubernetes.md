@@ -1,7 +1,7 @@
 ---
-title: "Kubernetes (Obsolete)"
-linkTitle: "Kubernetes (Obsolete)"
-description: "If you want to use vectorchord in PostgreSQL which is running in Kubernetes, we provide a tutorial to help you. In this tutorial, we will use CloudNative-PG to "
+title: "Kubernetes (CloudNativePG)"
+linkTitle: "Kubernetes"
+description: "Run vchord on Kubernetes with CloudNativePG: build an operand image from the release packages, or mount vchord as an extension image on PostgreSQL 18 and later."
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/admin/kubernetes.md"
 aliases:
@@ -10,259 +10,169 @@ aliases:
 icon: fa-solid fa-dharmachakra
 ---
 
-> [!WARNING]
-> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
+[CloudNativePG](https://cloudnative-pg.io/) (CNPG) runs PostgreSQL clusters on Kubernetes from container images, and its images do not include vchord. PGSTY does not publish a container image, so you build one from the `.deb` packages on the [vchord release page](https://github.com/pgsty/vchord/releases/tag/1.5.0). Build a full operand image for any PostgreSQL major from 15 to 19; on PostgreSQL 18 and later you can instead build a small extension image that CNPG mounts into its own operand image.
 
-If you want to use `vectorchord` in PostgreSQL which is running in Kubernetes, we provide a tutorial to help you. In this tutorial, we will use [CloudNative-PG](https://cloudnative-pg.io/) to deploy PostgreSQL cluster in Kubernetes.
+<a id="requirements"></a><a id="Requirements"></a>
 
-<a id="Requirements"></a>
-## Requirements
+## Install the operator {#install-cloudnative-pg}
 
-| Name | Version |
-|------|---------|
-| [helm](https://helm.sh/) | >= 2.4.1 |
-| [kubectl](https://kubernetes.io/docs/tasks/tools/) | >= 1.14 |
-| [Kubernetes](https://kubernetes.io/) | >= 1.24.0 |
-| [Kubernetes (Image Volume Extensions)](https://kubernetes.io/) | >= 1.31.0 |
-{.wide .expand}
+Skip this step if CNPG already runs in your cluster.
 
-## Install CloudNative-PG
-
-We use [CloudNative-PG (cnpg)](https://cloudnative-pg.io/) to deploy PostgreSQL cluster in Kubernetes. You can install it by [helm](https://helm.sh/docs/intro/install/).
-
-```shell
-$ sudo helm repo add cnpg https://cloudnative-pg.github.io/charts
-$ sudo helm upgrade --install cnpg   --namespace cnpg-system   --create-namespace   cnpg/cloudnative-pg
-$ helm list --all-namespaces
-NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                         APP VERSION
-cnpg                    cnpg-system     1               2024-12-30 16:37:55.9520917 +0800 CST   deployed        cloudnative-pg-0.23.0               1.25.0   
-$ kubectl get pod -n cnpg-system   
-NAME                                   READY   STATUS    RESTARTS   AGE
-cnpg-cloudnative-pg-54f97dbcdf-jm97n   1/1     Running   0          1m
+```bash
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm upgrade --install cnpg \
+  --namespace cnpg-system \
+  --create-namespace \
+  cnpg/cloudnative-pg
+kubectl get pods -n cnpg-system
 ```
 
-## PostgreSQL image with `vectorchord`
+## Build an operand image {#postgresql-image-with-vectorchord}
 
-In the repository, we already provide a docker image with `vectorchord` installed. You can find it in [ghcr.io/tensorchord/cloudnative-vectorchord](https://github.com/tensorchord/cloudnative-vectorchord/pkgs/container/cloudnative-vectorchord). If you want to build your own image, you can use the following Dockerfile as a reference.
+This image extends CNPG's `standard` image, which already contains pgvector, with the vchord package for the same PostgreSQL major and CPU architecture:
 
 ```dockerfile
-ARG CNPG_TAG
+ARG PG_MAJOR=18
+FROM ghcr.io/cloudnative-pg/postgresql:${PG_MAJOR}-standard-trixie
 
-FROM ghcr.io/cloudnative-pg/postgresql:$CNPG_TAG-bookworm
-
-ARG CNPG_TAG
-ARG VECTORCHORD_TAG
+ARG PG_MAJOR
+ARG VCHORD_VERSION=1.5.0
 ARG TARGETARCH
+ARG DEB=postgresql-${PG_MAJOR}-vchord_${VCHORD_VERSION}-1_${TARGETARCH}.deb
+ARG URL=https://github.com/pgsty/vchord/releases/download/${VCHORD_VERSION}
 
-# drop to root to install packages
 USER root
-ADD https://github.com/tensorchord/VectorChord/releases/download/$VECTORCHORD_TAG/postgresql-${CNPG_TAG%.*}-vchord_${VECTORCHORD_TAG#"v"}-1_$TARGETARCH.deb /tmp/vchord.deb
-RUN apt-get install -y /tmp/vchord.deb && rm -f /tmp/vchord.deb
-
-USER postgres
+ADD ${URL}/${DEB} ${URL}/${DEB}.sha256 /tmp/vchord/
+RUN cd /tmp/vchord && sha256sum -c ${DEB}.sha256 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ./${DEB} && \
+    rm -rf /tmp/vchord /var/lib/apt/lists/*
+USER 26
 ```
 
-## Create PostgreSQL cluster
+Build it for the architecture of your nodes and push it to a registry the cluster can pull from:
 
-We provide a sample yaml file to create a PostgreSQL cluster in Kubernetes. You can modify it according to your needs. You need pay attention to the following points:
-- Set `shared_preload_libraries` to load `vchord` shared library.
-- Execute `CREATE EXTENSION IF NOT EXISTS vchord CASCADE;` to create `vchord` extension.
+```bash
+docker buildx build --platform linux/amd64 --build-arg PG_MAJOR=18 \
+  -t registry.example.com/cnpg-vchord:18-1.5.0 --push .
+```
+
+## Create the cluster {#create-postgresql-cluster}
+
+Preload `vchord` and create the extension in the application database:
 
 ```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tensorchord
-type: kubernetes.io/basic-auth
-data:
-  password: dGVuc29yY2hvcmQ= # tensorchord
-  username: dGVuc29yY2hvcmQ= # tensorchord
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: vchord
 spec:
-  instances: 1
+  instances: 3
+  imageName: registry.example.com/cnpg-vchord:18-1.5.0
+  storage:
+    size: 50Gi
+  postgresql:
+    shared_preload_libraries:
+      - vchord
   bootstrap:
     initdb:
-      database: tensorchord
+      database: app
+      owner: app
       postInitApplicationSQL:
         - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-      owner: tensorchord
-      secret:
-        name: tensorchord
-      dataChecksums: true
-      encoding: 'UTF8'
-  storage:
-    size: 1Gi
-  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17
-  postgresql:
-    shared_preload_libraries: # load vchord shared library
-    - "vchord"
 ```
 
-You can install `cnpg` [kubectl plugin](https://cloudnative-pg.io/docs/1.28/kubectl-plugin) to manage your PostgreSQL cluster. Now we can check the status of the cluster.
-
-```shell
-$ sudo kubectl get pod
-vchord-1                                                 1/1     Running     0             42s
-
-$ kubectl cnpg status vchord
-Cluster Summary
-Name:                vchord
-Namespace:           default
-System ID:           7527554386501582867
-PostgreSQL Image:    ghcr.io/tensorchord/cloudnative-vectorchord:17
-Primary instance:    vchord-1
-Primary start time:  2025-07-16 05:55:51 +0000 UTC (uptime 53s)
-Status:              Cluster in healthy state
-Instances:           1
-Ready instances:     1
-Current Write LSN:   0/204FB50 (Timeline: 1 - WAL File: 000000010000000000000002)
-
-Certificates Status
-Certificate Name    Expiration Date                Days Left Until Expiration
-----------------    ---------------                --------------------------
-vchord-ca           2025-10-14 05:50:08 +0000 UTC  90.00
-vchord-replication  2025-10-14 05:50:08 +0000 UTC  90.00
-vchord-server       2025-10-14 05:50:08 +0000 UTC  90.00
-
-Continuous Backup status
-Not configured
-
-Physical backups
-No running physical backups found
-
-Streaming Replication status
-Not configured
-
-Unmanaged Replication Slot Status
-No unmanaged replication slots found
-
-Managed roles status
-No roles managed
-
-Tablespaces status
-No managed tablespaces
-
-Instances status
-Name      Database Size  Current LSN  Replication role  Status  QoS         Manager Version  Node
-----      -------------  -----------  ----------------  ------  ---         ---------------  ----
-vchord-1                 0/204FB50    Primary           OK      BestEffort  1.25.0           ip-10-0-2-29.ec2.internal
+```bash
+kubectl apply -f cluster.yaml
+kubectl get pods -l cnpg.io/cluster=vchord
 ```
 
-> Notice: This article just provides a minimal configuration, not include logical replication, streaming logical replication, backup and restore, etc. We will provide those in another article. You can also refer to [CloudNative-PG](https://cloudnative-pg.io/docs/) for more `Cluster` configuration.
+`instances: 3` is one primary and two streaming replicas. To spread queries across the replicas, see [Scalability](/docs/vchord/admin/scalability/).
 
-## Connect to PostgreSQL cluster
+## Connect and verify {#connect-to-postgresql-cluster}
 
-You can use `kubectl port-forward` to connect to PostgreSQL cluster.
+CNPG stores the `app` user's password in the `vchord-app` secret. Forward the primary's service and check the installed version:
 
-```shell
-$ kubectl port-forward services/vchord-rw 5432:5432
-$ psql -h 127.0.0.1 -d tensorchord -U tensorchord
-tensorchord=> \dx
-                                                 List of installed extensions
-  Name   | Version |   Schema   |                                         Description                                         
----------+---------+------------+---------------------------------------------------------------------------------------------
- plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
- vchord  | 1.1.1   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
- vector  | 0.8.1   | public     | vector data type and ivfflat and hnsw access methods
-(3 rows)
+```bash
+kubectl port-forward svc/vchord-rw 5432:5432 &
+export PGPASSWORD=$(kubectl get secret vchord-app -o jsonpath='{.data.password}' | base64 -d)
+psql -h 127.0.0.1 -U app -d app -c "SELECT extversion FROM pg_extension WHERE extname = 'vchord';"
 ```
 
-The `vchord` extension is installed successfully. You can try [quick-start](/docs/vchord/getting-started/overview/#quick-start) without installation.
+```text
+ extversion
+------------
+ 1.5.0
+```
 
+## Mount vchord as an extension image {#lightweight-extension-images}
 
-## Lightweight Extension Images
+On PostgreSQL 18 and later, CNPG can mount an extension image as a read-only volume and add it to `extension_control_path` and `dynamic_library_path`, so you keep CNPG's own operand image and upgrade vchord by changing one image reference. This needs:
 
-Managing extensions is one of the biggest challenges when running PostgreSQL on Kubernetes. If you want to add a new extension to [this image](#postgresql-image-with-vectorchord), you must rebuild the image, back up your PostgreSQL cluster, apply the new image with the added extension, and then restore the cluster. This process reflects the concept of immutable containers in Kubernetes.
+- PostgreSQL 18 or later and CNPG 1.27 or later.
+- Kubernetes 1.35 or later, or 1.33 and 1.34 with the `ImageVolume` feature gate turned on.
+- containerd 2.1 or later, or CRI-O 1.31 or later.
 
-Thanks to Andrew Dunstan and Matheus Alcantara, a [proposal for PostgreSQL 18](https://commitfest.postgresql.org/patch/4913/) introduces a new configuration option (GUC), extension_control_path, which allows users to specify additional directories for extension control files.
+The image holds `lib/vchord.so` and `share/extension/`, the layout CNPG looks for by default. This Dockerfile fills it from the release `.zip` package:
 
-For Kubernetes, the [ImageVolume feature](https://kubernetes.io/blog/2024/08/16/kubernetes-1-31-image-volume-source/) allows us to mount a container image as a read-only and immutable volume inside a running pod. This enables PostgreSQL extensions packaged as independent OCI-compliant container images to be mounted inside CloudNativePG clusters at a known directory.
+```dockerfile
+FROM --platform=$BUILDPLATFORM debian:trixie-slim AS unpack
+ARG PG_MAJOR=18
+ARG VCHORD_VERSION=1.5.0
+ARG TARGETARCH
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip
+RUN case "$TARGETARCH" in amd64) arch=x86_64 ;; arm64) arch=aarch64 ;; esac && \
+    zip=postgresql-${PG_MAJOR}-vchord_${VCHORD_VERSION}_${arch}-linux-gnu.zip && \
+    cd /tmp && \
+    curl -fsSLO https://github.com/pgsty/vchord/releases/download/${VCHORD_VERSION}/${zip} && \
+    curl -fsSLO https://github.com/pgsty/vchord/releases/download/${VCHORD_VERSION}/${zip}.sha256 && \
+    sha256sum -c ${zip}.sha256 && \
+    unzip -q ${zip} -d /tmp/vchord && \
+    mkdir -p /out/lib /out/share && \
+    cp /tmp/vchord/pkglibdir/* /out/lib/ && \
+    cp -r /tmp/vchord/sharedir/extension /out/share/
 
-Based on these two features, we can create lightweight `vectorchord` extension image [vchord-scratch](https://github.com/tensorchord/VectorChord-images/pkgs/container/vchord-scratch).
+FROM scratch
+COPY --from=unpack /out/ /
+```
 
-> [!TIP]
-> If you want to use [`Image Volume Extensions`](https://cloudnative-pg.io/docs/1.28/imagevolume_extensions/), you need to meet the following requirements:
-> - Use Kubernetes version 1.31.0 or above (1.33.0 is recommended), and make sure the `ImageVolume` feature gate is enabled.
-> - Use CloudNative-PG helm chart version 0.26.0 or above.
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 --build-arg PG_MAJOR=18 \
+  -t registry.example.com/vchord-ext:18-1.5.0 --push .
+```
 
+<a id="create-postgresql-cluster-with-image-volume-extensions"></a>
 
-### Create PostgreSQL cluster with Image Volume Extensions
-
-You can use the following sample yaml file to create a PostgreSQL cluster with `vectorchord` extension image. You can modify it according to your needs. You need pay attention to the following points:
-- Set `shared_preload_libraries` to load `vchord` shared library.
-- Execute `CREATE EXTENSION IF NOT EXISTS vchord CASCADE;` to create `vchord` extension.
-- Set `extensions` to specify the `vchord-scratch` extension image. 
-- Set `extension_control_path` and `dynamic_library_path` to specify the paths of extension control files and shared library files.
+Then reference it from the cluster. The `standard` operand image provides pgvector, which vchord requires:
 
 ```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tensorchord
-type: kubernetes.io/basic-auth
-data:
-  password: dGVuc29yY2hvcmQ= # tensorchord 
-  username: dGVuc29yY2hvcmQ= # tensorchord
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: vchord 
+  name: vchord
 spec:
-  instances: 1 
-  imageName: ghcr.io/cloudnative-pg/postgresql:18-system-bookworm
-  bootstrap:
-    initdb:
-      database: tensorchord
-      postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-      owner: tensorchord
-      secret:
-        name: tensorchord
-      dataChecksums: true
-      encoding: 'UTF8'
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:18-standard-trixie
   storage:
-    size: 1Gi
+    size: 50Gi
   postgresql:
+    shared_preload_libraries:
+      - vchord
     extensions:
       - name: vchord
         image:
-          reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1
-        dynamic_library_path:
-          - /usr/lib/postgresql/18/lib/
-        extension_control_path:
-          - /usr/share/postgresql/18/
-    shared_preload_libraries:
-    - "vchord"
+          reference: registry.example.com/vchord-ext:18-1.5.0
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 ```
 
-We can check the extension is already installed successfully.
+## Upgrade and limits {#limits}
 
-```shell
-$ kubectl port-forward services/vchord-rw 5432:5432
-$ psql -h
-$ psql -h 0.0.0.0 -U tensorchord -d tensorchord
-Password for user tensorchord: 
-psql (13.3 (Ubuntu 13.3-1.pgdg16.04+1), server 18.0 (Debian 18.0-1.pgdg12+3))
-WARNING: psql major version 13, server major version 18.
-         Some psql features might not work.
-SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
-Type "help" for help.
-
-tensorchord=> \dx
-                                                 List of installed extensions
-  Name   | Version |   Schema   |                                         Description                                         
----------+---------+------------+---------------------------------------------------------------------------------------------
- plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
- vchord  | 1.1.1   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
- vector  | 0.8.1   | public     | vector data type and ivfflat and hnsw access methods
-(3 rows)
-
-```
-
-> [!WARNING]
-> The image `ghcr.io/cloudnative-pg/postgresql:18-system-bookworm` already contains pgvector, which is required for vchord. However, this image may not include pgvector in future versions, but we have not seen this trend in the short term.
+- To upgrade vchord, build an image with the new version and change `imageName` or the extension image `reference`. CNPG restarts the instances one at a time. Then run `ALTER EXTENSION vchord UPDATE;` in each database.
+- Build for the PostgreSQL major of the cluster. A library built for another major does not load.
+- A `minimal` operand image has no pgvector. With it, `CREATE EXTENSION vchord CASCADE` fails until you also mount a pgvector extension image or install pgvector in your own image.
+- To add `vchord_bm25` or `pg_tokenizer`, install their `.deb` packages in the same operand image, for example `postgresql-18-vchord-bm25_1.3.0-1_amd64.deb` from the [vchord_bm25 release page](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0). The `pg_tokenizer` packages need glibc 2.39 or later, which `trixie` images have and `bookworm` images do not.

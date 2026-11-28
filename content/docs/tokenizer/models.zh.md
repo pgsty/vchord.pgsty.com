@@ -1,284 +1,163 @@
 ---
-title: "分词词表模型"
-description: "预训练模型（llmlingua2、bert_base_uncased、wiki_tocken、gemma2b）、自定义语料训练模型、HuggingFace 分词器与 Lindera 模型。"
-weight: 30
-icon: fa-solid fa-brain
+title: "模型"
+linkTitle: "模型"
+description: "什么时候需要 pg_tokenizer 模型，以及如何使用内置大模型词表、用于日文和韩文的 Lindera 词典、Hugging Face 分词器和自定义词表。"
+weight: 50
+icon: fa-solid fa-cubes
 ---
 
-在 `pg_tokenizer` 中，**模型（Model）** 负责将字符串词元（或原始文本）映射为整数词元 ID（`INT[]`）。你可以直接选用四个内置预训练模型、在 PostgreSQL 表上训练自定义词表模型、导入任意 HuggingFace `tokenizer.json`，或者使用 Lindera 形态学分析模型。
+模型把文本映射为固定词表中的整数词元 ID。只有两种情况需要它：切分日文或韩文，这需要 Lindera 词典；以及需要 ID 的时候，无论是某个大模型分词器的 ID，还是从你自己的表构建的词表 ID。对其他语言做 BM25 检索，只用[文本分析器](/zh/docs/tokenizer/text-analyzer/)就够了。
 
-## 1. 内置预训练模型 {#1-built-in-pretrained-models}
+## 分词器如何使用模型 {#tokenizer}
 
-| 模型名称 | 来源 / 架构 | 是否需要 `text_analyzer`？ | 内存占用 | 适用场景 |
-| :--- | :--- | :--- | :--- | :--- |
-| **`llmlingua2`** | [`microsoft/llmlingua-2-xlm-roberta-large-meetingbank`](https://huggingface.co/microsoft/llmlingua-2-xlm-roberta-large-meetingbank)（XLM-RoBERTa 多语言子词模型） | 否（禁止） | ~200 MB（默认预加载） | 开箱即用的多语言通用文本分词，无需训练自定义词表。 |
-| **`bert_base_uncased`** | [`google-bert/bert-base-uncased`](https://huggingface.co/google-bert/bert-base-uncased)（WordPiece，30,522 词表） | 否（禁止） | ~15 MB | 通用英文文本；启动极快且词表紧凑。 |
-| **`wiki_tocken`** | [`Snowolf/wiki-tocken`](https://huggingface.co/Snowolf/wiki-tocken)（内置英文维基百科词元词典） | **是（必需）** | ~30 MB | 配合自定义词干提取器、停用词与同义词使用的英文全文检索。 |
-| **`gemma2b`** | [`google/gemma-2b`](https://huggingface.co/google/gemma-2b)（SentencePiece BPE，256k 词表） | 否（禁止） | ~100 MB | 代码、技术标识符以及多语言大语言模型工作负载。 |
-{.wide .expand}
+模型要通过用 `create_tokenizer` 创建的**分词器**（tokenizer）来使用。分词器的配置指定 `model`，还可以指定一个先运行的分析器：要么用 `text_analyzer` 引用已有分析器的名称，要么直接内联写出分析器的各个键，二者不能同时使用。
 
-### 示例：使用 `bert_base_uncased` 或 `llmlingua2` {#example-using-bert_base_uncased-or-llmlingua2}
+- 没有分析器时，模型拿到整段文本，自己负责切分。内置模型、Hugging Face 模型和 Lindera 模型通常这样用。
+- 有分析器时，模型分别处理分析器产生的每个词，再按顺序拼接得到的 ID。适合在查 ID 之前先去停用词或做词干提取；自定义模型则总是要配分析器。
 
 ```sql
-SELECT create_tokenizer('bert_tok', $$
+SELECT tokenizer_catalog.create_tokenizer('bert_words', $$
 model = "bert_base_uncased"
-$$);
-
-SELECT tokenize('VectorChord-BM25 brings Block-WeakAnd to PostgreSQL.', 'bert_tok');
-```
-
----
-
-## 2. 自定义语料库模型（`create_custom_model`） {#2-custom-corpus-models-create_custom_model}
-
-为了获得最高的 BM25 相关性精度与最小的内存占用，你可以直接基于自己的业务表列构建**自定义词表模型**。不同于大语言模型子词分词器（会将罕见的领域专有名词切碎为多个子词元），自定义模型会为 `text_analyzer` 产出的每个唯一归一化词元分配独立的 1:1 整数 ID，且在内存中仅占用几兆字节。
-
-### 方式 A：一步到位辅助函数（`create_custom_model_tokenizer_and_trigger`） {#option-a-one-step-helper-create_custom_model_tokenizer_and_trigger}
-
-该便捷函数创建自定义模型和分词器，回填 `INT[]` 目标列，并安装触发器，在行变化时学习新词元、更新词元 ID。历史 `bm25vector` 列可通过类型转换接收整数数组。此辅助函数不会填充 `tsvector` 列。BM25 1.0.0 应在词表更新完成后存储 `tokenize_to_tsvector` 的输出，或使用不依赖词表的 `analyze_to_tsvector`；参阅[原生全文检索](/zh/docs/tokenizer/overview/#native-fts)。
-
-```sql
--- 1. 定义文本分析流水线
-SELECT create_text_analyzer('my_analyzer', $$
+pre_tokenizer = { regex = '(?u)\b\w\w+\b' }
 character_filters = ["to_lowercase"]
-pre_tokenizer = "unicode_segmentation"
-token_filters = [
-    "skip_non_alphanumeric",
-    { stopwords = "nltk_english" },
-    { stemmer = "english_porter2" },
-]
+token_filters = [{ stopwords = "nltk_english" }, { stemmer = "english_porter2" }]
 $$);
 
--- 2. 创建模型与分词器、回填向量并挂载触发器
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name     => 'my_tokenizer',
-    model_name         => 'my_model',
-    text_analyzer_name => 'my_analyzer',
-    table_name         => 'documents',
-    source_column      => 'passage',
-    target_column      => 'embedding'
-);
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source database.', 'bert_words');
 ```
 
-### 方式 B：分步创建（不使用触发器的 `create_custom_model`） {#option-b-step-by-step-create_custom_model}
+`tokenize` 以 `int[]` 返回 ID。`tokenize_to_tsvector` 则把 ID 作为词位返回，形如 `'2695':1 '17603':2`，vchord_bm25 可以像索引普通词一样索引它们；这时查询也必须经过同一个分词器。
 
-如果你不希望挂载自动触发器（或者希望自行控制何时计算并回填 `embedding` 列）：
+词表里没有的词如何处理，取决于模型。子词模型（除 `wiki_tocken` 外的内置模型，以及大多数 Hugging Face 模型）会把它拆成已知的片段。Lindera 模型、自定义模型和 `wiki_tocken` 则直接丢弃它。
+
+## 内置模型 {#builtin}
+
+<a id="1-built-in-pretrained-models"></a>
+
+所有安装包都带有四个词表。需要与某个模型完全相同的 ID 时，就用对应的内置模型。
+
+| 模型 | 词表 | 说明 |
+| --- | --- | --- |
+| `bert_base_uncased` | [google-bert/bert-base-uncased](https://huggingface.co/google-bert/bert-base-uncased)，WordPiece | 英文，会把输入转成小写。 |
+| `gemma2b` | [google/gemma-2b](https://huggingface.co/google/gemma-2b) | 加载后约占 100 MB。 |
+| `llmlingua2` | [microsoft/llmlingua-2-xlm-roberta-large-meetingbank](https://huggingface.co/microsoft/llmlingua-2-xlm-roberta-large-meetingbank)，XLM-RoBERTa | 多语言。加载后约占 200 MB，默认[预加载](#preload)。 |
+| `wiki_tocken` | 来自 [WikiText-103](https://huggingface.co/datasets/iohadrubin/wikitext-103-raw-v1) 的英文词 | 自带转小写、去英文停用词和词干提取，只输出整词。 |
+{.wide}
 
 ```sql
--- 1. 基于现有表列构建自定义词表模型
-SELECT create_custom_model('my_model', $$
-table = "documents"
-column = "passage"
-text_analyzer = "my_analyzer"
+SELECT tokenizer_catalog.create_tokenizer('gemma', $$
+model = "gemma2b"
 $$);
 
--- 2. 创建引用该分析器与自定义模型的分词器
-SELECT create_tokenizer('my_tokenizer', $$
-text_analyzer = "my_analyzer"
-model = "my_model"
-$$);
-
--- 3. 手动回填或刷新词频向量列
-UPDATE documents SET embedding = tokenize(passage, 'my_tokenizer');
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source database.', 'gemma');
 ```
 
----
+## 日文与韩文：Lindera {#lindera}
 
-## 3. 导入 HuggingFace 分词器（`create_huggingface_model`） {#3-importing-huggingface-tokenizers-create_huggingface_model}
+<a id="4-lindera-morphological-models-create_lindera_model"></a>
 
-你可以使用 `create_huggingface_model` 将任意 HuggingFace [`tokenizers`](https://github.com/huggingface/tokenizers) 的 JSON 配置文件（`tokenizer.json`）导入 PostgreSQL。
-
-在 `psql` 中，可以使用 `\set` 直接从 HuggingFace Hub 下载 `tokenizer.json` 到变量中并传给 `create_huggingface_model`：
+`create_lindera_model` 根据 [Lindera](https://github.com/lindera/lindera) 7 的配置创建模型：一个 `[segmenter]` 表指定切分模式 `mode` 和词典 `dictionary`，后面跟着 Lindera 自己的 `[[character_filters]]` 和 `[[token_filters]]`，每项都有 `kind` 和 `args`。完整配置见[日文配方](/zh/docs/tokenizer/multilingual/#japanese)。
 
 ```sql
-\set content `wget -q -O - https://huggingface.co/google-bert/bert-base-uncased/resolve/main/tokenizer.json`
-SELECT create_huggingface_model('bert_import', :'content');
-
-SELECT create_tokenizer('bert_import_tok', $$
-model = "bert_import"
-$$);
-```
-
-也可以直接将 `tokenizer.json` 文件的完整内容作为美元符号引用的字符串传入：
-
-```sql
-SELECT create_huggingface_model('bge_m3_model', $$
-{
-  "version": "1.0",
-  ...
-}
-$$);
-
-SELECT create_tokenizer('bge_m3_tok', $$
-model = "bge_m3_model"
-$$);
-```
-
----
-
-## 4. Lindera 形态学分词模型（`create_lindera_model`） {#4-lindera-morphological-models-create_lindera_model}
-
-对于日文、韩文、中文等需要形态学词典分析的东亚语言，`pg_tokenizer` 集成了 [`lindera`](https://github.com/lindera/lindera)。
-
-使用 Lindera 6.2 构建时，原生词典配置为 `[segmenter]` 下的 `dictionary = "embedded://ipadic"`。目录表与预加载文件中已有的 `[segmenter.dictionary] kind = "ipadic"` 配置仍然兼容，旧格式的词典及用户词典 `path` 表也继续支持。外部编译词典需要使用 Lindera 6 重新构建。
-
-> [!IMPORTANT]
-> Lindera 6.2 内嵌的 IPADIC 从 Lindera 0.42 使用的 2007-08-01 版升级到 2025-09-20 版，词元 ID 会变化。使用升级后的分词器查询前，请重新生成已存储的 Lindera 词元数组，并重建使用这些数组的索引。未知词仍然会被过滤。
-
-> [!NOTE]
-> 如果你从源码编译 `pg_tokenizer`，请在编译时通过 `--features` 启用所需的 Lindera 词典特性：
-> ```bash
-> cargo pgrx install --release --features "lindera-ipadic lindera-ipadic-neologd lindera-unidic lindera-ko-dic lindera-cc-cedict"
-> ```
-
-以下完整示例展示了基于 `ipadic` 词典配置日文叠字符（Iteration Mark）规范化、NFKC Unicode 规范化、字符映射、复合词合并、数词归一化、日文停用词性（Stop-tags）过滤、片假名词干提取以及变音符号移除：
-
-```sql
-SELECT create_lindera_model('japanese_ipadic', $$
+SELECT tokenizer_catalog.create_lindera_model('ja_ipadic', $$
 [segmenter]
 mode = "normal"
-  [segmenter.dictionary]
-  kind = "ipadic"
-
-[[character_filters]]
-kind = "japanese_iteration_mark"
-  [character_filters.args]
-  normalize_kanji = true
-  normalize_kana = true
-
-[[character_filters]]
-kind = "unicode_normalize"
-  [character_filters.args]
-  kind = "nfkc"
-
-[[character_filters]]
-kind = "mapping"
-  [character_filters.args.mapping]
-  "リンデラ" = "Lindera"
-
-[[token_filters]]
-kind = "japanese_compound_word"
-  [token_filters.args]
-  kind = "ipadic"
-  tags = [
-    "名詞,数",
-    "名詞,接尾,助数詞",
-  ]
-  new_tag = "名詞,数"
-
-[[token_filters]]
-kind = "japanese_number"
-  [token_filters.args]
-  tags = ["名詞,数"]
-
-[[token_filters]]
-kind = "japanese_stop_tags"
-  [token_filters.args]
-  tags = [
-    "接続詞",
-    "助詞",
-    "助詞,格助詞",
-    "助詞,格助詞,一般",
-    "助詞,格助詞,引用",
-    "助詞,格助詞,連語",
-    "助詞,係助詞",
-    "助詞,副助詞",
-    "助詞,間投助詞",
-    "助詞,並立助詞",
-    "助詞,終助詞",
-    "助詞,副助詞／並立助詞／終助詞",
-    "助詞,連体化",
-    "助詞,副詞化",
-    "助詞,特殊",
-    "助動詞",
-    "記号",
-    "記号,一般",
-    "記号,読点",
-    "記号,句点",
-    "記号,空白",
-    "記号,括弧閉",
-    "その他,間投",
-    "フィラー",
-    "非言語音",
-  ]
-
-[[token_filters]]
-kind = "japanese_katakana_stem"
-  [token_filters.args]
-  min = 3
-
-[[token_filters]]
-kind = "remove_diacritical_mark"
-  [token_filters.args]
-  japanese = false
+dictionary = "embedded://ipadic"
 $$);
 
-SELECT create_tokenizer('jp_tok', $$
-model = "japanese_ipadic"
+SELECT tokenizer_catalog.create_tokenizer('ja_text', $$
+model = "ja_ipadic"
 $$);
 ```
 
----
+模型为找到的每个词返回它在词典中的 ID。词典里没有的词会被丢弃，被 Lindera 词元过滤器删掉的词也不会产生 ID。只改写词面文本的 Lindera 过滤器不会改变 ID。
 
-## 5. 模型预加载（`add_preload_model`） {#5-model-preloading-add_preload_model}
+`dictionary` 有两种来源：
 
-大型模型（如约 200 MB 的 `llmlingua2`、约 100 MB 的 `gemma2b`、`japanese_ipadic`）在每个新建的 PostgreSQL 后端进程首次查询时，需要数秒钟时间和可观的内存来加载。通过在 `shared_preload_libraries` 启动阶段预加载模型，PostgreSQL 只需在 postmaster 主进程中加载一次模型，即可通过写时复制（Copy-on-Write）内存在所有后端连接之间共享（`llmlingua2` 默认已加入预加载列表）：
+- **内置在动态库中**，写作 `embedded://<name>`。GitHub 发布包和默认的源码构建内置了 `embedded://ipadic`。其他词典，即 `ipadic-neologd`、`unidic`、`ko-dic`（韩文）和 `cc-cedict`，只有在源码构建时启用对应[特性](/zh/docs/tokenizer/installation/#source)才可用。指定动态库中没有的词典会报 `failed to load Lindera dictionary`。
+- **数据库服务器上的目录**，写成路径或 `file://` URI。Pigsty 软件包不含任何词典，只能用这种方式。目录必须是为 Lindera 7 构建的（format v3），并且安装在每个节点的相同路径下。PostgreSQL 以其操作系统用户的身份读取它，所以创建模型以及每个新会话加载模型时，都需要超级用户或 `pg_read_server_files` 成员身份；其他角色会收到 `permission denied to load a Lindera dictionary from a file`。[预加载](#preload)的模型由服务器在启动时加载，使用时不需要这项权限。
+
+`user_dictionary` 从 CSV 或编译后的文件中加入自定义词，读取规则相同。这些词的 ID 从 1073741824 开始，不会与词典 ID 冲突。
+
+## Hugging Face 分词器 {#huggingface}
+
+<a id="3-importing-huggingface-tokenizers-create_huggingface_model"></a>
+
+`create_huggingface_model` 可以导入任意 Hugging Face 模型的 `tokenizer.json`，从而在数据库里得到与外部嵌入模型相同的 ID。在 `psql` 中把文件读入变量再传入：
 
 ```sql
--- 将模型加入预加载列表（持久化保存在 $PGDATA/pg_tokenizer/preload_models）
-SELECT add_preload_model('my_model');
+\set content `curl -fsSL https://huggingface.co/google-bert/bert-base-chinese/resolve/main/tokenizer.json`
+SELECT tokenizer_catalog.create_huggingface_model('bert_chinese', :'content');
 
--- 查看当前已配置的预加载模型列表（默认为 {llmlingua2}）
-SELECT list_preload_models();
-
--- 从预加载列表中移除模型（例如不使用 llmlingua2 时可释放约 200 MB 内存）
-SELECT remove_preload_model('llmlingua2');
+SELECT tokenizer_catalog.create_tokenizer('bert_chinese', $$
+model = "bert_chinese"
+$$);
 ```
 
-调用 `add_preload_model(...)` 后（请确保已在 `postgresql.conf` 中设置 `shared_preload_libraries = 'pg_tokenizer.so'`），重启 PostgreSQL 即可使预加载对所有后端连接生效。
+文件中的每个 ID 都必须能放进 `int`，即不超过 2147483647；ID 更大的模型会被拒绝。
 
-## 1.0.0 自定义模型行为 {#custom-model-100}
+## 自定义模型 {#custom}
 
-词表触发器先计算缺失词元，仅需要新增词元的行获取按模型划分的事务级咨询锁，然后重新检查并排序写入；仅包含已提交词元的行不获取这把锁。新增词元的写入在整个事务内串行执行，覆盖多行批次与多条语句，避免相反词元顺序导致的唯一索引死锁。普通分词读取及不同模型的写入仍可并发。请缩短事务；写入多个模型或锁定业务行时，仍需保持一致顺序并处理普通死锁、序列化失败重试。
+<a id="2-custom-corpus-models-create_custom_model"></a><a id="custom-model-100"></a><a id="option-a-one-step-helper-create_custom_model_tokenizer_and_trigger"></a><a id="option-b-step-by-step-create_custom_model"></a>
 
-生成 embedding 的触发器会在词表触发器完成后刷新 SPI 快照，因此在 `READ COMMITTED` 下可以读取等待期间由其他事务提交的词元 ID。在 `REPEATABLE READ` 或 `SERIALIZABLE` 下，冲突的写事务可能收到 SQLSTATE `40001`，需要重试整个事务。升级保留已有词表 ID；新模型的 ID 属于内部映射，不保证与独立创建的其他模型相同。
+自定义模型为表中某一列出现的每个不同的词分配一个整数 ID。当你需要为自己的语料生成紧凑的 ID 时使用它，例如在数据库外构建稀疏向量。vchord_bm25 不需要它。
 
-### 按条件选择语料 {#corpus-filter}
+`create_custom_model` 用一个分析器处理该列，把每个不同的词存进词表 `tokenizer_data."model_<name>"`。它还会在源表上加一个触发器 `model_<name>_trigger`，在插入或更新行时把新出现的词加入词表。词表只增不减：被删除或修改的行里的词仍然保留。
+
+`create_custom_model_tokenizer_and_trigger` 在此基础上还会为模型创建分词器，把每行的 ID 填进目标列，并再加一个触发器保持它最新：
 
 ```sql
-SELECT create_custom_model('tenant_a', $$
-table = 'public.documents'
-column = 'passage'
-text_analyzer = 'text_analyzer1'
-filter = "tenant_id = 42 AND published IS TRUE"
-$$);
-
--- 或通过便捷函数同时创建模型、分词器和 embedding 触发器。
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name => 'tenant_b_tok', model_name => 'tenant_b',
-    text_analyzer_name => 'text_analyzer1', table_name => 'public.documents',
-    source_column => 'passage', target_column => 'embedding',
-    filter => 'tenant_id = 43 AND published IS TRUE'
+CREATE TABLE notes (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text,
+    token_ids int[]
 );
+
+SELECT tokenizer_catalog.create_text_analyzer('notes_words', $$
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+token_filters = [{ stopwords = "nltk_english" }, { stemmer = "english_porter2" }]
+$$);
+
+SELECT tokenizer_catalog.create_custom_model_tokenizer_and_trigger(
+    tokenizer_name     => 'notes_tok',
+    model_name         => 'notes_vocab',
+    text_analyzer_name => 'notes_words',
+    table_name         => 'notes',
+    source_column      => 'body',
+    target_column      => 'token_ids'
+);
+
+INSERT INTO notes (body) VALUES ('Custom models assign IDs to words.');
+SELECT token_ids FROM notes;
+SELECT tokenizer_catalog.tokenize('words and models', 'notes_tok');
 ```
 
-`filter` 是使用源表列名的 SQL 布尔表达式，不带 `WHERE` 或 `NEW.`，按调用者权限求值。仅 TRUE 匹配，FALSE 和 NULL 均跳过；空表达式或非法表达式即使面对空表也会报错。条件应由普通源列确定，不应依赖 embedding 目标列；不支持 `ctid` 等系统列及非确定性条件。应传入可信表达式，必要时为函数加上模式限定。该功能用于选择语料，不能替代行级安全策略。
+目标列接收的是 `int[]`，按 `INSERT` 的规则做类型转换。如果要自己填充其他列，就用 `create_custom_model`，再用 `create_tokenizer` 创建一个引用同一分析器和该模型的分词器。
 
-过滤条件同时作用于初始词表扫描、embedding 回填和后续插入/更新。配置过滤条件后，触发器监听所有 UPDATE，因此只修改租户字段也会重新判断。匹配行的源文本变为 NULL 时，embedding 同步设为 NULL。
+使用自定义模型时需要注意：
 
-不匹配行保持原值，包括已有 embedding；行退出语料范围后，不会删除其原 embedding 或词表条目。查询时应使用相同过滤条件，或由应用清空排除行的 embedding。词表只增不减，UPDATE/DELETE 不会裁剪词表。省略 `filter` 或向便捷函数传入 SQL NULL，仍处理整张表。原六参调用与旧模型配置兼容，并支持带模式的表名及含特殊字符的列名。
+- `filter` 是一个针对源表列的 SQL 条件，不写 `WHERE`，用来限定语料范围。可以作为第七个参数传入，如 `filter => 'tenant_id = 42'`，也可以写在模型配置中。只有条件为真的行参与构建词表并得到 ID，其他行的目标列保持不变。它不能替代行级安全策略。
+- PostgreSQL 按名称顺序触发 `BEFORE` 触发器。如果你自己的触发器在同一张表上调用 `tokenize` 或 `tokenize_to_tsvector`，它的名称必须排在 `model_<name>_trigger` 之后，否则这一行里新出现的词还不在词表中，会被丢弃。
+- 超过 2,600 字节的词会被切成不超过 2,600 字节的若干片段，每段各有一个 ID，同时给出警告。
+- 并发写入只有在向同一个模型添加新词时才会互相等待。在 `REPEATABLE READ` 或 `SERIALIZABLE` 下，这种冲突可能以 SQLSTATE `40001` 失败，需要重试事务。
+- `drop_custom_model` 会删除词表和两个触发器，但不删除分词器。
 
-带模式的表名优先按限定名解析；如需选择名称本身含点号的表，请使用 SQL 双引号，例如 `'"corpus.docs"'`。
+## 预加载模型 {#preload}
 
-### 目录缓存失效
+<a id="5-model-preloading-add_preload_model"></a>
 
-为提高分词速度，每个 PostgreSQL 后端都会缓存分析器、分词器、模型、停用词典和同义词典定义。创建、删除或重建这些对象时会立即清理当前后端，并在事务提交时发布跨后端失效通知，回滚仅清理本地缓存；其他后端在下次查找前会丢弃旧定义，回滚也不会在当前后端留下不存在的对象。依赖被重建的分析器或模型的分词器会一并失效。
+每个后端在第一次用到模型时加载它，并在连接存续期间一直保留。对于大模型，这意味着首次调用变慢，而且每个连接都占一份内存。预加载的模型在服务器启动时加载一次，所有后端共享。
 
-缓存失效不会自动改写已经存储在 `INT[]`、`bm25vector` 或 `tsvector` 列中的值。如果有意使用同名定义替换分析器或模型，应重新计算持久化的搜索列，并在词素或词元 ID 表示发生变化时重建索引。
+```sql
+SELECT tokenizer_catalog.list_preload_models();
+SELECT tokenizer_catalog.add_preload_model('ja_ipadic');
+SELECT tokenizer_catalog.remove_preload_model('llmlingua2');
+```
 
+修改后需要重启 PostgreSQL 才能生效。列表初始包含 `llmlingua2`，每次服务器启动约占 200 MB；不用的话就把它移除。
 
-缓存失效会保留继承的预加载对象。非内置模型只有在当前数据库中名称与存储配置完全一致时才能复用预加载，不能代替缺失或不同的本库定义。预加载列表由管理员管理，失败条目记录 WARNING 后跳过；文件修改不随 SQL 事务回滚。
-
-自 1.0.0 起，Lindera 用户词典 ID 从 `1073741824` 起编号，不再与系统词典 ID 重叠。使用用户词典时需重新生成已存储的 ID 并重建索引。原生 RPM/DEB 需外部词典，GitHub Release 包内嵌 IPADIC。
-
-查询遵循 SQL 快照。观察到失效通知后，在旧快照下加载的对象会在后续语句和事务边界清理；并行 worker 沿用 leader 的快照。修改定义的事务不能执行 `PREPARE TRANSACTION`。匹配行的 NULL 源列会将显式提供的 embedding 也设为 NULL；不匹配行仍保留原值。
+- 预加载被许多连接使用的大模型：Lindera 模型、`gemma2b`、`llmlingua2`。自定义模型预加载没有收益，因为它们是在词表里查词。
+- 列表属于服务器而不是某个数据库。`add_preload_model` 保存的是当前数据库中该模型的定义；其他数据库只有在同名模型的定义完全相同时，才会使用预加载的副本。
+- 列表是 `$PGDATA/pg_tokenizer/preload_models` 下的一组文件。修改会立即写入磁盘，即使事务回滚也不会撤销，并且不会复制到备库，见[副本与备份](/zh/docs/tokenizer/installation/#logical-backups)。
+- 只有超级用户能修改它，除非被授予这两个函数的 `EXECUTE` 权限。加载失败的条目会被跳过，并在服务器日志中留下警告。

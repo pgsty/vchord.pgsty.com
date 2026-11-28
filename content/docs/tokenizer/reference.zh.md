@@ -1,109 +1,205 @@
 ---
-title: "SQL 与 TOML 参考"
-description: "pg_tokenizer 中全部 tokenizer_catalog SQL 函数与 TOML 配置选项的完整参考手册。"
-weight: 50
-icon: fa-solid fa-book
+title: "参考"
+linkTitle: "参考"
+description: "pg_tokenizer 的全部函数、配置项和参数，每项只定义一次。"
+weight: 60
 upstream_link: "https://github.com/supervc-stack/pg_tokenizer.rs/blob/main/docs/00-reference.md"
+icon: fa-solid fa-book
 ---
 
-## SQL 函数参考（`tokenizer_catalog`） {#sql-functions}
+本页定义 pg_tokenizer 1.3.0 的每个函数、配置项和参数。什么时候用哪一个，见各篇指南：[文本分析器](/zh/docs/tokenizer/text-analyzer/)、[模型](/zh/docs/tokenizer/models/)和[多语言配方](/zh/docs/tokenizer/multilingual/)。
 
-### 文本分析器与词典管理 {#text-analyzer--dictionaries}
+## 函数 {#sql-functions}
 
-| 函数签名 | 返回类型 | 说明 |
-| :--- | :--- | :--- |
-| `tokenizer_catalog.create_text_analyzer(name TEXT, config TEXT)` | `VOID` | 根据 TOML 配置字符串创建命名文本分析器流水线。 |
-| `tokenizer_catalog.drop_text_analyzer(name TEXT)` | `VOID` | 按名称删除文本分析器。 |
-| `tokenizer_catalog.apply_text_analyzer(text TEXT, text_analyzer_name TEXT)` | `TEXT[]` | 使用指定文本分析器切分并过滤 `text`，返回词元数组以供调试预览。 |
-| `tokenizer_catalog.create_stopwords(name TEXT, config TEXT)` | `VOID` | 创建自定义停用词词典（每行一个停用词）。 |
-| `tokenizer_catalog.drop_stopwords(name TEXT)` | `VOID` | 删除自定义停用词词典。 |
-| `tokenizer_catalog.create_synonym(name TEXT, config TEXT)` | `VOID` | 创建自定义同义词词典（每行一组以空格分隔的同义词，统一映射为首词）。 |
-| `tokenizer_catalog.drop_synonym(name TEXT)` | `VOID` | 删除自定义同义词词典。 |
-{.wide .expand}
+<a id="text-analyzer--dictionaries"></a><a id="tokenization-models--preloading"></a><a id="tokenizer-execution"></a><a id="native-full-text-search"></a><a id="api-semantics"></a>
 
-### 分词模型与预加载管理 {#tokenization-models--preloading}
+所有函数都在模式 `tokenizer_catalog` 中。定义保存在当前数据库的表里。
 
-| 函数签名 | 返回类型 | 说明 |
-| :--- | :--- | :--- |
-| `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)` | `VOID` | 基于现有数据表列构建自定义词表模型。 |
-| `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT [, filter TEXT])` | `VOID` | 一键创建自定义词表模型与分词器，回填 `target_column`，并安装自动更新触发器。1.0.0 增加可选的第七个 `filter` 参数；省略或传入 SQL NULL 表示处理全部行，原六参签名继续可用。 |
-| `tokenizer_catalog.drop_custom_model(name TEXT)` | `VOID` | 删除自定义词表模型及其关联触发器（即使源表已提前删除也能正常执行）。 |
-| `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)` | `VOID` | 导入 HuggingFace `tokenizer.json` 模型定义。 |
-| `tokenizer_catalog.drop_huggingface_model(name TEXT)` | `VOID` | 删除已导入的 HuggingFace 模型。 |
-| `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)` | `VOID` | 根据 TOML 配置创建 Lindera 形态学分词模型。 |
-| `tokenizer_catalog.drop_lindera_model(name TEXT)` | `VOID` | 删除 Lindera 模型。 |
-| `tokenizer_catalog.add_preload_model(name TEXT)` | `VOID` | 将模型加入集群预加载列表（仅管理员，不随事务回滚，重启生效）。 |
-| `tokenizer_catalog.remove_preload_model(name TEXT)` | `VOID` | 将模型移出集群预加载列表（仅管理员，不随事务回滚）。 |
-| `tokenizer_catalog.list_preload_models()` | `TEXT[]` | 列出当前已注册预加载的所有模型名称。 |
-{.wide .expand}
+名称已被占用时，`create_*` 函数会失败，报错形如 `Text analyzer already exists: en_text`；没有“替换”操作，只能先删除再创建。名称不存在时，`drop_*` 函数只给出警告，也不会检查是否有对象在使用该定义。这两类函数都是 `VOLATILE`、`PARALLEL UNSAFE`。
 
-### 分词器执行函数 {#tokenizer-execution}
+### 分析与分词 {#tokenize-functions}
 
-| 函数签名 | 返回类型 | 说明 |
-| :--- | :--- | :--- |
-| `tokenizer_catalog.create_tokenizer(name TEXT, config TEXT)` | `VOID` | 创建分词器（组合可选的 `text_analyzer` 与必选的 `model`）。 |
-| `tokenizer_catalog.drop_tokenizer(name TEXT)` | `VOID` | 按名称删除分词器。 |
-| `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT)` | `INT[]` | 将 `text` 分词为整数词元 ID 数组（可隐式转换为 `bm25vector`）。 |
-{.wide .expand}
+这四个函数都是 `STABLE`、`STRICT`（任一参数为 `NULL` 时返回 `NULL`）和 `PARALLEL SAFE`。
 
-### 原生全文检索接口 {#native-full-text-search}
+| 函数 | 返回 | 说明 |
+| --- | --- | --- |
+| `apply_text_analyzer(text, text_analyzer_name)` | `text[]` | 运行分析器，按顺序返回切出的词。用来检查分析器。 |
+| `analyze_to_tsvector(text, text_analyzer_name)` | `tsvector` | 运行分析器，把词作为词位返回，按输出顺序编号 1、2、3……，权重为 `D`。 |
+| `tokenize(text, tokenizer_name)` | `int[]` | 运行分词器，按顺序返回词元 ID。 |
+| `tokenize_to_tsvector(text, tokenizer_name)` | `tsvector` | 运行分词器，把 ID 作为十进制词位返回，编号方式与 `analyze_to_tsvector` 相同。 |
+{.fields meta="type"}
 
-| 接口 | 返回类型 | 行为 |
-| :--- | :--- | :--- |
-| `tokenizer_catalog.analyze_to_tsvector(text TEXT, text_analyzer_name TEXT)` | `TSVECTOR` | 将分析器输出的字符串词元转换为带位置的原生词素。 |
-| `tokenizer_catalog.tokenize_to_tsvector(text TEXT, tokenizer_name TEXT)` | `TSVECTOR` | 将模型输出的词元 ID 转为十进制词素，并按最终输出序列编号。 |
-{.wide .expand}
+### 文本分析器、停用词与同义词 {#text-analyzer-functions}
 
-这两个函数均为 `STABLE`，因为会读取目录中的定义。空词元会被忽略，剩余输出从位置 1 开始连续编号；位置表示最终分析器/模型输出，不是源文本偏移。应先将结果存入列，再创建 GIN/GiST 或兼容 BM25 索引，并用相同的词素表示生成查询。
+| 函数 | 返回 | 说明 |
+| --- | --- | --- |
+| `create_text_analyzer(name, config)` | `void` | 根据 TOML [配置](#text-analyzer-options)创建分析器。`pg_dict` 词典名按当前 `search_path` 解析，连同模式名一起保存。 |
+| `drop_text_analyzer(name)` | `void` | 删除分析器。 |
+| `create_stopwords(name, config)` | `void` | 创建停用词表：每行一个词，精确匹配。 |
+| `drop_stopwords(name)` | `void` | 删除停用词表。内置的 `lucene_english`、`nltk_english` 和 `iso_english` 不能删除或替换。 |
+| `create_synonym(name, config)` | `void` | 创建同义词表。每行先写要输出的形式，后面是映射到它的词，用空格分隔；同一个词在一张表里只能出现一次。 |
+| `drop_synonym(name)` | `void` | 删除同义词表。 |
+{.fields meta="type"}
 
----
+### 分词器与模型 {#model-functions}
 
-## TOML 配置参数参考 {#toml-configuration-options}
+| 函数 | 返回 | 说明 |
+| --- | --- | --- |
+| `create_tokenizer(name, config)` | `void` | 根据 TOML [配置](#tokenizer-options)创建分词器。 |
+| `drop_tokenizer(name)` | `void` | 删除分词器。 |
+| `create_lindera_model(name, config)` | `void` | 根据 Lindera 7 的 TOML 配置创建 [Lindera](/zh/docs/tokenizer/models/#lindera) 模型。从文件读取词典需要超级用户或 `pg_read_server_files`。 |
+| `drop_lindera_model(name)` | `void` | 删除 Lindera 模型。 |
+| `create_huggingface_model(name, config)` | `void` | 根据 Hugging Face `tokenizer.json` 的内容创建模型。所有 ID，包括新增词元、特殊词元和 `padding.pad_id`，都不能超过 2147483647。 |
+| `drop_huggingface_model(name)` | `void` | 删除 Hugging Face 模型。 |
+| `create_custom_model(name, config)` | `void` | 按 TOML [配置](#custom-model-options)从表中的一列构建词表，存入 `tokenizer_data."model_<name>"`，并添加负责收录新词的触发器 `model_<name>_trigger`。 |
+| `create_custom_model_tokenizer_and_trigger(tokenizer_name, model_name, text_analyzer_name, table_name, source_column, target_column [, filter])` | `void` | 执行 `create_custom_model` 和 `create_tokenizer`，把每行的 ID 填入 `target_column`，并添加保持其最新的触发器 `model_<name>_trigger_insert`。`filter` 可选，为 `NULL` 时包含所有行。 |
+| `drop_custom_model(name)` | `void` | 删除自定义模型及其词表和触发器。使用它的分词器会保留。 |
+{.fields meta="type"}
 
-### `text_analyzer` 配置项
+所有类型的模型共用同一个命名空间：名称只能由 ASCII 字母、数字和下划线组成，以字母开头，最长 20 个字符。`bert_base_uncased`、`gemma2b`、`llmlingua2` 和 `wiki_tocken` 是内置模型，名称不能复用。
 
-| 键名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| `character_filters` | 表数组 / 字符串数组 | 字符级过滤转换（`to_lowercase`、`unicode_normalization = "nfc" \| "nfd" \| "nfkc" \| "nfkd"`）。 |
-| `pre_tokenizer` | 表 / 字符串 | 初始分词切分器（`unicode_segmentation`、`regex = "..."` 或 `jieba`）。 |
-| `token_filters` | 表数组 / 字符串数组 | 词元级过滤器（`skip_non_alphanumeric`、`stemmer`、`stopwords`、`synonym`、`pg_dict`、`ngram`）。 |
-{.wide .expand}
+### 预加载列表 {#preload-functions}
 
-### `tokenizer` 配置项
+| 函数 | 返回 | 说明 |
+| --- | --- | --- |
+| `add_preload_model(name)` | `void` | 把一个内置模型或当前数据库中的模型加入服务器的预加载列表。下次重启时生效；即使事务回滚，文件也已写入。除非另行授权，仅限超级用户。 |
+| `remove_preload_model(name)` | `void` | 从预加载列表中移除模型。规则与 `add_preload_model` 相同。 |
+| `list_preload_models()` | `text[]` | 按名称排序列出预加载列表，包括加载失败的条目。 |
+{.fields meta="type"}
 
-| 键名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| `text_analyzer` | 字符串 | 已创建的 `text_analyzer` 名称（或内联 `[text_analyzer]` 表）。使用独立子词模型时无需配置。 |
-| `model` | 字符串 | 内置预训练模型（`llmlingua2`、`bert_base_uncased`、`wiki_tocken`、`gemma2b`）或自定义/HuggingFace/Lindera 模型名称。 |
-{.wide .expand}
+## 配置 {#toml-configuration-options}
 
-### `custom_model` 配置项
+配置使用 [TOML](https://toml.io/) 格式。未知的键和无效的值会以 SQLSTATE `22023` 被拒绝。不带选项的阶段既可以写成字符串 `"to_lowercase"`，也可以写成表 `{ to_lowercase = {} }`。
 
-| 键名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| `table` | 字符串 | 存放训练语料的数据表名称，支持带模式名的表名及带引号的标识符。 |
-| `column` | 字符串 | 存放原始文本的 `TEXT` 列名称。 |
-| `text_analyzer` | 字符串 | 用于提取词表词元的 `text_analyzer` 名称。 |
-| `filter` | 字符串 | 可选的可信 SQL 布尔表达式，不包含 `WHERE` 或 `NEW.`。只有结果为 TRUE 的行参与训练和 embedding 更新；FALSE/NULL 会跳过，词表只增不减。 |
-{.wide .expand}
+### 文本分析器 {#text-analyzer-options}
 
-## 并发、过滤与缓存语义 {#api-semantics}
+| 键 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `character_filters` | array | `[]` | [字符过滤器](#character-filters)，按顺序作用于整段文本。 |
+| `pre_tokenizer` | string or table | 无 | [预分词器](#pre-tokenizers)。没有时整段文本就是一个词。 |
+| `token_filters` | array | `[]` | [词元过滤器](#token-filters)，按顺序执行。 |
+{.fields meta="type default"}
 
-只有新增词元的写入会在每个模型上获取事务级咨询锁，并按 `COLLATE "C"` 排序新词元；同一模型的新增词元操作会在事务内串行化。`READ COMMITTED` 下，触发器会在等待词表写入后刷新快照；`REPEATABLE READ` 或 `SERIALIZABLE` 遇到冲突时可能返回 SQLSTATE `40001`，应用应重试整个事务。过滤条件同时作用于初始词表、回填和后续写入；不匹配行的既有 embedding 与词表条目不会自动删除。
+### 字符过滤器 {#character-filters}
 
-从 1.1.0 起，`tokenizer_catalog.definition_version` 中的一行事务性版本号与定义变更一同复制。主库和热备连接都在当前 SQL 快照下核对分析器、分词器、模型、停用词及同义词缓存；长连接在新提交对其快照可见时刷新，promotion 后也保持这一行为。旧的 REPEATABLE READ 快照、延迟或暂停回放的备库仍会读取旧定义。协调主备定义变更时，需要等待主库提交 LSN 回放完成并开始新快照。输出改变后，持久化向量和索引仍需显式重算或重建。
+| 键 | 类型 | 说明 |
+| --- | --- | --- |
+| `to_lowercase` | none | 按 Unicode 规则转为小写。 |
+| `unicode_normalization` | string | 应用一种 [Unicode 规范化形式](https://unicode.org/reports/tr15/)：`nfc`、`nfd`、`nfkc` 或 `nfkd`。`nfkc` 还会把全角字符和兼容字符折叠为标准形式。 |
+{.fields meta="type"}
 
-版本检查每条语句读取一行，不会逐词扫描定义表。修改定义的事务在版本行上串行化，每条修改语句增加一次 heap/WAL 更新；普通词表插入不更新版本行。写目录的函数均标记为 `PARALLEL UNSAFE`，只读分析保留 `PARALLEL SAFE`。修改定义的 API 仍不允许 `PREPARE TRANSACTION`。
+### 预分词器 {#pre-tokenizers}
 
-只读事务仍可 prepare。执行 `PREPARE TRANSACTION` 时，原连接会清空派生对象与校验状态；即使另一连接回滚该预备事务，随后其他配置复用了同一个版本号，后续查询也会按自己的快照重新加载。
+| 键 | 类型 | 说明 |
+| --- | --- | --- |
+| `unicode_segmentation` | none | 按 Unicode 词边界（[UAX #29](https://www.unicode.org/reports/tr29/)）切分，保留含有字母或数字的片段。 |
+| `regex` | string | 返回 Rust [`regex`](https://docs.rs/regex) 模式的每个不重叠匹配。 |
+| `jieba` | table | 用[结巴](https://github.com/messense/jieba-rs)词典切分中文，选项见下表。 |
+{.fields meta="type"}
 
-## 分析资源预算 {#analysis-budgets}
+<a id="jieba-chinese-word-segmentation"></a>
 
-| 会话参数 | 默认值 | 预算范围 |
-| --- | ---: | --- |
-| `pg_tokenizer.max_input_bytes` | 16,777,216 | 单次分析器输入的 UTF-8 字节数 |
-| `pg_tokenizer.max_output_tokens` | 1,000,000 | 每个阶段的词元或 ID 数量 |
-| `pg_tokenizer.max_output_bytes` | 67,108,864 | 词元字节与 String 描述符、ID 字节、字符输出或 ngram 偏移表 |
-| `pg_tokenizer.max_piece_bytes` | 1,048,576 | 单次 regex、第三方库或 PostgreSQL 词典调用的输入字节数 |
+| `jieba` 键 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `mode` | string | `search` | `search` 返回最可能的切分，外加长词内部较短的词典词，适合索引和查询。`precise` 只返回最可能的切分。`full` 返回找到的所有词典词，彼此可以重叠。 |
+| `enable_hmm` | boolean | `true` | 在 `precise` 和 `search` 模式下把词典中没有的字组合成词。`full` 模式忽略此项。 |
+{.fields meta="type default"}
 
-超限返回 SQLSTATE `54000`，不会静默截断结果。检查约束扩展自己构建的中间结果、ngram 扩张及 HF 固定 padding，但不构成 backend RSS 硬上限：同时存在的缓冲区、缓存模型和库内部工作区仍占内存。任意 HF normalizer/postprocessor 可能在输出检查前分配内部内存。单次 regex 搜索或 Jieba/Lindera/HF/词典调用仍可能延迟取消；应使用可信模型配置并限制文档大小，调高预算会增加内存暴露。
+### 词元过滤器 {#token-filters}
+
+<a id="3-token-filters-token_filters"></a>
+
+| 键 | 类型 | 说明 |
+| --- | --- | --- |
+| `skip_non_alphanumeric` | none | 删除不含字母或数字的词。 |
+| `stopwords` | string | 删除指定停用词表中的词：`lucene_english`、`nltk_english`、`iso_english`，或用 `create_stopwords` 创建的表。 |
+| `stemmer` | string | 把每个词替换为 Snowball 词干，取值见[下文](#stemmers)。要求输入为小写。 |
+| `synonym` | string | 用 `create_synonym` 创建的同义词表替换词。 |
+| `pg_dict` | string | 像 `ts_lexize` 一样把每个词交给 PostgreSQL 全文检索词典处理。不认识的词原样通过，停用词被删除。 |
+| `ngram` | table | 把每个词替换为它的字符 n-gram，选项见下表。 |
+{.fields meta="type"}
+
+| `ngram` 键 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `min_gram` | integer | `1` | 最短 n-gram 的字符数，取值 1 到 255，且不大于 `max_gram`。 |
+| `max_gram` | integer | `2` | 最长 n-gram 的字符数，取值 1 到 255。范围越宽，能匹配的子串越多，索引也越大。 |
+| `preserve_original` | boolean | `false` | 长度不在范围内的词也保留原词；否则它会被替换，短于 `min_gram` 时则被删除。 |
+{.fields meta="type default"}
+
+### 词干算法 {#stemmers}
+
+<a id="stemmer-snowball-stemming--30-languages"></a>
+
+`arabic`、`armenian`、`basque`、`catalan`、`danish`、`dutch`、`english_porter`、`english_porter2`、`estonian`、`finnish`、`french`、`german`、`greek`、`hindi`、`hungarian`、`indonesian`、`irish`、`italian`、`lithuanian`、`nepali`、`norwegian`、`portuguese`、`romanian`、`russian`、`serbian`、`spanish`、`swedish`、`tamil`、`turkish`、`yiddish`。英文方面，`english_porter2` 是现行的 Snowball 算法，`english_porter` 是最初的 Porter 词干算法。
+
+### 分词器 {#tokenizer-options}
+
+| 键 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | 内置模型，或本数据库中的 Lindera、Hugging Face、自定义模型。 |
+| `text_analyzer` | string | | 在模型之前运行的分析器。不能与下面的内联键同时使用。 |
+| `character_filters` | array | | 内联分析器的字符过滤器。 |
+| `pre_tokenizer` | string or table | | 内联分析器的预分词器。 |
+| `token_filters` | array | | 内联分析器的词元过滤器。 |
+{.fields meta="type required"}
+
+没有分析器时，模型拿到整段文本；有分析器时，模型分别处理每个词。
+
+### 自定义模型 {#custom-model-options}
+
+| 键 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `table` | string | 是 | 源表，可带模式限定，保存时会补全模式名。 |
+| `column` | string | 是 | 源列。任何能转换为 `text` 的类型都可以。 |
+| `text_analyzer` | string | 是 | 把该列切分成词的分析器。 |
+| `filter` | string | | 针对源表列的 SQL 条件，不写 `WHERE`。只有条件为真的行参与构建词表并得到 ID。默认包含所有行。 |
+{.fields meta="type required"}
+
+### Lindera 模型 {#lindera-model-options}
+
+配置就是 [Lindera 7](https://github.com/lindera/lindera) 的分词器配置。pg_tokenizer 自己读取下列键：
+
+| 键 | 类型 | 说明 |
+| --- | --- | --- |
+| `segmenter.mode` | string | Lindera 切分模式，例如 `normal`。 |
+| `segmenter.dictionary` | string | `embedded://<name>` 表示内置在动态库中的词典，或者服务器上 Lindera 7（format v3）词典目录的路径或 `file://` URI。 |
+| `segmenter.user_dictionary` | string | 用户词典的路径，CSV 或编译后的格式均可。其中词的 ID 从 1073741824 开始。 |
+| `character_filters` | array | Lindera 字符过滤器，每项包含 `kind` 和 `args`。 |
+| `token_filters` | array | Lindera 词元过滤器，每项包含 `kind` 和 `args`。删除词的过滤器会同时删除其 ID；只改写文本的过滤器对 ID 没有影响。 |
+{.fields meta="type"}
+
+## 参数 {#analysis-budgets}
+
+<a id="definition-caches"></a>
+
+这些参数限制单次调用的工作量。它们都是取值 1 到 2147483647 的整数，任何用户都可以 `SET`。调用超出限制时以 SQLSTATE `54000` 失败，报错中会写明是哪个参数，例如 `pg_tokenizer exceeds max_piece_bytes (1048576)`；不会做任何截断。
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `pg_tokenizer.max_input_bytes` | integer | `16777216` | 单次分析器或分词器调用的最大输入字节数。 |
+| `pg_tokenizer.max_output_tokens` | integer | `1000000` | 单个阶段最多产生的词或 ID 数。 |
+| `pg_tokenizer.max_output_bytes` | integer | `67108864` | 单个阶段最多产生的字节数，包括词、ID、改写后的文本和 n-gram 的簿记开销。 |
+| `pg_tokenizer.max_piece_bytes` | integer | `1048576` | 单次调用结巴、正则表达式、模型或 `pg_dict` 的最大输入字节数。这类调用返回之前无法被取消，所以该参数也限定了查询能无视取消请求或 `statement_timeout` 多久。 |
+{.fields meta="type default"}
+
+面向用户的查询保持默认值即可。批量导入可信的大文档时，只在该事务内调高限制：
+
+```sql
+BEGIN;
+SET LOCAL pg_tokenizer.max_piece_bytes = 16777216;
+UPDATE docs SET terms = tokenizer_catalog.analyze_to_tsvector(body, 'zh_text');
+COMMIT;
+```
+
+这些限制只统计 pg_tokenizer 自己的缓冲区，而不是后端进程的全部内存：已加载的模型和第三方库内部的内存都要另算。
+
+## 目录表 {#catalog}
+
+定义是 `tokenizer_catalog.text_analyzer`、`tokenizer`、`model`、`stopwords` 和 `synonym` 这几张表中的行，每行有 `name` 和对应的 `config`。可以查询它们来查看已有哪些定义，但修改只应通过上面的函数进行：
+
+```sql
+SELECT name FROM tokenizer_catalog.text_analyzer;
+SELECT name, config FROM tokenizer_catalog.tokenizer;
+```
+
+自定义模型的词表是 `tokenizer_data."model_<name>"`，包含 `id` 和 `token` 两列。

@@ -23,7 +23,7 @@ cascade:
 > [!TIP] Relationship with `vchord`
 > [`vchord`](/docs/vchord/) builds directly on `pgvector`'s data types (`vector` and `halfvec`) and distance operators (`<->`, `<#>`, `<=>`). You can add [`vchord`](/docs/vchord/) (`vchordrq` or `vchordg`) indexes to existing `pgvector` tables without changing your schema or application queries.
 
-## Key Features
+## Key Features {#key-features}
 
 - **Exact and approximate nearest-neighbor search** inside standard PostgreSQL tables with full ACID transactions, point-in-time recovery, joins, and filtering.
 - **Multiple vector representations**:
@@ -34,7 +34,7 @@ cascade:
 - **Six distance metrics**: L2 distance (`<->`), inner product (`<#>`), cosine distance (`<=>`), L1 distance (`<+>`), Hamming distance (`<~>`), and Jaccard distance (`<%>`).
 - **Iterative index scans** (`0.8.0+`) that automatically expand HNSW or IVFFlat candidate traversal when `WHERE` filters narrow the result set.
 
-## Documentation Sections
+## Documentation Sections {#documentation-sections}
 
 {{< cards >}}
 {{< card title="Getting Started" icon="fa-solid fa-rocket" link="/docs/vector/getting-started/" >}}

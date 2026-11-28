@@ -1,136 +1,95 @@
 ---
-title: "混合检索 (BM25 + VectorChord)"
-description: "结合稀疏词法 BM25 检索 (vchord_bm25) 与稠密向量检索 (vchord)，通过倒数排序融合 (RRF) 与 ColBERT 重排序提升检索精度。"
+title: "混合检索"
+linkTitle: "混合检索"
+description: "一份可直接运行的 SQL 示例：用倒数排名融合（RRF）把 vchord_bm25 关键词排序与 vchord 向量检索结合起来。"
 weight: 40
-math: true
 icon: fa-solid fa-code-merge
 ---
 
-现代检索增强生成（RAG）与搜索流水线通常将**稠密向量检索**（[`vchord`](/zh/docs/)，擅长捕捉语义相似性）与**稀疏词法 BM25 检索**（`vchord_bm25`，擅长捕捉精确关键词、标识符与罕见词匹配）结合使用。由于这两个扩展均原生运行在 PostgreSQL 内部，你可以在**单条 SQL 查询中端到端执行混合检索**，无需任何外部编排服务。
+关键词检索能精确命中人名、产品编号、罕见词这类向量会模糊掉的词；向量检索能找到措辞不同但意思相同的段落。本示例在同一张表上、用一条 SQL 同时跑这两种检索，并用倒数排名融合（Reciprocal Rank Fusion，RRF）合并结果。RRF 只看每一行在各个列表中的名次，BM25 分数和向量距离不必换算到同一个尺度。
 
-## 混合检索表结构准备 {#schema-setup-for-hybrid-search}
+## 前提条件 {#prerequisites}
 
-以下示例使用 `vchord` 1.2.0、`vchord_bm25` 1.1.0 和 `pg_tokenizer` 1.0.0。请先[安装并预加载动态库](/zh/docs/bm25/getting-started/installation/)。
+需要 [vchord](/zh/docs/vchord/getting-started/installation/) 1.5.0（含 pgvector）和 vchord_bm25，两者都要预加载。保留列表里已有的库，然后重启 PostgreSQL：
+
+```sql
+ALTER SYSTEM SET shared_preload_libraries = 'vchord,vchord_bm25';
+```
+
+然后以超级用户身份，在数据库中执行：
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+```
 
-SET search_path TO "$user", public, tokenizer_catalog;
+## 把文本、词项和向量存在一起 {#schema}
 
--- 1. 创建 BM25 分词器
-SELECT create_tokenizer('bert', $$
-model = "bert_base_uncased"
-$$);
-
--- 2. 创建同时存储稠密向量与带位置的 tsvector 的数据表
+```sql
 CREATE TABLE chunks (
-    id SERIAL PRIMARY KEY,
-    content TEXT NOT NULL,
-    dense_emb vector(768),
-    bm25_emb tsvector,
-    colbert_emb vector[]
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector GENERATED ALWAYS AS (to_tsvector('english', body)) STORED,
+    embedding vector(3) NOT NULL
 );
 
-CREATE FUNCTION chunks_tokenize() RETURNS trigger
-LANGUAGE plpgsql AS $$
-BEGIN
-    NEW.bm25_emb := tokenizer_catalog.tokenize_to_tsvector(NEW.content, 'bert');
-    RETURN NEW;
-END;
-$$;
+INSERT INTO chunks (body, embedding) VALUES
+    ('PostgreSQL ranks text search results with BM25.',       '[0.9, 0.1, 0.1]'),
+    ('vchord indexes embeddings for nearest-neighbor search.', '[0.1, 0.9, 0.2]'),
+    ('Hybrid search merges keyword and vector rankings.',      '[0.6, 0.6, 0.3]'),
+    ('A GIN index answers boolean full-text matches.',         '[0.8, 0.2, 0.0]');
 
-CREATE TRIGGER chunks_tokenize
-BEFORE INSERT OR UPDATE OF content ON chunks
-FOR EACH ROW EXECUTE FUNCTION chunks_tokenize();
-
--- 3. 创建 VectorChord 稠密向量索引 (vchordrq) 与 BM25 词法索引 (bm25)
-CREATE INDEX chunks_dense_idx ON chunks USING vchordrq (dense_emb vector_l2_ops);
-CREATE INDEX chunks_bm25_idx  ON chunks USING bm25 (bm25_emb bm25_ops);
+CREATE INDEX chunks_terms_bm25 ON chunks USING bm25 (terms bm25_ops);
+CREATE INDEX chunks_embedding_rq ON chunks USING vchordrq (embedding vector_cosine_ops);
 ```
 
-`tokenize_to_tsvector` 是 `STABLE` 函数，不能用于生成列，因此通过触发器写入普通列。将文档嵌入写入 `dense_emb`（768 维），重排序所需的逐词元向量写入 `colbert_emb`。下文查询使用应用绑定参数：`$1` 为稠密查询向量，`$2` 为查询文本，`$3` 为 ColBERT 查询向量数组。
+三维向量只是用来代替嵌入模型的输出。真实的表里，向量列的维度与模型一致，文档和查询由同一个模型生成向量，vchordrq 索引按[vchordrq 索引](/zh/docs/vchord/usage/indexing/)中的方法根据行数配置。
 
-## 方式一：纯 SQL 实现倒数排序融合（RRF） {#method-1-reciprocal-rank-fusion-rrf-in-pure-sql}
-
-**倒数排序融合（Reciprocal Rank Fusion，RRF）** 能够直接融合来自多个检索系统的排名结果，而无需在 L2/余弦距离与 BM25 得分之间做复杂的分数归一化校准：
-
-$$\text{RRF\_Score}(d) = \frac{w_{\text{dense}}}{k + \text{rank}_{\text{dense}}(d)} + \frac{w_{\text{bm25}}}{k + \text{rank}_{\text{bm25}}(d)}$$
-
-其中 \(k\) 为平滑常数（通常取 \(k = 60\)）。
+## 融合排序结果 {#rrf}
 
 ```sql
-WITH dense_results AS (
-    SELECT
-        id,
-        RANK() OVER (ORDER BY dense_emb <-> $1::vector) AS dense_rank
-    FROM chunks
-    ORDER BY dense_emb <-> $1::vector
-    LIMIT 100
+WITH keyword AS (
+    SELECT id, row_number() OVER (ORDER BY score) AS rank
+    FROM (
+        SELECT id, terms <&> to_bm25query(to_tsvector('english', 'vector search ranking'), 'chunks_terms_bm25') AS score
+        FROM chunks
+        ORDER BY score
+        LIMIT 50
+    ) AS hits
+    WHERE score < 0
 ),
-bm25_results AS (
-    SELECT
-        id,
-        RANK() OVER (
-            ORDER BY bm25_emb <&> to_bm25query(tokenize_to_tsvector('PostgreSQL BM25 hybrid search', 'bert'), 'chunks_bm25_idx')
-        ) AS bm25_rank
-    FROM chunks
-    ORDER BY bm25_emb <&> to_bm25query(tokenize_to_tsvector('PostgreSQL BM25 hybrid search', 'bert'), 'chunks_bm25_idx')
-    LIMIT 100
-),
-fused AS (
-    SELECT
-        COALESCE(d.id, b.id) AS id,
-        d.dense_rank,
-        b.bm25_rank,
-        COALESCE(1.0 / (60 + d.dense_rank), 0.0) +
-        COALESCE(1.0 / (60 + b.bm25_rank), 0.0) AS rrf_score
-    FROM dense_results d
-    FULL OUTER JOIN bm25_results b ON d.id = b.id
-    ORDER BY rrf_score DESC
-    LIMIT 10
+semantic AS (
+    SELECT id, row_number() OVER (ORDER BY distance) AS rank
+    FROM (
+        SELECT id, embedding <=> '[0.5, 0.7, 0.2]' AS distance
+        FROM chunks
+        ORDER BY distance
+        LIMIT 50
+    ) AS hits
 )
-SELECT
-    c.id,
-    c.content,
-    f.dense_rank,
-    f.bm25_rank,
-    round(f.rrf_score::numeric, 6) AS rrf_score
-FROM fused f
-JOIN chunks c ON c.id = f.id
-ORDER BY f.rrf_score DESC;
-```
-
-## 方式二：混合召回 + ColBERT 晚期交互重排序 {#method-2-hybrid-retrieval--colbert-late-interaction-reranking}
-
-如果追求更高的检索精度，可以先使用 `vchordrq`（稠密检索）+ `vchord_bm25`（词法检索）召回候选文档并集，再在 PostgreSQL 内使用 VectorChord 的 **`@#` (`max_sim`)** 多向量 ColBERT 操作符进行精细重排序：
-
-```sql
-WITH dense_candidates AS (
-    SELECT id FROM chunks
-    ORDER BY dense_emb <-> $1::vector
-    LIMIT 50
-),
-bm25_candidates AS (
-    SELECT id FROM chunks
-    ORDER BY bm25_emb <&> to_bm25query(tokenize_to_tsvector($2, 'bert'), 'chunks_bm25_idx')
-    LIMIT 50
-),
-candidate_ids AS (
-    SELECT id FROM dense_candidates
-    UNION
-    SELECT id FROM bm25_candidates
-)
-SELECT
-    c.id,
-    c.content,
-    -(c.colbert_emb @# $3::vector[]) AS colbert_maxsim_score
-FROM candidate_ids u
-JOIN chunks c ON c.id = u.id
-ORDER BY c.colbert_emb @# $3::vector[] ASC
+SELECT c.id, c.body,
+       k.rank AS keyword_rank,
+       s.rank AS semantic_rank,
+       coalesce(1.0 / (60 + k.rank), 0) + coalesce(1.0 / (60 + s.rank), 0) AS rrf
+FROM keyword AS k
+FULL JOIN semantic AS s USING (id)
+JOIN chunks AS c USING (id)
+ORDER BY rrf DESC, c.id
 LIMIT 10;
 ```
 
-> [!TIP]
-> 请参阅我们的工程深度解析博客 [**在 PostgreSQL 中使用 ColBERT 重排序为向量检索加速**](/zh/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/) 以及 [**使用 Postgres 原生 BM25 与 VectorChord 实现混合检索**](/zh/docs/vchord/use-case/hybrid-search/)，了解在 PostgreSQL 内部执行“稠密向量 + BM25 + ColBERT 重排序”的完整 BEIR 基准测试对比。
+- 两个分支都是普通的按索引排序的查询，一个走 bm25 索引，一个走 vchordrq 索引，各自最多返回 50 个候选。
+- `WHERE score < 0` 去掉一个查询词都不包含的行，这些行不参与关键词排名。
+- 每一行的融合分数，是它在各个列表中 `1 / (60 + 名次)` 之和。常数 60 来自 RRF 的原始论文，作用是不让前几名的差距过大。
+- `FULL JOIN` 保留只被其中一个分支找到的行。
+
+## 调整融合方式 {#tuning}
+
+- **候选深度。** 列表取得更深（例如 100 而不是 50），能找回只在一侧排名靠前的行，代价是两次索引扫描都更贵。让 `bm25.limit` 不小于关键词分支的深度，关键词分支就能[一批完成](/zh/docs/bm25/usage/querying/#batch-size)；默认值 100 足以覆盖 50。
+- **权重。** 给某个分支的项乘一个系数，表示更信任它，例如 `0.7 * coalesce(1.0 / (60 + s.rank), 0)`。
+- **过滤。** 把相同的条件（例如租户）同时放进两个分支。关键词一侧见[过滤](/zh/docs/bm25/usage/filtering/)，向量一侧见[vchordrq 索引](/zh/docs/vchord/usage/indexing/)。
+- **度量。** RRF 并不总是优于两者中较好的那一个：在[已发布的 BEIR 测试](/zh/docs/bm25/reference/benchmarks/#hybrid)中，它在 FiQA 上低于单独的向量检索，在 SCIDOCS 上则高于两者。确定权重之前，先在自己的查询上比较 NDCG@10。想要更高的准确度，可以用 cross-encoder 对融合后的候选重排，见 vchord 的[混合检索案例](/zh/docs/vchord/use-case/hybrid-search/)。
+
+## 在应用中执行 {#parameters}
+
+把查询文本换成 `$1`，把查询向量换成 `$2::vector`，两个索引名都保持为字面量；索引名一旦参数化，PostgreSQL 就无法使用 bm25 索引（见[预备语句](/zh/docs/bm25/usage/querying/#prepared-statements)）。

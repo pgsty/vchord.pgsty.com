@@ -4,12 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 from pathlib import Path
 
 EXTENSIONS = ("vchord", "vchord_bm25", "pg_tokenizer")
-RELEASE_VERSIONS = {"vchord": "1.5.0", "vchord_bm25": "1.0.0", "pg_tokenizer": "1.0.0"}
-
+RELEASE_VERSIONS = {"vchord": "1.5.0", "vchord_bm25": "1.3.0", "pg_tokenizer": "1.3.0"}
 
 
 def table_reader_attributes(match: re.Match[str]) -> str:
@@ -22,19 +22,6 @@ def table_reader_attributes(match: re.Match[str]) -> str:
 
 def parse_pgext_markdown(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
-
-    version_match = re.search(r"\|\s*\*\*EXT\*\*\s*\|[^|]+\|\s*`([^`]+)`\s*\|", text)
-    version = version_match.group(1) if version_match else ""
-    target_version = RELEASE_VERSIONS.get(path.stem, version)
-    if path.stem != "vchord" and version and target_version and version != target_version:
-        text = re.sub(
-            rf"{re.escape(version)}-\d+PIGSTY",
-            f"{target_version}-1PIGSTY",
-            text,
-        )
-        text = text.replace(f"PIGSTY {version}", f"PIGSTY {target_version}")
-        text = text.replace(f"`{version}`", f"`{target_version}`")
-        version = target_version
 
     matrix_match = re.search(
         r"(\| \*\*Linux\*\* / \*\*PG\*\* \|.*?\n\{\.matrix(?:\s+[^{}\n]*)?\})",
@@ -57,6 +44,9 @@ def parse_pgext_markdown(path: Path) -> dict[str, str]:
         raise ValueError(f"Could not find pgmajor tabs in {path}")
 
     packages_en = packages_match.group(1)
+    versions = re.findall(r"^\|\s*`[^`\n]+`\s*\|\s*`([^`\n]+)`\s*\|", packages_en, re.M)
+    repo_version = ", ".join(dict.fromkeys(versions)) or "—"
+
     # Replace internal pgext /os/<target> links with our {{< os "<target>" >}} shortcode
     packages_en = re.sub(
         r"\[([a-z0-9_.-]+)\]\(/os/\1\)",
@@ -73,7 +63,7 @@ def parse_pgext_markdown(path: Path) -> dict[str, str]:
     )
 
     return {
-        "version": version,
+        "repo_version": repo_version,
         "matrix_en": matrix_en,
         "matrix_zh": matrix_zh,
         "packages_en": packages_en,
@@ -88,7 +78,7 @@ def build_en(data: dict[str, dict[str, str]]) -> str:
     return f"""---
 title: Download & Install
 linkTitle: Download
-description: Install vchord, vchord_bm25, and pg_tokenizer using the pig package manager, historical Docker containers (Obsolete), or native RPM/DEB packages across 16 Linux distributions and PostgreSQL 14–18.
+description: Install vchord, vchord_bm25 and pg_tokenizer and find RPM and DEB packages for your PostgreSQL version and platform.
 weight: 30
 icon: fa-solid fa-download
 type: docs
@@ -98,19 +88,22 @@ page_width: wide
 body_class: td-download-page
 ---
 
-Pre-built native RPM and DEB packages for the Vchord extension suite (**`vchord`**, **`vchord_bm25`**, and **`pg_tokenizer`**) are published across **16 Linux OS / CPU architecture targets** (`el8`, `el9`, `el10`, `d12`, `d13`, `u22`, `u24`, `u26` × `x86_64` / `aarch64`) for **PostgreSQL 14, 15, 16, 17, and 18** (240 binary packages in total).
+The download tables list RPM and DEB packages for `vchord`, `vchord_bm25` and `pg_tokenizer` by PostgreSQL version, operating system and architecture.
 
-**vchord 1.5.0** is available from the [GitHub release](https://github.com/pgsty/vchord/releases/tag/1.5.0) as Linux ZIP and Debian packages for PostgreSQL 15–19 on x86_64/aarch64 (glibc 2.35+). The distribution-repository tables below still describe 1.2.0. See the [upgrade notes](/blog/release/vchord-1.5.0/).
+> [!IMPORTANT]
+> **Download sources**:
+> - **Latest GitHub releases**: [**`vchord 1.5.0`**](https://github.com/pgsty/vchord/releases/tag/1.5.0), [**`vchord_bm25 1.3.0`**](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0), and [**`pg_tokenizer 1.3.0`**](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.3.0) provide pre-built Linux ZIP and Debian packages for PostgreSQL 15–19 (`x86_64` / `aarch64`). Review the [`vchord 1.5.0`](/release/vchord-1.5.0/), [`vchord_bm25 1.3.0`](/release/vchord-bm25-1.3.0/), and [`pg_tokenizer 1.3.0`](/release/pg-tokenizer-1.3.0/) release notes before upgrading.
+> - **Pigsty APT / YUM** publishes package versions and file URLs by platform for [vchord](#vchord-packages), [vchord_bm25](#vchord_bm25-packages) and [pg_tokenizer](#pg_tokenizer-packages).
 
 {{{{< cards >}}}}
 {{{{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v{RELEASE_VERSIONS['vchord']}" >}}}}
-Scalable, fast, and disk-friendly vector similarity search extension built on `pgvector`, providing RaBitQ-compressed `vchordrq` (IVF) and `vchordg` (graph) indexes, multi-vector MaxSim (`@#`), and sphere search across PostgreSQL 15–19.
+Disk-friendly vector similarity search extension built on `pgvector`, providing RaBitQ-compressed `vchordrq` (IVF with filter keys) and `vchordg` (graph) indexes, multi-vector MaxSim (`@#`), and sphere search across PostgreSQL 15–19.
 {{{{< /card >}}}}
 {{{{< card title="vchord_bm25" link="#vchord_bm25" icon="fa-solid fa-magnifying-glass" badge="v{RELEASE_VERSIONS['vchord_bm25']}" >}}}}
-Native Okapi BM25 full-text ranking index extension powered by Block-WeakAnd block-level WAND pruning and the `<&>` operator, delivering high-throughput lexical Top-K retrieval and hybrid search across PostgreSQL 14–18.
+Native Okapi BM25 ranking index extension for `tsvector` columns powered by Block-WeakAnd pruning and the `<&>` operator, built for lexical Top-K retrieval and hybrid search across PostgreSQL 15–19.
 {{{{< /card >}}}}
 {{{{< card title="pg_tokenizer" link="#pg_tokenizer" icon="fa-solid fa-language" badge="v{RELEASE_VERSIONS['pg_tokenizer']}" >}}}}
-Standalone in-database multilingual text analyzer and token-ID encoder supporting Unicode segmentation, Jieba (Chinese), Lindera (Japanese), Snowball stemming, HuggingFace vocabularies, and corpus-trained custom models across PostgreSQL 14–18.
+In-database multilingual text analyzer and token-ID encoder supporting Unicode segmentation, Jieba (Chinese), Lindera 7 (Japanese), Snowball stemming, HuggingFace vocabularies, and custom corpus models across PostgreSQL 15–19.
 {{{{< /card >}}}}
 {{{{< /cards >}}}}
 
@@ -120,7 +113,7 @@ Standalone in-database multilingual text analyzer and token-ID encoder supportin
 
 ### 1 · Install with PIG Package Manager (Recommended) {{#pig}}
 
-We strongly recommend installing the Vchord extension suite with [**`pig`**](https://pig.pgsty.com/) — the PostgreSQL package manager maintained by [PGSTY](https://pigsty.io/). `pig` is a single static Go binary that automatically detects your Linux distribution and CPU architecture, configures the upstream PGDG and Pigsty repositories, and resolves extension dependencies (`pgvector`) in one command.
+Install the Vchord extension suite with [**`pig`**](https://pig.pgsty.com/), the PostgreSQL package manager maintained by [PGSTY](https://pigsty.io/). `pig` detects your Linux distribution and CPU architecture, configures the upstream PGDG and Pigsty repositories, and installs extension dependencies (`pgvector`) automatically.
 
 {{{{< tabs >}}}}
 {{{{< tab label="Global (Default)" >}}}}
@@ -129,7 +122,7 @@ We strongly recommend installing the Vchord extension suite with [**`pig`**](htt
 # 1. Install the pig CLI package manager
 curl -fsSL https://repo.pigsty.io/pig | bash
 
-# 2. Configure PGDG + Pigsty PGSQL repositories and update repo cache
+# 2. Configure PGDG + Pigsty PGSQL repositories and update the cache
 pig repo add pgsql -u
 
 # 3. Install vchord, vchord_bm25, and pg_tokenizer (auto-detects active PG version, or pass -v 18)
@@ -146,7 +139,7 @@ curl -fsSL https://repo.pigsty.cc/pig | bash
 # 2. Configure repositories using the China CDN mirror (-r china)
 pig repo add pgsql -u -r china
 
-# 3. Install vchord, vchord_bm25, and pg_tokenizer (or specify PG major version with -v 18)
+# 3. Install vchord, vchord_bm25, and pg_tokenizer (or pass -v 18 for a specific PG major version)
 pig install vchord vchord_bm25 pg_tokenizer
 ```
 
@@ -154,7 +147,7 @@ pig install vchord vchord_bm25 pg_tokenizer
 {{{{< tab label="Native APT (Debian / Ubuntu)" >}}}}
 
 ```bash
-# Once the Pigsty APT repository is configured, install for your PostgreSQL major version (e.g. PG 18):
+# After configuring the Pigsty APT repository, install for your PostgreSQL major version (e.g., PG 18):
 sudo apt-get update
 sudo apt-get install -y \\
   postgresql-18-vchord \\
@@ -166,7 +159,7 @@ sudo apt-get install -y \\
 {{{{< tab label="Native DNF / YUM (EL 8 / 9 / 10)" >}}}}
 
 ```bash
-# Once the Pigsty YUM repository is configured, install for your PostgreSQL major version (e.g. PG 18):
+# After configuring the Pigsty YUM repository, install for your PostgreSQL major version (e.g., PG 18):
 sudo dnf install -y \\
   vchord_18 \\
   vchord_bm25_18 \\
@@ -178,34 +171,32 @@ sudo dnf install -y \\
 
 ### 2 · Preload Shared Libraries & Enable Extensions {{#enable}}
 
-All three extensions require registering their shared libraries in `shared_preload_libraries` and restarting PostgreSQL before running `CREATE EXTENSION`:
+Add the shared libraries to `shared_preload_libraries` and restart PostgreSQL before running `CREATE EXTENSION`:
 
 ```sql
--- 1. Register shared libraries in postgresql.conf via ALTER SYSTEM
+-- 1. Register shared libraries in postgresql.auto.conf
 ALTER SYSTEM SET shared_preload_libraries = 'vchord.so, vchord_bm25.so, pg_tokenizer.so';
 ```
 
-Restart PostgreSQL (`sudo systemctl restart postgresql-18` or `pig pg restart`), then connect to your target database and enable the extensions:
+Restart PostgreSQL (`sudo systemctl restart postgresql-18` or `pig pg restart`), then connect to your target database and create the extensions:
 
 ```sql
--- 2. Enable the extensions (CASCADE automatically installs pgvector for vchord)
+-- 2. Enable the extensions (CASCADE installs pgvector for vchord)
 CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
 CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 ```
 
-### 3 · Container Images (Obsolete) {{#docker}}
+### 3 · Container Images (Historical Upstream Reference) {{#docker}}
 
 > [!WARNING]
-> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
-
-For local evaluation, CI pipelines, or containerized deployments, official Docker images come with PostgreSQL 18 and the extensions pre-installed and preloaded:
+> **Historical Upstream Images**: PGSTY does not publish container images for `vchord 1.5.0`, `vchord_bm25 1.3.0`, or `pg_tokenizer 1.3.0`. The upstream TensorChord images below contain older versions and are listed for local reference only. Use Pigsty packages or GitHub release artifacts for current production deployments.
 
 {{{{< tabs >}}}}
-{{{{< tab label="Vchord Suite (All-in-One)" >}}}}
+{{{{< tab label="Vchord Suite (Historical)" >}}}}
 
 ```bash
-# Includes PostgreSQL 18 + pgvector + vchord + vchord_bm25 + pg_tokenizer
+# Historical upstream image (PostgreSQL 18 + older VectorChord suite)
 docker run -d \\
   --name vchord-suite \\
   -e POSTGRES_PASSWORD=postgres \\
@@ -214,10 +205,10 @@ docker run -d \\
 ```
 
 {{{{< /tab >}}}}
-{{{{< tab label="vchord Only (Vector Search)" >}}}}
+{{{{< tab label="vchord Only (Historical v1.1.1)" >}}}}
 
 ```bash
-# Includes PostgreSQL 18 + pgvector + vchord v1.1.1
+# Historical upstream image (PostgreSQL 18 + pgvector + VectorChord 1.1.1)
 docker run -d \\
   --name vchord-postgres \\
   -e POSTGRES_PASSWORD=postgres \\
@@ -228,26 +219,26 @@ docker run -d \\
 {{{{< /tab >}}}}
 {{{{< /tabs >}}}}
 
-### 4 · GitHub Releases {{#releases}}
+### 4 · Release & Catalog Overview {{#releases}}
 
-| **Extension** | **Current Release** | **Documentation** | **PGEXT Catalog** | **Pigsty Docs** | **GitHub Repository & Releases** |
-|:---|:---:|:---|:---|:---|:---|
-| **`vchord`** | `v{RELEASE_VERSIONS['vchord']}` | [vchord Docs](/docs/vchord/) | [pgext.cloud/e/vchord](https://pgext.cloud/e/vchord) | [pigsty.io/ext/e/vchord](https://pigsty.io/ext/e/vchord/) | [pgsty/vchord](https://github.com/pgsty/vchord/releases) |
-| **`vchord_bm25`** | `v{RELEASE_VERSIONS['vchord_bm25']}` | [vchord_bm25 Docs](/docs/bm25/) | [pgext.cloud/e/vchord_bm25](https://pgext.cloud/e/vchord_bm25) | [pigsty.io/ext/e/vchord_bm25](https://pigsty.io/ext/e/vchord_bm25/) | [pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25/releases) |
-| **`pg_tokenizer`** | `v{RELEASE_VERSIONS['pg_tokenizer']}` | [pg_tokenizer Docs](/docs/tokenizer/) | [pgext.cloud/e/pg_tokenizer](https://pgext.cloud/e/pg_tokenizer) | [pigsty.io/ext/e/pg_tokenizer](https://pigsty.io/ext/e/pg_tokenizer/) | [pgsty/pg_tokenizer](https://github.com/pgsty/pg_tokenizer/releases) |
+| **Extension** | **Documented source release** | **Pigsty Repo Package** | **Documentation** | **PGEXT Catalog** | **GitHub Releases** |
+|:---|:---:|:---:|:---|:---|:---|
+| **`vchord`** | `v{RELEASE_VERSIONS['vchord']}` | `{vc['repo_version']}` | [vchord Docs](/docs/vchord/) | [pgext.cloud/e/vchord](https://pgext.cloud/e/vchord) | [pgsty/vchord](https://github.com/pgsty/vchord/releases) |
+| **`vchord_bm25`** | `v{RELEASE_VERSIONS['vchord_bm25']}` | `{bm['repo_version']}` | [vchord_bm25 Docs](/docs/bm25/) | [pgext.cloud/e/vchord_bm25](https://pgext.cloud/e/vchord_bm25) | [pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25/releases) |
+| **`pg_tokenizer`** | `v{RELEASE_VERSIONS['pg_tokenizer']}` | `{tk['repo_version']}` | [pg_tokenizer Docs](/docs/tokenizer/) | [pgext.cloud/e/pg_tokenizer](https://pgext.cloud/e/pg_tokenizer) | [pgsty/pg_tokenizer](https://github.com/pgsty/pg_tokenizer/releases) |
 {{.wide .expand}}
 
 ---
 
 ## 1 · `vchord` — Scalable Vector Search {{#vchord}}
 
-**`vchord`** (`v{RELEASE_VERSIONS['vchord']}`) is the core RaBitQ-powered vector similarity search extension (`vchordrq` and `vchordg` index access methods). It depends on the `vector` ([`pgvector`](/docs/vector/)) extension.
+**`vchord`** (`v{RELEASE_VERSIONS['vchord']}`) provides the `vchordrq` (RaBitQ IVF) and `vchordg` (single-layer RaBitQ graph) index access methods, `rabitq4`/`rabitq8` quantized vector types, sphere search, and `@#` MaxSim operators. It requires the `vector` ([`pgvector`](/docs/vector/)) extension.
 
 | **Type** | **Name / Pattern** | **Version** | **PostgreSQL** | **Dependencies** | **Repository** | **License / Lang** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`vchord`](/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | [`vector`](/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}}}} |
-| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_$v` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
-| {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
+| {{{{< bg "EXT" "Latest GitHub release" "blue" >}}}} | [`vchord`](/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | [`vector`](/docs/vector/) | [GitHub Release 1.5.0](https://github.com/pgsty/vchord/releases/tag/1.5.0) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0-only" "red" >}}}} |
+| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_$v` | [Package versions](#vchord-packages) | [Matrix](#vchord-matrix) | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx 0.20.1)" "orange" >}}}} |
+| {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord` | [Package versions](#vchord-packages) | [Matrix](#vchord-matrix) | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx 0.20.1)" "orange" >}}}} |
 {{.packages .wide .expand}}
 
 ### Availability Matrix (`vchord`) {{#vchord-matrix}}
@@ -262,13 +253,13 @@ docker run -d \\
 
 ## 2 · `vchord_bm25` — Native BM25 Ranking Index {{#vchord_bm25}}
 
-**`vchord_bm25`** (`v{RELEASE_VERSIONS['vchord_bm25']}`) provides native Okapi BM25 full-text ranking indexes (`USING bm25`) and Block-WeakAnd Top-K search (`<&>`) inside PostgreSQL. Upgrading from 0.3.x requires [migration](/docs/bm25/reference/migration/).
+**`vchord_bm25`** (`v{RELEASE_VERSIONS['vchord_bm25']}`) provides native Okapi BM25 ranking indexes (`USING bm25`) and Block-WeakAnd Top-K scans (`<&>`) on PostgreSQL `tsvector` columns. Any `1.x` installation upgrades in place via `ALTER EXTENSION vchord_bm25 UPDATE`; upgrading from `0.3.x` requires following the [BM25 Migration Guide](/docs/bm25/reference/migration/).
 
 | **Type** | **Name / Pattern** | **Version** | **PostgreSQL** | **Dependencies** | **Repository** | **License / Lang** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`vchord_bm25`](/docs/bm25/) | `{RELEASE_VERSIONS['vchord_bm25']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2160](https://pgext.cloud/e/vchord_bm25) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0" "red" >}}}} |
-| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_bm25_$v` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
-| {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord-bm25` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
+| {{{{< bg "EXT" "Latest GitHub release" "blue" >}}}} | [`vchord_bm25`](/docs/bm25/) | `{RELEASE_VERSIONS['vchord_bm25']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | `-` | [GitHub Release 1.3.0](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0) | {{{{< bg "AGPL-3.0" "License: AGPL-3.0-only" "red" >}}}} |
+| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `vchord_bm25_$v` | [Package versions](#vchord_bm25-packages) | [Matrix](#vchord_bm25-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx 0.20.1)" "orange" >}}}} |
+| {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-vchord-bm25` | [Package versions](#vchord_bm25-packages) | [Matrix](#vchord_bm25-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx 0.20.1)" "orange" >}}}} |
 {{.packages .wide .expand}}
 
 ### Availability Matrix (`vchord_bm25`) {{#vchord_bm25-matrix}}
@@ -283,13 +274,13 @@ docker run -d \\
 
 ## 3 · `pg_tokenizer` — Multilingual Text Analyzer {{#pg_tokenizer}}
 
-**`pg_tokenizer`** (`v{RELEASE_VERSIONS['pg_tokenizer']}`) provides customizable in-database text analysis pipelines, pre-tokenizers (Unicode, Jieba, Lindera), stemmers, stopword/synonym filters, and vocabulary models.
+**`pg_tokenizer`** (`v{RELEASE_VERSIONS['pg_tokenizer']}`) provides customizable in-database text analyzers, pre-tokenizers (Unicode, Jieba, Lindera 7), Snowball stemmers, stopword and synonym filters, native C `tsvector` helpers, and vocabulary models. Run `ALTER EXTENSION pg_tokenizer UPDATE` on PostgreSQL 15–19; see [Upgrade](/docs/tokenizer/installation/#upgrading) when crossing earlier releases.
 
 | **Type** | **Name / Pattern** | **Version** | **PostgreSQL** | **Dependencies** | **Repository** | **License / Lang** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL Extension" "blue" >}}}} | [`pg_tokenizer`](/docs/tokenizer/) | `{RELEASE_VERSIONS['pg_tokenizer']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2170](https://pgext.cloud/e/pg_tokenizer) | {{{{< bg "Apache-2.0" "License: Apache-2.0" "green" >}}}} |
-| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `pg_tokenizer_$v` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
-| {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-pg-tokenizer` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx)" "orange" >}}}} |
+| {{{{< bg "EXT" "Latest GitHub release" "blue" >}}}} | [`pg_tokenizer`](/docs/tokenizer/) | `{RELEASE_VERSIONS['pg_tokenizer']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | `-` | [GitHub Release v1.3.0](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.3.0) | {{{{< bg "Apache-2.0" "License: Apache-2.0" "green" >}}}} |
+| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM Package" "orange" >}}}} | `pg_tokenizer_$v` | [Package versions](#pg_tokenizer-packages) | [Matrix](#pg_tokenizer-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx 0.20.0)" "orange" >}}}} |
+| {{{{< bg "DEB" "Debian & Ubuntu DEB Package" "purple" >}}}} | `postgresql-$v-pg-tokenizer` | [Package versions](#pg_tokenizer-packages) | [Matrix](#pg_tokenizer-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT Repository" "green" >}}}} | {{{{< bg "Rust" "Implemented in Rust (pgrx 0.20.0)" "orange" >}}}} |
 {{.packages .wide .expand}}
 
 ### Availability Matrix (`pg_tokenizer`) {{#pg_tokenizer-matrix}}
@@ -304,7 +295,7 @@ docker run -d \\
 
 ## Verification & Build Repositories {{#source}}
 
-All RPM and DEB packages in the Pigsty PGSQL repository are GPG-signed and verified automatically by `dnf` / `apt` once configured via `pig repo add pgsql`. Every package is built transparently from open-source build specs:
+All RPM and DEB packages in the Pigsty PGSQL repository are GPG-signed and verified automatically by `dnf` and `apt` after running `pig repo add pgsql`. Package build specifications are maintained in open-source repositories:
 
 | **Repository** | **Description** |
 |:---|:---|
@@ -323,7 +314,7 @@ def build_zh(data: dict[str, dict[str, str]]) -> str:
     return f"""---
 title: 下载与安装
 linkTitle: 下载
-description: 使用 pig 包管理器、历史 Docker 镜像（Obsolete）或原生 RPM / DEB 软件包，在 16 个 Linux 发行版平台与 PostgreSQL 14–18 上安装 vchord、vchord_bm25 与 pg_tokenizer。
+description: 安装 vchord、vchord_bm25 与 pg_tokenizer，按 PostgreSQL 版本和平台查找 RPM、DEB 软件包。
 weight: 30
 icon: fa-solid fa-download
 type: docs
@@ -333,19 +324,22 @@ page_width: wide
 body_class: td-download-page
 ---
 
-Vchord 扩展套件（**`vchord`**、**`vchord_bm25`** 与 **`pg_tokenizer`**）已面向 **16 个 Linux 发行版与 CPU 架构目标**（`el8`、`el9`、`el10`、`d12`、`d13`、`u22`、`u24`、`u26` × `x86_64` / `aarch64`）以及 **PostgreSQL 14、15、16、17、18** 五个大版本构建并发布原生 RPM 与 DEB 软件包（共计 240 个预编译二进制包）。
+下表按 PostgreSQL 版本、操作系统和架构列出 `vchord`、`vchord_bm25` 与 `pg_tokenizer` 的 RPM 和 DEB 下载。
 
-**vchord 1.5.0** 已在 [GitHub Release](https://github.com/pgsty/vchord/releases/tag/1.5.0) 提供 PostgreSQL 15–19、x86_64/aarch64 的 Linux ZIP 与 Debian 包（glibc 2.35+）。下方发行版软件源表格仍对应 1.2.0。升级前请阅读[发布说明](/zh/blog/release/vchord-1.5.0/)。
+> [!IMPORTANT]
+> **下载来源**：
+> - **最新 GitHub 发行版**：[**`vchord 1.5.0`**](https://github.com/pgsty/vchord/releases/tag/1.5.0)、[**`vchord_bm25 1.3.0`**](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0) 与 [**`pg_tokenizer 1.3.0`**](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.3.0) 均在 GitHub Releases 提供面向 PostgreSQL 15–19（`x86_64` / `aarch64`）的预编译 Linux ZIP 与 Debian 软件包。升级前请查阅 [`vchord 1.5.0`](/zh/release/vchord-1.5.0/)、[`vchord_bm25 1.3.0`](/zh/release/vchord-bm25-1.3.0/) 与 [`pg_tokenizer 1.3.0`](/zh/release/pg-tokenizer-1.3.0/) 发布说明。
+> - **Pigsty APT / YUM 软件源**：按平台查看 [vchord](#vchord-packages)、[vchord_bm25](#vchord_bm25-packages) 和 [pg_tokenizer](#pg_tokenizer-packages) 的包版本与下载地址。
 
 {{{{< cards >}}}}
 {{{{< card title="vchord" link="#vchord" icon="fa-solid fa-layer-group" badge="v{RELEASE_VERSIONS['vchord']}" >}}}}
-新一代可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供 RaBitQ 量化的 `vchordrq` 倒排索引、`vchordg` 高吞吐图索引与 MaxSim（`@#`）多向量检索，全面支持 PostgreSQL 15–19。
+可扩展、磁盘友好型 PostgreSQL 向量相似性检索核心扩展，基于 `pgvector` 构建，提供带过滤键的 RaBitQ `vchordrq` 倒排索引、`vchordg` 单层图索引、球面检索与 MaxSim（`@#`）多向量检索，支持 PostgreSQL 15–19。
 {{{{< /card >}}}}
 {{{{< card title="vchord_bm25" link="#vchord_bm25" icon="fa-solid fa-magnifying-glass" badge="v{RELEASE_VERSIONS['vchord_bm25']}" >}}}}
-PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-WeakAnd 块级剪枝索引（`USING bm25`）与 `<&>` 操作符加速 Top-K 词法检索，可与 `vchord` 无缝构建混合检索，全面支持 PostgreSQL 14–18。
+面向 PostgreSQL 原生 `tsvector` 列的 Okapi BM25 全文相关性排序扩展，采用 Block-WeakAnd 块级剪枝索引（`USING bm25`）与 `<&>` 操作符加速 Top-K 检索，支持 PostgreSQL 15–19。
 {{{{< /card >}}}}
 {{{{< card title="pg_tokenizer" link="#pg_tokenizer" icon="fa-solid fa-language" badge="v{RELEASE_VERSIONS['pg_tokenizer']}" >}}}}
-独立运行的数据库内多语言文本分析与词元 ID 编码核心扩展，内置结巴中文、Lindera 日文、Unicode 分词、Snowball 词干提取、停用词/同义词过滤以及预训练与语料训练词表模型，全面支持 PostgreSQL 14–18。
+独立运行的数据库内多语言文本分析与词元 ID 编码扩展，内置结巴中文、Lindera 7 日文、Unicode 分词、Snowball 词干提取、停用词/同义词过滤以及预训练与语料训练词表模型，支持 PostgreSQL 15–19。
 {{{{< /card >}}}}
 {{{{< /cards >}}}}
 
@@ -355,7 +349,7 @@ PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-We
 
 ### 1 · 使用 PIG 包管理器安装（推荐） {{#pig}}
 
-我们强烈推荐使用由 [PGSTY](https://pigsty.cc/) 社区维护的 PostgreSQL 专属包管理器 [**`pig`**](https://pig.pgsty.com/zh/) 安装 Vchord 扩展套件。`pig` 是零依赖的静态编译 Go 命令行工具，能够自动识别当前 Linux 发行版与 CPU 架构、一键配置 PGDG 与 Pigsty 软件源（内置中国大陆镜像加速），并自动处理 `pgvector` 等扩展依赖关系。
+推荐使用由 [PGSTY](https://pigsty.cc/) 维护的 PostgreSQL 包管理器 [**`pig`**](https://pig.pgsty.com/zh/) 安装 Vchord 扩展套件。`pig` 是零依赖的静态编译 Go 命令行工具，可自动识别 Linux 发行版与 CPU 架构、配置 PGDG 与 Pigsty 软件源（内置中国大陆镜像加速），并自动安装 `pgvector` 等扩展依赖。
 
 {{{{< tabs >}}}}
 {{{{< tab label="中国大陆镜像（推荐）" >}}}}
@@ -364,7 +358,7 @@ PostgreSQL 原生 Okapi BM25 全文相关性排序核心扩展，采用 Block-We
 # 1. 使用中国大陆镜像安装 pig 命令行包管理器
 curl -fsSL https://repo.pigsty.cc/pig | bash
 
-# 2. 添加 PGDG + Pigsty PGSQL 软件仓库（自动启用中国大陆 CDN 镜像）并刷新缓存
+# 2. 添加 PGDG + Pigsty PGSQL 软件仓库（启用中国大陆 CDN 镜像）并刷新缓存
 pig repo add pgsql -u -r china
 
 # 3. 安装 vchord、vchord_bm25 与 pg_tokenizer（自动匹配当前 PG 版本，或通过 -v 18 指定）
@@ -413,14 +407,14 @@ sudo dnf install -y \\
 
 ### 2 · 配置预加载库并启用扩展 {{#enable}}
 
-三个扩展均需在 `shared_preload_libraries` 中注册动态库并重启 PostgreSQL 服务后，方可在数据库内执行 `CREATE EXTENSION`：
+三个扩展均需先将动态库加入 `shared_preload_libraries` 并重启 PostgreSQL 服务，再在目标数据库中执行 `CREATE EXTENSION`：
 
 ```sql
 -- 1. 通过 ALTER SYSTEM 将扩展动态库写入 postgresql.auto.conf
 ALTER SYSTEM SET shared_preload_libraries = 'vchord.so, vchord_bm25.so, pg_tokenizer.so';
 ```
 
-重启 PostgreSQL 实例（例如 `sudo systemctl restart postgresql-18` 或 `pig pg restart`），随后连接目标数据库启用扩展：
+重启 PostgreSQL 实例（例如 `sudo systemctl restart postgresql-18` 或 `pig pg restart`），然后连接目标数据库启用扩展：
 
 ```sql
 -- 2. 在目标数据库中创建扩展（CASCADE 会为 vchord 自动启用 pgvector 依赖）
@@ -429,18 +423,16 @@ CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
 CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
 ```
 
-### 3 · Docker 容器镜像（Obsolete） {{#docker}}
+### 3 · 容器镜像（历史上游参考） {{#docker}}
 
 > [!WARNING]
-> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
-
-如果用于本地快速评估、CI 流水线或容器化部署，可以直接运行已预装并配置好预加载库的官方 Docker 镜像：
+> **历史上游镜像说明**：PGSTY 不发布包含 `vchord 1.5.0`、`vchord_bm25 1.3.0` 或 `pg_tokenizer 1.3.0` 的容器镜像。下方上游 TensorChord 镜像仅包含旧版本，仅供本地参考；当前生产部署请使用 Pigsty 软件包或 GitHub Release 构建产物。
 
 {{{{< tabs >}}}}
-{{{{< tab label="Vchord 全家桶镜像 (All-in-One)" >}}}}
+{{{{< tab label="Vchord 全家桶镜像（历史版本）" >}}}}
 
 ```bash
-# 预装并启用 PostgreSQL 18 + pgvector + vchord + vchord_bm25 + pg_tokenizer
+# 历史上游镜像（PostgreSQL 18 + 旧版 VectorChord 套件）
 docker run -d \\
   --name vchord-suite \\
   -e POSTGRES_PASSWORD=postgres \\
@@ -449,10 +441,10 @@ docker run -d \\
 ```
 
 {{{{< /tab >}}}}
-{{{{< tab label="vchord 独立镜像 (仅向量检索)" >}}}}
+{{{{< tab label="vchord 独立镜像（历史 v1.1.1）" >}}}}
 
 ```bash
-# 预装并启用 PostgreSQL 18 + pgvector + vchord v1.1.1
+# 历史上游镜像（PostgreSQL 18 + pgvector + VectorChord 1.1.1）
 docker run -d \\
   --name vchord-postgres \\
   -e POSTGRES_PASSWORD=postgres \\
@@ -463,26 +455,26 @@ docker run -d \\
 {{{{< /tab >}}}}
 {{{{< /tabs >}}}}
 
-### 4 · GitHub 发行版 {{#releases}}
+### 4 · 版本与目录总览 {{#releases}}
 
-| **扩展名称** | **当前正式版本** | **技术文档** | **PGEXT 扩展目录** | **Pigsty 扩展页** | **GitHub 仓库与发行版** |
-|:---|:---:|:---|:---|:---|:---|
-| **`vchord`** | `v{RELEASE_VERSIONS['vchord']}` | [vchord 文档](/zh/docs/vchord/) | [pgext.cloud/e/vchord](https://pgext.cloud/e/vchord) | [pigsty.cc/ext/e/vchord](https://pigsty.cc/ext/e/vchord/) | [pgsty/vchord](https://github.com/pgsty/vchord/releases) |
-| **`vchord_bm25`** | `v{RELEASE_VERSIONS['vchord_bm25']}` | [vchord_bm25 文档](/zh/docs/bm25/) | [pgext.cloud/e/vchord_bm25](https://pgext.cloud/e/vchord_bm25) | [pigsty.cc/ext/e/vchord_bm25](https://pigsty.cc/ext/e/vchord_bm25/) | [pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25/releases) |
-| **`pg_tokenizer`** | `v{RELEASE_VERSIONS['pg_tokenizer']}` | [pg_tokenizer 文档](/zh/docs/tokenizer/) | [pgext.cloud/e/pg_tokenizer](https://pgext.cloud/e/pg_tokenizer) | [pigsty.cc/ext/e/pg_tokenizer](https://pigsty.cc/ext/e/pg_tokenizer/) | [pgsty/pg_tokenizer](https://github.com/pgsty/pg_tokenizer/releases) |
+| **扩展名称** | **文档对应的源码版本** | **Pigsty 软件源版本** | **技术文档** | **PGEXT 扩展目录** | **GitHub 发行版** |
+|:---|:---:|:---:|:---|:---|:---|
+| **`vchord`** | `v{RELEASE_VERSIONS['vchord']}` | `{vc['repo_version']}` | [vchord 文档](/zh/docs/vchord/) | [pgext.cloud/e/vchord](https://pgext.cloud/e/vchord) | [pgsty/vchord](https://github.com/pgsty/vchord/releases) |
+| **`vchord_bm25`** | `v{RELEASE_VERSIONS['vchord_bm25']}` | `{bm['repo_version']}` | [vchord_bm25 文档](/zh/docs/bm25/) | [pgext.cloud/e/vchord_bm25](https://pgext.cloud/e/vchord_bm25) | [pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25/releases) |
+| **`pg_tokenizer`** | `v{RELEASE_VERSIONS['pg_tokenizer']}` | `{tk['repo_version']}` | [pg_tokenizer 文档](/zh/docs/tokenizer/) | [pgext.cloud/e/pg_tokenizer](https://pgext.cloud/e/pg_tokenizer) | [pgsty/pg_tokenizer](https://github.com/pgsty/pg_tokenizer/releases) |
 {{.wide .expand}}
 
 ---
 
 ## 1 · `vchord` —— 可扩展向量检索引擎 {{#vchord}}
 
-**`vchord`**（`v{RELEASE_VERSIONS['vchord']}`）是套件的核心向量相似性检索扩展，提供 `vchordrq`（RaBitQ 倒排索引）与 `vchordg`（单层图索引）两种访问方法，依赖基础扩展 `vector`（[`pgvector`](/zh/docs/vector/)）。
+**`vchord`**（`v{RELEASE_VERSIONS['vchord']}`）提供 `vchordrq`（RaBitQ 倒排索引）与 `vchordg`（单层 RaBitQ 图索引）两种索引访问方法、`rabitq4`/`rabitq8` 量化向量类型、球面检索以及 `@#` MaxSim 多向量操作符，依赖基础扩展 `vector`（[`pgvector`](/zh/docs/vector/)）。
 
-| **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **软件仓库** | **许可证 / 语言** |
+| **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **发布渠道** | **许可证 / 语言** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`vchord`](/zh/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | [`vector`](/zh/docs/vector/) | [PGEXT #1810](https://pgext.cloud/e/vchord) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}}}} |
-| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_$v` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
-| {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord` | `{vc['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
+| {{{{< bg "EXT" "最新 GitHub 发行版" "blue" >}}}} | [`vchord`](/zh/docs/vchord/) | `{RELEASE_VERSIONS['vchord']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | [`vector`](/zh/docs/vector/) | [GitHub Release 1.5.0](https://github.com/pgsty/vchord/releases/tag/1.5.0) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0-only" "red" >}}}} |
+| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_$v` | [各平台版本](#vchord-packages) | [兼容矩阵](#vchord-matrix) | `pgvector_$v` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "Rust (pgrx 0.20.1)" "orange" >}}}} |
+| {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord` | [各平台版本](#vchord-packages) | [兼容矩阵](#vchord-matrix) | `postgresql-$v-pgvector` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "Rust (pgrx 0.20.1)" "orange" >}}}} |
 {{.packages .wide .expand}}
 
 ### 可用性矩阵 (`vchord`) {{#vchord-matrix}}
@@ -497,13 +489,13 @@ docker run -d \\
 
 ## 2 · `vchord_bm25` —— 原生 BM25 全文排序索引 {{#vchord_bm25}}
 
-**`vchord_bm25`**（`v{RELEASE_VERSIONS['vchord_bm25']}`）在 PostgreSQL 内提供原生 Okapi BM25 全文相关性排序索引（`USING bm25`）与 Block-WeakAnd 块级剪枝扫描（`<&>` 操作符）。从 0.3.x 升级到 1.0.0 请参阅[迁移指南](/zh/docs/bm25/reference/migration/)。
+**`vchord_bm25`**（`v{RELEASE_VERSIONS['vchord_bm25']}`）面向 PostgreSQL 原生 `tsvector` 列提供 Okapi BM25 全文相关性排序索引（`USING bm25`）与 Block-WeakAnd 块级剪枝扫描（`<&>` 操作符）。任意 `1.x` 版本均可通过 `ALTER EXTENSION vchord_bm25 UPDATE` 原地升级；从历史 `0.3.x` 升级请遵循[迁移指南](/zh/docs/bm25/reference/migration/)。
 
-| **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **软件仓库** | **许可证 / 语言** |
+| **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **发布渠道** | **许可证 / 语言** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`vchord_bm25`](/zh/docs/bm25/) | `{RELEASE_VERSIONS['vchord_bm25']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2160](https://pgext.cloud/e/vchord_bm25) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0" "red" >}}}} |
-| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_bm25_$v` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
-| {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord-bm25` | `{bm['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
+| {{{{< bg "EXT" "最新 GitHub 发行版" "blue" >}}}} | [`vchord_bm25`](/zh/docs/bm25/) | `{RELEASE_VERSIONS['vchord_bm25']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | `-` | [GitHub Release 1.3.0](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0) | {{{{< bg "AGPL-3.0" "许可证: AGPL-3.0-only" "red" >}}}} |
+| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `vchord_bm25_$v` | [各平台版本](#vchord_bm25-packages) | [兼容矩阵](#vchord_bm25-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "Rust (pgrx 0.20.1)" "orange" >}}}} |
+| {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-vchord-bm25` | [各平台版本](#vchord_bm25-packages) | [兼容矩阵](#vchord_bm25-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "Rust (pgrx 0.20.1)" "orange" >}}}} |
 {{.packages .wide .expand}}
 
 ### 可用性矩阵 (`vchord_bm25`) {{#vchord_bm25-matrix}}
@@ -518,13 +510,13 @@ docker run -d \\
 
 ## 3 · `pg_tokenizer` —— 多语言文本分析与分词器 {{#pg_tokenizer}}
 
-**`pg_tokenizer`**（`v{RELEASE_VERSIONS['pg_tokenizer']}`）提供可组合的数据库内多语言文本分析流水线、预分词器（Unicode、结巴中文、Lindera 日文）、词干提取、停用词/同义词过滤器与词表编码模型。
+**`pg_tokenizer`**（`v{RELEASE_VERSIONS['pg_tokenizer']}`）提供可组合的数据库内多语言文本分析流水线、预分词器（Unicode、结巴中文、Lindera 7 日文）、Snowball 词干提取、停用词/同义词过滤器、原生 C `tsvector` 生成函数与词表编码模型。在 PostgreSQL 15–19 上执行 `ALTER EXTENSION pg_tokenizer UPDATE` 即可升级；跨越更早版本请见[升级说明](/zh/docs/tokenizer/installation/#upgrading)。
 
-| **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **软件仓库** | **许可证 / 语言** |
+| **类型** | **名称 / 命名模式** | **版本** | **PG 版本** | **依赖项** | **发布渠道** | **许可证 / 语言** |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| {{{{< bg "EXT" "PostgreSQL 扩展" "blue" >}}}} | [`pg_tokenizer`](/zh/docs/tokenizer/) | `{RELEASE_VERSIONS['pg_tokenizer']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | [PGEXT #2170](https://pgext.cloud/e/pg_tokenizer) | {{{{< bg "Apache-2.0" "许可证: Apache-2.0" "green" >}}}} |
-| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `pg_tokenizer_$v` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
-| {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-pg-tokenizer` | `{tk['version']}` | {{{{< pgver "18,17,16,15,14" "g,g,g,g,g" >}}}} | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "使用 Rust (pgrx) 编写" "orange" >}}}} |
+| {{{{< bg "EXT" "最新 GitHub 发行版" "blue" >}}}} | [`pg_tokenizer`](/zh/docs/tokenizer/) | `{RELEASE_VERSIONS['pg_tokenizer']}` | {{{{< pgver "19,18,17,16,15" "g,g,g,g,g" >}}}} | `-` | [GitHub Release v1.3.0](https://github.com/pgsty/pg_tokenizer/releases/tag/v1.3.0) | {{{{< bg "Apache-2.0" "许可证: Apache-2.0" "green" >}}}} |
+| {{{{< bg "RPM" "EL 8 / 9 / 10 RPM 软件包" "orange" >}}}} | `pg_tokenizer_$v` | [各平台版本](#pg_tokenizer-packages) | [兼容矩阵](#pg_tokenizer-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL YUM 软件源" "green" >}}}} | {{{{< bg "Rust" "Rust (pgrx 0.20.0)" "orange" >}}}} |
+| {{{{< bg "DEB" "Debian & Ubuntu DEB 软件包" "purple" >}}}} | `postgresql-$v-pg-tokenizer` | [各平台版本](#pg_tokenizer-packages) | [兼容矩阵](#pg_tokenizer-matrix) | `-` | {{{{< bg "PIGSTY" "Pigsty PGSQL APT 软件源" "green" >}}}} | {{{{< bg "Rust" "Rust (pgrx 0.20.0)" "orange" >}}}} |
 {{.packages .wide .expand}}
 
 ### 可用性矩阵 (`pg_tokenizer`) {{#pg_tokenizer-matrix}}
@@ -539,11 +531,11 @@ docker run -d \\
 
 ## 签名校验与构建仓库 {{#source}}
 
-Pigsty PGSQL 软件仓库中的所有 RPM 与 DEB 软件包均使用 GPG 密钥签名；通过 `pig repo add pgsql` 完成配置后，`dnf` 与 `apt` 会自动校验签名完整性。所有软件包均由开源构建规范透明构建：
+Pigsty PGSQL 软件仓库中的所有 RPM 与 DEB 软件包均使用 GPG 密钥签名；通过 `pig repo add pgsql` 完成配置后，`dnf` 与 `apt` 会自动校验签名完整性。所有软件包均由开源构建规范仓库透明构建：
 
 | **构建仓库** | **说明** |
 |:---|:---|
-| [pgsty/pig](https://github.com/pgsty/pig) | `pig` 命令行包管理器（支持管理 PostgreSQL 内核与 600+ 扩展） |
+| [pgsty/pig](https://github.com/pgsty/pig) | `pig` 命令行包管理器（管理 PostgreSQL 内核与 600+ 扩展） |
 | [pgsty/rpm](https://github.com/pgsty/rpm) | 面向 EL 8 / 9 / 10（`x86_64` 与 `aarch64`）的 RPM 软件包构建规范仓库 |
 | [pgsty/deb](https://github.com/pgsty/deb) | 面向 Debian 12 / 13 与 Ubuntu 22.04 / 24.04 / 26.04（`x86_64` 与 `aarch64`）的 DEB 软件包构建规范仓库 |
 | [pgext.cloud](https://pgext.cloud/) | PostgreSQL 扩展目录、全局可用性矩阵与软件源镜像导航 |
@@ -553,12 +545,13 @@ Pigsty PGSQL 软件仓库中的所有 RPM 与 DEB 软件包均使用 GPG 密钥�
 
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
+    site = Path(os.environ.get("PGEXT_SITE_DIR") or root.parent / "pgext.cloud").expanduser()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--pgext-dir",
         type=Path,
-        default=root.parent / "pgext" / "content" / "e",
-        help="Path to pgext/content/e directory",
+        default=site / "content" / "e",
+        help="Extension page directory (default: content/e under PGEXT_SITE_DIR or the sibling pgext.cloud checkout)",
     )
     args = parser.parse_args()
 

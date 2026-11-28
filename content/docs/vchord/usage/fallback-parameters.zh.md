@@ -1,116 +1,61 @@
 ---
-title: "回退参数"
-linkTitle: "回退参数"
-description: "搜索参数通常通过 GUC 进行配置。VectorChord 还提供了另一种方式，允许将这些参数直接绑定到索引上，作为索引存储参数的一部分保存。"
-weight: 80
+title: "索引级查询默认值"
+linkTitle: "索引默认值"
+description: "把 probes、epsilon、ef_search 和 MaxSim 相关设置存在索引上，所有会话无需 SET 就能用上调好的值。"
+weight: 70
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/fallback-parameters.md"
 aliases:
-  - "/zh/docs/usage/fallback-parameters/"
+  - "/docs/usage/fallback-parameters/"
   - "/vectorchord/usage/fallback-parameters/"
 icon: fa-solid fa-sliders
 ---
 
-{{< badge text="since v1.1.0" tone="info" >}}
+`vchordrq.probes` 这类查询参数是普通的 PostgreSQL 设置，通常用 `SET` 修改。可一旦应用和数据库之间隔着事务模式的连接池或 ORM，`SET` 就很难用；两个索引需要不同的值时，它更是不对：`lists = [400, 160000]` 的索引要两个 `probes` 值，`lists = [2000]` 的只要一个。更好的做法是把调好的值存在各自的索引上。只要没人显式设置这个参数，扫描就会使用索引上的值。
 
+## 把值存在索引上 {#usage}
 
-搜索参数通常通过 GUC 进行配置。VectorChord 还提供了另一种方式，允许将这些参数直接绑定到索引上，而不是绑定到会话（session）或事务（transaction）上。换句话说，您可以将它们作为索引存储参数（storage parameters）的一部分保存下来。
-
-在构建索引时，您可以使用以下语法设置 `probes`：
-
-```sql
-CREATE INDEX items_embedding_idx ON items USING vchordrq (embedding vector_l2_ops) WITH (options = $$
-build.internal.lists = [1000]
-$$, probes = '10');
-```
-
-现在，您无需设置 GUC 即可直接执行搜索：
+在创建时，和 `options` 写在一起：
 
 ```sql
---- probes = '10'
-SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
+CREATE INDEX items_embedding_idx ON items USING vchordrq (embedding vector_cosine_ops)
+WITH (options = $$
+[build.internal]
+lists = [2000]
+spherical_centroids = true
+$$, probes = '20', epsilon = 1.9);
 ```
 
-如果索引已经构建完成，您可以像这样修改 `probes`：
+对已有索引修改，无需重建：
 
 ```sql
-ALTER INDEX items_embedding_idx SET (probes = '100');
+ALTER INDEX items_embedding_idx SET (probes = '40');
+ALTER INDEX items_embedding_idx RESET (epsilon);
 ```
 
-您仍然可以通过 GUC 设置搜索参数。当设置了 GUC 时，GUC 的优先级高于索引存储参数。这使您能够在不锁定索引的情况下，在当前会话或事务中临时覆盖这些设置。
+`ALTER INDEX` 会短暂地对索引加排他锁，因此要等正在使用该索引的查询结束，并在提交前阻塞新查询。
+
+## 哪个值生效 {#precedence}
+
+在任何地方显式设置的值都优先于索引上的值：`postgresql.conf`、`ALTER SYSTEM`、`ALTER DATABASE`、`ALTER ROLE` 或 `SET`，即使设的值与默认值相同。只有当该设置在 `pg_settings.source` 中为 `default` 时，索引上的值才会生效：
 
 ```sql
-SET vchordrq.probes TO '100';
---- probes = '100'
-SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
+SET vchordrq.probes = '50';   -- 本会话用 50，不管索引上是多少
+RESET vchordrq.probes;        -- 恢复为索引上的值，除非别处另有设置
 ```
 
-这种语法在以下场景中非常有用：
+如果索引上的值没有生效，用 `SELECT name, setting, source FROM pg_settings WHERE name LIKE 'vchord%';` 检查是否有人在角色或数据库级别设置过。
 
-* 当存在多个索引且需要不同参数时。
-* 当您不希望设置 GUC 时。
-* 当您希望离线配置搜索参数时。
-
-只要设置了 GUC（哪怕是在系统级别或数据库级别设置的），它都会覆盖索引上的存储参数设置。因此，为了避免难以排查的问题，我们建议仅使用一种方式来设置搜索参数：要么统一通过 GUC 设置，要么统一通过索引存储参数设置。
-
-并非所有参数都支持此功能。有关支持此功能的全部参数，请参阅[参考](#reference)。
-
-<a id="Reference"></a>
 ## 参考 {#reference}
 
-<a id="index-storage-parameters"></a>
-### 索引存储参数（`vchordrq`） {#index-storage-parameters-vchordrq}
+<a id="index-storage-parameters"></a><a id="index-storage-parameters-vchordrq"></a><a id="index-storage-parameters-vchordg"></a><a id="probes"></a><a id="epsilon"></a><a id="maxsim-refine"></a><a id="maxsim-threshold"></a><a id="ef-search"></a>
 
-{{< badge text="vchordrq" tone="neutral" >}}
+| 索引参数 | 索引类型 | 对应的设置 | 含义 |
+| --- | --- | --- | --- |
+| `probes` | vchordrq | `vchordrq.probes` | [要探查的列表数](/zh/docs/vchord/usage/indexing/#search-parameters)，每层一个值。 |
+| `epsilon` | vchordrq | `vchordrq.epsilon` | [误差界的宽度](/zh/docs/vchord/usage/indexing/#search-parameters)。 |
+| `maxsim_refine` | vchordrq | `vchordrq.maxsim_refine` | [用精确距离细化的文档数](/zh/docs/vchord/usage/multi-vector-retrieval/#search-parameters)。 |
+| `maxsim_threshold` | vchordrq | `vchordrq.maxsim_threshold` | [未探查词元的距离上界](/zh/docs/vchord/usage/multi-vector-retrieval/#search-parameters)。 |
+| `ef_search` | vchordg | `vchordg.ef_search` | [遍历时保留的候选数](/zh/docs/vchord/usage/graph-index/#search-parameters)。 |
+{.fields meta="- -"}
 
-#### `probes` {#probes}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：[`vchordrq.probes`](/zh/docs/vchord/usage/indexing/#search-parameters-vchordrq-probes) 的回退值。
-- 类型：整数列表（list of integers）
-- 默认值：` `
-- 取值范围：每项为 `1..=4294967295`；未分区索引可以使用空列表。
-
-#### `epsilon` {#epsilon}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：[`vchordrq.epsilon`](/zh/docs/vchord/usage/indexing/#search-parameters-vchordrq-epsilon) 的回退值。
-- 类型：实数（real）
-- 默认值：`1.9`，拟发布的 1.3.0 保持不变。
-- 取值范围：`[0.0, 4.0]`
-
-<a id="maxsim-refine"></a>
-#### `maxsim_refine` {#maxsim-refine}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：[`vchordrq.maxsim_refine`](/zh/docs/vchord/usage/multi-vector-retrieval/#search-parameters-vchordrq-maxsim-refine) 的回退值。
-- 类型：整数（integer）
-- 默认值：`0`
-- 取值范围：`[0, 2147483647]`
-
-<a id="maxsim-threshold"></a>
-#### `maxsim_threshold` {#maxsim-threshold}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：[`vchordrq.maxsim_threshold`](/zh/docs/vchord/usage/multi-vector-retrieval/#search-parameters-vchordrq-maxsim-threshold) 的回退值。
-- 类型：整数（integer）
-- 默认值：`0`
-- 取值范围：`[0, 2147483647]`
-
-<a id="index-storage-parameters"></a>
-### 索引存储参数（`vchordg`） {#index-storage-parameters-vchordg}
-
-{{< badge text="vchordg" tone="neutral" >}}
-
-<a id="ef-search"></a>
-#### `ef_search` {#ef-search}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：[`vchordg.ef_search`](/zh/docs/vchord/usage/graph-index/#search-parameters-vchordg-ef-search) 的回退值。
-- 类型：整数（integer）
-- 默认值：`64`
-- 取值范围：`[1, 65535]`
+其他设置，例如 `max_scan_tuples`、`max_probes`、`prefilter` 和各项 I/O 设置，只能作为 PostgreSQL 设置使用。

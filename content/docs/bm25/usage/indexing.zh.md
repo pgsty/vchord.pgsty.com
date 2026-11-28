@@ -1,170 +1,155 @@
 ---
-math: true
-title: "索引构建与维护"
-description: "在 PostgreSQL 中创建、配置、维护和检查 bm25 索引。"
+title: "建索引"
+linkTitle: "建索引"
+description: "为任意语言生成 tsvector，创建 bm25 索引，选择 k1 和 b，并在表持续变化时保持索引快速、准确。"
 weight: 10
 icon: fa-solid fa-database
 ---
 
-`vchord_bm25` 提供了 `bm25` 索引访问方法以及需要显式指定的 `bm25_ops` 操作符类。1.0.0 的 SQL 处理器为 `bm25_amhandler`，0.3.x 为 `_bm25_amhandler`。
+`bm25` 索引保存 BM25 排序所需的倒排列表和语料统计信息，建在一个 `tsvector` 列或表达式上。本页介绍如何生成这个 `tsvector`、如何建索引和调参，以及在行被插入、更新、删除时如何保持查询速度。
 
-## 创建 `bm25` 索引 {#creating-a-bm25-index}
+## 生成 tsvector {#tsvector}
 
-### 历史版本（`v0.1` – `v0.3`，`bm25vector`） {#stable-releases-v01--v03-bm25vector}
+索引对 `tsvector` 里的内容打分，所以相关性首先取决于文本分析。不管用哪种方法，都有两条规则：
+
+- 文档和查询必须经过相同的分析。用另一种配置构造的查询，产生的词位索引里根本没有。
+- 文档的 `tsvector` 必须带位置：一个词位有几个位置，词频就是几。`strip()`、`array_to_tsvector()` 以及不带位置的字面量都会被拒绝（见[限制](#limits)）。
+
+**生成列** 最简单，适用于 PostgreSQL 文本检索配置能处理的语言，例如 `english` 或 `simple`。[快速上手](/zh/docs/bm25/getting-started/overview/#quick-start)用的就是生成列。
+
+**表达式索引** 省掉单独一列的存储，但查询必须按同一个表达式排序：
 
 ```sql
-CREATE INDEX documents_embedding_bm25
-ON documents
-USING bm25 (embedding bm25_ops);
+CREATE INDEX documents_passage_bm25 ON documents
+USING bm25 ((to_tsvector('english', passage)) bm25_ops);
+
+SELECT id FROM documents
+ORDER BY to_tsvector('english', passage)
+      <&> to_bm25query(to_tsvector('english', 'full text search'), 'documents_passage_bm25')
+LIMIT 10;
 ```
 
-### 1.0.0（`tsvector`） {#next-gen-main-branch-tsvector}
+索引表达式必须是不可变的（immutable），所以要显式写出配置名。
 
-在 1.0.0 中，`bm25_ops` 直接作用于 `tsvector`，并支持索引级存储参数（`options`、`limit` 和 `prefilter`）：
+**pg_tokenizer** 用来处理 `to_tsvector` 切分不了的文本：用 Jieba 切分中文，用 Lindera 切分日文和韩文，或者输出某个模型词表的 token ID。分析器定义保存在系统表里，因此它的函数是 `STABLE` 的，不能用在生成列或索引表达式中。改用普通列，例如由触发器填充：
 
 ```sql
-CREATE INDEX documents_vector_bm25
-ON documents
-USING bm25 (vector bm25_ops)
-WITH (
-    options = $$
-    k1 = 1.2
-    b = 0.75
-    $$,
-    limit = 100,
-    prefilter = false
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;  -- 同样需要把 pg_tokenizer 加入 shared_preload_libraries
+
+SELECT tokenizer_catalog.create_text_analyzer('zh', $$
+[pre_tokenizer.jieba]
+$$);
+
+CREATE TABLE articles (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
 );
-```
 
-| 存储参数 (`WITH (...)`) | 类型 | 默认值 | 取值范围 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `options` (`k1`) | `float`（TOML 内） | `1.2` | `1.2` – `2.0` | 词频饱和度参数 \(k_1\)。数值越大，文档内重复出现的词项权重越高。 |
-| `options` (`b`) | `float`（TOML 内） | `0.75` | `0.0` – `1.0` | 文档长度归一化参数 \(b\)。`0.0` 禁用长度归一化；`1.0` 完全按相对于 \(\text{avgdl}\) 的文档长度进行归一化。 |
-| `limit` | `int` | `100` | `0` – `65535` | 首批候选数，零表示使用 100；扫描按需续扫，保证 SQL 结果完整。 |
-| `prefilter` | `bool` | `false` | `true` / `false` | 存储在索引上的默认预过滤行为（可在会话级通过 `bm25.prefilter` 覆盖）。 |
-{.wide .expand}
-
-你可以使用 `ALTER INDEX` 动态更新现有索引上的 `limit` 或 `prefilter` 参数：
-
-```sql
-ALTER INDEX documents_vector_bm25 SET (limit = 200, prefilter = true);
-ALTER INDEX documents_vector_bm25 RESET (limit, prefilter);
-```
-
-## 自动分词触发器（`v0.1` – `v0.3`） {#automatic-tokenization-triggers-v01--v03}
-
-使用 `pg_tokenizer 1.0.0` 的历史 `bm25vector` 接口时，可以通过触发器在执行 `INSERT` 和 `UPDATE` 时自动同步更新词元列：
-
-### 使用自定义模型触发器（一步到位辅助函数） {#using-a-custom-model-trigger-one-step-helper}
-
-`create_custom_model_tokenizer_and_trigger` 会一步完成自定义模型创建、分词器创建、存量数据回填，并自动挂载 `BEFORE INSERT OR UPDATE` 触发器：
-
-该辅助函数支持可选的第七个 `filter` 参数。它只会将可信源列谓词结果为 `TRUE` 的行用于词表训练和 embedding 更新；省略或传入 SQL `NULL` 时仍处理整张表。详见 [pg_tokenizer 模型说明](/zh/docs/tokenizer/models/#corpus-filter)。
-
-```sql
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name => 'my_tokenizer',
-    model_name     => 'my_model',
-    text_analyzer_name => 'my_analyzer',
-    table_name     => 'documents',
-    source_column  => 'passage',
-    target_column  => 'embedding'
-);
-```
-
-### 将标准 PL/pgSQL 触发器用于预训练模型 {#using-a-standard-plpgsql-trigger-with-pretrained-models}
-
-如果你使用的是预训练模型（如 `llmlingua2` 或 `bert_base_uncased`），可以创建一个标准的触发器函数：
-
-```sql
-CREATE OR REPLACE FUNCTION documents_tokenize_trigger()
-RETURNS trigger AS $$
+CREATE FUNCTION articles_terms() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
-    NEW.embedding := tokenize(NEW.passage, 'my_tokenizer');
+    NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.body, 'zh');
     RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+END
+$$;
 
-CREATE TRIGGER trg_documents_tokenize
-BEFORE INSERT OR UPDATE OF passage ON documents
-FOR EACH ROW
-EXECUTE FUNCTION documents_tokenize_trigger();
+CREATE TRIGGER articles_terms BEFORE INSERT OR UPDATE OF body ON articles
+FOR EACH ROW EXECUTE FUNCTION articles_terms();
+
+CREATE INDEX articles_bm25 ON articles USING bm25 (terms bm25_ops);
+
+SELECT id, body
+FROM articles
+ORDER BY terms <&> to_bm25query(tokenizer_catalog.analyze_to_tsvector('全文检索', 'zh'), 'articles_bm25')
+LIMIT 10;
 ```
 
-## 1.0.0 的增长段与维护 {#growing-segments-and-maintenance-in-100}
+`analyze_to_tsvector` 把分析器切出的词作为词位输出；`tokenize_to_tsvector` 输出的是模型的 token ID。分析器、过滤器和模型的用法见 [pg_tokenizer 文档](/zh/docs/tokenizer/)。
 
-1.0.0 通过尾页提示追加写入，新行立即可搜索。索引扫描与标量评分在同一次执行中共享缓存统计。`work_mem` 是软限制：活跃原生扫描和最近使用的八个查询即使超额也会保留，其余条目按 LRU 淘汰；重新收集的条目可能看到同一语句执行期间的语料变化。同一 preparation 的词项共享两张只读长度归一化表，但增长段评分的内存仍与增长段大小成正比。计数包含所有非 NULL 物理记录，**包括合并前的 tombstone**；返回结果时立即跳过 tombstone。WAND 根据平均文档长度的漂移调整上界，增长段存在时仍可剪枝。标量评分为 parallel restricted；这些物理统计不是语料的 MVCC 快照。
-
-`VACUUM`（包括并行 VACUUM）可以在读写继续进行时合并段；单独的 `ANALYZE` 不执行重建。维护使用表上常规的 `ShareUpdateExclusiveLock` 和短暂的页锁。发布新段时同时记录回收视界，后续维护在旧快照全部结束后回收旧页。取消或崩溃遗留的未发布输出会在后续维护中清除，空闲空间映射也会修复。回收在同一条 WAL 中推进 graveyard 链头并标记旧页删除，因此陈旧 FSM 提示也不能让未摘链页提前复用。插入等待尾页时不持有 jump 锁，随后重新校验代际并尝试非阻塞获取尾页锁；成功后仍在追加一篇文档及扩展关系期间持有 jump。
-
-自动合并要求增长段记录数达到 `max(maintenance_min_rows, maintenance_scale_factor × 封闭段记录数)`，或 tombstone 数达到 `maintenance_scale_factor × 总记录数`。默认分别为 1000 行和 0.1，没有变化时不重写索引；可通过 `ALTER INDEX` 调整这两个参数。
+## 创建索引 {#create}
 
 ```sql
-ALTER INDEX documents_vector_bm25 SET (maintenance_min_rows = 1000, maintenance_scale_factor = 0.1);
-VACUUM documents;
-SELECT bm25_maintain('documents_vector_bm25');
+CREATE INDEX documents_bm25 ON documents USING bm25 (terms bm25_ops);
 ```
 
-`bm25_maintain(regclass)` 绕过门槛，发布了合并结果时返回 true；没有变化或旧代际尚不能回收时返回 false。需要表所有者权限，或 PostgreSQL 17+ 的 `MAINTAIN` 权限。它不会自行识别死亡堆元组，这仍需 `VACUUM`。维护运行期间持有表的 `ShareUpdateExclusiveLock`。
+- 要写明运算符类 `bm25_ops`，它不是 `tsvector` 的默认运算符类。
+- 给索引起一个会长期使用的名字。查询在 `to_bm25query` 中引用这个名字，名字决定了用哪份统计信息打分。
+- 一个索引只覆盖一列。要在固定子集（例如已发布的行）内排序，建一个[部分索引](/zh/docs/bm25/usage/filtering/#partial-indexes)。
+- `CREATE INDEX CONCURRENTLY` 和其他索引一样可用。
 
-实现只保留一个待回收代际。长快照会推迟旧页回收和下一次合并，因此增长段没有硬性大小上限；完全空闲的数据库也可能因事务号不前进而推迟回收。写入密集的表应调整 PostgreSQL 的 `autovacuum_vacuum_insert_threshold` 和 `autovacuum_vacuum_insert_scale_factor`。空闲页会复用，但未必截短文件，不能承诺固定的文件大小倍数。备库读者遇到已回收页，或新代际发布后追加的增长页时，返回 SQLSTATE `40001`，应重试查询。`hot_standby_feedback` 以推迟主库回收为代价防止回收冲突，但不能防止后一种新增长页冲突。tombstone 本身不会取消备库查询：PostgreSQL 在回放其之前的堆页清理时已经处理了这类冲突。
-
-
-索引只有一个封闭段，每次合并都会将其与增长记录一起全量重写。每次非 ANALYZE 的 VACUUM 仍会扫描全部索引页和封闭文档链，再判断是否无需维护；仅凭本次删除数为零跳过，会遗漏插入驱动的合并及崩溃/FSM 修复。单篇大文档的追加或页 I/O 仍可能推迟发布。构建与合并的临时文件不受 PostgreSQL 的 `temp_file_limit` 和 `log_temp_files` 管理。VACUUM 报告的是估算索引计数；CREATE INDEX、REINDEX 和 ANALYZE 才更新目录统计。
-
-`bm25query` 保存 `regclass` OID。普通 `REINDEX` 保留它，`REINDEX ... CONCURRENTLY` 则替换它；视图、物化视图、规则和 SQL 标准函数体中的旧 OID 常量不会自动更新。并发重建前保存原始 DDL，完成后用新的 schema 限定名称重建这些定义；普通视图和函数可以使用 `CREATE OR REPLACE VIEW` 与 `CREATE OR REPLACE FUNCTION`。重建后的 `pg_get_viewdef()` 可能只剩悬空的数字 OID，不能据此恢复原绑定。文本函数体和预备语句会重新分析。
-
-显式使用 `to_bm25query(query_vector, pg_catalog.to_regclass('public.documents_vector_bm25'))` 可在执行时解析限定名称，跨并发 REINDEX 保持可用。代价是走标量排序，仍执行相同的 SELECT/RLS 检查，也不建立对该索引的存储依赖；重命名或删除会影响目标，名称缺失时返回 NULL。已有 OID 定义不会自动修复。此次回收/锁修复不改变格式 4，健康索引无需重建；若检测到 graveyard 页已被旧版本复用，会拒绝继续回收并要求 REINDEX。
-
-
-下文的 `bm25_catalog.segment_growing_max_page_size` 设置仅属于 0.3.x，不是 1.0.0 API 的一部分。
-
-## 段架构：增长段（Growing）与封闭段（Sealed）（`v0.1` – `v0.3`） {#segment-architecture-growing-vs-sealed-segments-v01--v03}
-
-在内部实现中，`vchord_bm25` 将索引元组组织为两种段状态：
-
-1. **增长段（Growing Segment）**：新写入的元组（`INSERT` / `UPDATE`）会追加到增长段中，从而无需重新压缩整条倒排链表即可获得极高的写入吞吐量。
-2. **封闭段（Sealed Segment）**：当增长段超过 `bm25_catalog.segment_growing_max_page_size` 个页面（默认 `4096` 页，约 32 MB）时，它会被封存为不可变的只读段，采用差分位打包（Delta-Bitpacked）的 128 文档块结构，并预计算块级最大得分上界与词项文档频率（DF）统计信息。
+建索引时，PostgreSQL 的并行维护进程会一起扫描表，进程数受 `max_parallel_maintenance_workers`（或表的 `parallel_workers` 选项）限制。主进程和各工作进程分摊 `maintenance_work_mem` 作为排序缓冲区，每个进程最多 64 MiB，超出部分写入临时文件。构建进度可以在 `pg_stat_progress_create_index` 中查看，`phase` 依次经过 `building index: scanning table` 和 `building index: writing index structures`：
 
 ```sql
--- 调整增长段封存阈值（单位为 8 KB 页面，取值范围 1..1000000）
-SET bm25_catalog.segment_growing_max_page_size = 4096;
-```
-
-## 并行索引构建与进度监控 {#parallel-index-build--progress-monitoring}
-
-索引构建支持 PostgreSQL 并行维护工作进程（Parallel Maintenance Workers），并可通过 `pg_stat_progress_create_index` 跨三个阶段实时汇报构建进度：
-
-1. `initializing`（初始化）
-2. `scanning table`（扫描表）
-3. `writing index structures`（写入索引结构）
-
-```sql
--- 使用并行工作进程加速大规模索引构建
-SET max_parallel_maintenance_workers = 8;
-SET maintenance_work_mem = '2GB';
-
--- 在另一个会话中监控构建进度
-SELECT
-    pid,
-    phase,
-    tuples_total,
-    tuples_done,
-    round(100.0 * tuples_done / nullif(tuples_total, 0), 2) AS pct_done
+SELECT phase, tuples_done, tuples_total
 FROM pg_stat_progress_create_index;
 ```
 
-## 检查索引页（`v0.3.0`） {#inspecting-index-pages-v030}
+## 选择 k1 和 b {#scoring-parameters}
 
-`0.3.0` 版本提供了 `bm25_page_inspect(index regclass, blkno int)` 函数，用于检查 `bm25` 索引的内部元数据与页头信息：
+BM25 有两个参数，在建索引时确定：
+
+- **`k1`**（默认 `1.2`，取值 1.2–2.0）决定一个词重复出现时，加分多快趋于饱和。如果重复出现确实意味着更相关（例如较长的技术文档），可以调高。
+- **`b`**（默认 `0.75`，取值 0–1）决定对长文档的惩罚力度。如果文档长是因为内容多而不是啰嗦，可以调低；`0` 表示完全不做长度归一化。
+
+默认值与 Lucene、Elasticsearch 一致，是合适的起点。只有在度量过相关性之后才去改：
+
+1. 收集真实查询并标注相关行，度量当前索引的 NDCG@10 或召回率。
+1. 用候选参数在同一列上再建一个索引。两个索引都能用，因为每条查询都会指明用哪个索引打分：
+
+   ```sql
+   CREATE INDEX CONCURRENTLY documents_bm25_k15 ON documents USING bm25 (terms bm25_ops)
+   WITH (options = $$
+   k1 = 1.5
+   b = 0.6
+   $$);
+   ```
+
+1. 针对 `documents_bm25_k15` 运行同一批查询，比较结果。
+1. 留下更好的索引，删掉另一个。两者并存期间，每次写入都要维护两个索引。
+{.steps}
+
+要原地修改已有索引的参数，先设置 `options` 再重建：`ALTER INDEX documents_bm25 SET (options = $$ ... $$); REINDEX INDEX documents_bm25;`。`k1` 和 `b` 在公式中的位置见[分数定义](/zh/docs/bm25/reference/sql/#score)。
+
+## 保持索引高效 {#maintenance}
+
+插入和更新的行会追加到**增长段**，立即可查，分数也是精确的。但增长段没有块摘要，每次查询都要把它整个读一遍。在 `VACUUM` 把它合并进压缩段之前，查询耗时会随它一起增长。
+
+`VACUUM`（手动执行或 autovacuum）在满足以下任一条件时合并：
+
+- 增长段至少有 `maintenance_min_rows` 行（默认 1,000），且不少于已合并行数的 `maintenance_scale_factor` 倍（默认 0.1）。
+- 已删除的行达到全部行数的 `maintenance_scale_factor`。在此之前，被删除和被替换的行仍计入统计信息（文档数、各词的文档频率和平均长度），所以大批量 `DELETE` 或整体改写之后，分数会有偏差。
+
+合并使用与 `VACUUM` 相同的锁，读写不受影响。单独执行 `ANALYZE` 不会触发合并。两个阈值都是[索引选项](/zh/docs/bm25/reference/gucs/#index-options)；大表上调低 `maintenance_scale_factor` 可以更频繁地合并。
+
+**只插入不更新的表**，要等插入行数达到 `autovacuum_vacuum_insert_threshold` 加上表大小的 `autovacuum_vacuum_insert_scale_factor`（默认 0.2）才会被 vacuum。大表上这会让增长段变得很大，可以为这张表调低比例：
 
 ```sql
--- 检查 bm25 索引的元信息页（第 0 块）
-SELECT bm25_page_inspect('documents_embedding_bm25', 0);
+ALTER TABLE documents SET (autovacuum_vacuum_insert_scale_factor = 0.02);
 ```
 
-## 索引约束与限制 {#index-constraints--limitations}
+**立即合并**：批量导入或删除之后，可以用 [`bm25_maintain`](/zh/docs/bm25/reference/sql/#field-bm25_maintain-regclass) 无视阈值立刻合并：
 
-- **仅支持单列索引**：`bm25` 索引只能创建在单个 `bm25vector`（或 `tsvector`）列上，不支持多列联合 `bm25` 索引。
-- **不支持 Unlogged 表**：`bm25` 访问方法不支持 `UNLOGGED` 表（调用 `ambuildempty` 会抛出 `Unlogged indexes are not supported` 错误）。
-- **仅支持正向扫描**：`bm25` 索引扫描在 `<&>` 操作符上仅支持正向（`ASC`）扫描方向。
+```sql
+SELECT bm25_maintain('documents_bm25');
+```
+
+写出了合并后的段时返回 `true`；没有变化，或者上一次合并替换下来的页还在等待更早的事务结束时，返回 `false`。调用者需要是表的属主，PostgreSQL 17 及以上也可以持有 `MAINTAIN` 权限；它与 `VACUUM` 获取相同的表锁。
+
+**长事务** 会推迟合并后旧页的复用，在长事务结束前索引会持续膨胀。在没有开启 `hot_standby_feedback` 的热备库上，如果查询读到的页刚被主库复用，会报错 `canceling statement due to conflict with bm25 index maintenance`；重试查询，或开启 `hot_standby_feedback`。
+
+## 重建 {#rebuild}
+
+需要重建的场景：应用新的 `k1` 和 `b`，或者修复 `CREATE INDEX CONCURRENTLY` 失败后留下的无效索引。针对无效索引的查询会报错 `index "documents_bm25" is not valid`。
+
+- `REINDEX INDEX documents_bm25` 保留索引的 OID。执行期间会阻塞对表的写入，以及使用该索引的查询。
+- `REINDEX INDEX CONCURRENTLY documents_bm25` 不阻塞写入，但会建出一个 OID 不同的新索引。
+
+`to_bm25query(..., 'documents_bm25')` 在语句解析时把名字转换成 OID，所以重建之后解析的语句会找到新索引。而视图、物化视图、规则以及 SQL 标准函数体（`BEGIN ATOMIC` 或 `RETURN`）存的是旧 OID，之后会报错 `the relation does not exist`。请保留它们的原始定义，并在并发重建之后用 `CREATE OR REPLACE` 重新执行；那时 `pg_get_viewdef` 输出的已经是失效的 OID。删除后重新创建索引，也是同样的情况。
+
+## 限制 {#limits}
+
+- **单列。** 再加一个键列会报错 `multicolumn index is not supported`。
+- **必须带位置。** 不带位置的文档 `tsvector` 在插入、`CREATE INDEX` 和打分时都会报错 `tsvector must have positions`。查询用的 `tsvector` 可以不带位置。
+- **PostgreSQL 的 `tsvector` 限制。** 每个词位最多保留 256 个位置，超过 16,383 的位置会被截断为 16,383，`to_tsvector` 会丢弃超过 2,046 字节的词。因此在很长的文档里词频会饱和。请按几千词的段落建索引，而不是整本书。
+- **不支持 unlogged 表。** 在 `UNLOGGED` 表上执行 `CREATE INDEX`，会得到错误 `Unlogged indexes are not supported.`
+- **分区表。** 在分区表上 `CREATE INDEX` 会为每个分区各建一个 bm25 索引，各有各的统计信息。请直接查询分区，并在 `to_bm25query` 中写该分区的索引名；父表上的索引不能用于打分，也不能传给 `bm25_maintain`。

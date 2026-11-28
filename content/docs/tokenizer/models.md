@@ -1,286 +1,163 @@
 ---
-title: "Tokenization Models"
-description: "Pretrained models (llmlingua2, bert_base_uncased, wiki_tocken, gemma2b), custom corpus-trained models, HuggingFace tokenizers, and Lindera models."
-weight: 30
-icon: fa-solid fa-brain
+title: "Models"
+linkTitle: "Models"
+description: "When you need a pg_tokenizer model, and how to use the built-in LLM vocabularies, Lindera dictionaries for Japanese and Korean, Hugging Face tokenizers and custom vocabularies."
+weight: 50
+icon: fa-solid fa-cubes
 ---
 
-In `pg_tokenizer`, a **Model** maps string tokens (or raw text) to integer token IDs (`INT[]`). You can choose from four built-in pretrained models, train a custom vocabulary model directly on your PostgreSQL table, import any HuggingFace `tokenizer.json`, or use a Lindera morphological model.
+A model maps text to integer token IDs from a fixed vocabulary. You need one in two cases: to segment Japanese or Korean, which takes a Lindera dictionary, and to produce IDs, whether those of an LLM's tokenizer or of a vocabulary built from your own table. For BM25 search on other languages, a [text analyzer](/docs/tokenizer/text-analyzer/) alone is enough.
 
-## 1. Built-in Pretrained Models
+## How a tokenizer uses a model {#tokenizer}
 
-| Model Name | Source / Architecture | Requires `text_analyzer`? | Memory Footprint | Best For |
-| :--- | :--- | :--- | :--- | :--- |
-| **`llmlingua2`** | [`microsoft/llmlingua-2-xlm-roberta-large-meetingbank`](https://huggingface.co/microsoft/llmlingua-2-xlm-roberta-large-meetingbank) (XLM-RoBERTa multilingual subword) | No (forbidden) | ~200 MB (default preloaded) | Multilingual general text out of the box without training a custom vocabulary. |
-| **`bert_base_uncased`** | [`google-bert/bert-base-uncased`](https://huggingface.co/google-bert/bert-base-uncased) (WordPiece, 30,522 vocab) | No (forbidden) | ~15 MB | General English text; fast startup and compact vocabulary. |
-| **`wiki_tocken`** | [`Snowolf/wiki-tocken`](https://huggingface.co/Snowolf/wiki-tocken) (Built-in English Wikipedia token dictionary) | **Yes (required)** | ~30 MB | English full-text search combined with custom stemmers, stopwords, and synonyms. |
-| **`gemma2b`** | [`google/gemma-2b`](https://huggingface.co/google/gemma-2b) (SentencePiece BPE, 256k vocab) | No (forbidden) | ~100 MB | Code, technical identifiers, and multilingual LLM workloads. |
-{.wide .expand}
+A model is used through a **tokenizer**, created with `create_tokenizer`. Its configuration names the `model` and, optionally, an analyzer to run first: either `text_analyzer`, the name of an existing analyzer, or the analyzer keys written inline. It cannot have both.
 
-### Example: Using `bert_base_uncased` or `llmlingua2`
+- Without an analyzer, the model receives the whole text and splits it itself. This is how the built-in, Hugging Face and Lindera models are normally used.
+- With an analyzer, the model receives each word the analyzer produces, separately, and the IDs are concatenated in order. Use this to remove stopwords or stem before looking up IDs, and always with a custom model.
 
 ```sql
-SELECT create_tokenizer('bert_tok', $$
+SELECT tokenizer_catalog.create_tokenizer('bert_words', $$
 model = "bert_base_uncased"
-$$);
-
-SELECT tokenize('VectorChord-BM25 brings Block-WeakAnd to PostgreSQL.', 'bert_tok');
-```
-
----
-
-## 2. Custom Corpus Models (`create_custom_model`)
-
-For maximum BM25 accuracy and minimal memory footprint, you can build a **custom vocabulary model** directly from your own table column. Unlike subword LLM tokenizers (which split rare domain words into multiple sub-tokens), a custom model assigns a dedicated 1:1 integer ID to every unique normalized token produced by your `text_analyzer`—and weighs only a few megabytes in memory.
-
-### Option A: One-Step Helper (`create_custom_model_tokenizer_and_trigger`)
-
-This convenience function creates the custom model and tokenizer, populates an `INT[]` target column, and installs triggers to learn vocabulary and update token IDs when rows change. Historical `bm25vector` columns can receive the integer arrays through a cast. The helper does not populate `tsvector` columns. For BM25 1.0.0, store `tokenize_to_tsvector` output after vocabulary updates have completed, or use `analyze_to_tsvector` without a vocabulary; see [native full-text search](/docs/tokenizer/overview/#native-postgresql-full-text-search).
-
-```sql
--- 1. Define how text should be analyzed
-SELECT create_text_analyzer('my_analyzer', $$
+pre_tokenizer = { regex = '(?u)\b\w\w+\b' }
 character_filters = ["to_lowercase"]
-pre_tokenizer = "unicode_segmentation"
-token_filters = [
-    "skip_non_alphanumeric",
-    { stopwords = "nltk_english" },
-    { stemmer = "english_porter2" },
-]
+token_filters = [{ stopwords = "nltk_english" }, { stemmer = "english_porter2" }]
 $$);
 
--- 2. Create model, tokenizer, backfill embeddings, and attach trigger
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name     => 'my_tokenizer',
-    model_name         => 'my_model',
-    text_analyzer_name => 'my_analyzer',
-    table_name         => 'documents',
-    source_column      => 'passage',
-    target_column      => 'embedding'
-);
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source database.', 'bert_words');
 ```
 
-### Option B: Step-by-Step (`create_custom_model` Without Trigger)
+`tokenize` returns the IDs as `int[]`. `tokenize_to_tsvector` returns them as lexemes, such as `'2695':1 '17603':2`, which vchord_bm25 can index like words; the query must then go through the same tokenizer.
 
-If you prefer not to attach an automatic trigger (or want to control when `embedding` is populated):
+What happens to a word missing from the vocabulary depends on the model. Subword models (the built-in ones except `wiki_tocken`, and most Hugging Face models) break it into pieces they know. Lindera models, custom models and `wiki_tocken` leave it out.
+
+## Built-in models {#builtin}
+
+<a id="1-built-in-pretrained-models"></a>
+
+Every package includes four vocabularies. Use one when you need the same IDs as the model it comes from.
+
+| Model | Vocabulary | Notes |
+| --- | --- | --- |
+| `bert_base_uncased` | [google-bert/bert-base-uncased](https://huggingface.co/google-bert/bert-base-uncased), WordPiece | English, lowercases its input. |
+| `gemma2b` | [google/gemma-2b](https://huggingface.co/google/gemma-2b) | About 100 MB loaded. |
+| `llmlingua2` | [microsoft/llmlingua-2-xlm-roberta-large-meetingbank](https://huggingface.co/microsoft/llmlingua-2-xlm-roberta-large-meetingbank), XLM-RoBERTa | Multilingual. About 200 MB loaded, [preloaded](#preload) by default. |
+| `wiki_tocken` | English words from [WikiText-103](https://huggingface.co/datasets/iohadrubin/wikitext-103-raw-v1) | Lowercases, removes English stopwords and stems by itself; whole words only. |
+{.wide}
 
 ```sql
--- 1. Build the custom model from the existing table column
-SELECT create_custom_model('my_model', $$
-table = "documents"
-column = "passage"
-text_analyzer = "my_analyzer"
+SELECT tokenizer_catalog.create_tokenizer('gemma', $$
+model = "gemma2b"
 $$);
 
--- 2. Create the tokenizer referencing the analyzer and custom model
-SELECT create_tokenizer('my_tokenizer', $$
-text_analyzer = "my_analyzer"
-model = "my_model"
-$$);
-
--- 3. Populate or refresh embeddings manually
-UPDATE documents SET embedding = tokenize(passage, 'my_tokenizer');
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source database.', 'gemma');
 ```
 
----
+## Japanese and Korean: Lindera {#lindera}
 
-## 3. Importing HuggingFace Tokenizers (`create_huggingface_model`)
+<a id="4-lindera-morphological-models-create_lindera_model"></a>
 
-You can import any HuggingFace [`tokenizers`](https://github.com/huggingface/tokenizers) JSON specification (`tokenizer.json`) into PostgreSQL using `create_huggingface_model`.
-
-In `psql`, you can fetch `tokenizer.json` directly from HuggingFace Hub into a variable using `\set` and pass it to `create_huggingface_model`:
+`create_lindera_model` creates a model from a [Lindera](https://github.com/lindera/lindera) 7 configuration: a `[segmenter]` table with the segmentation `mode` and the `dictionary`, followed by Lindera's own `[[character_filters]]` and `[[token_filters]]`, each with a `kind` and `args`. The [Japanese recipe](/docs/tokenizer/multilingual/#japanese) has a complete configuration.
 
 ```sql
-\set content `wget -q -O - https://huggingface.co/google-bert/bert-base-uncased/resolve/main/tokenizer.json`
-SELECT create_huggingface_model('bert_import', :'content');
-
-SELECT create_tokenizer('bert_import_tok', $$
-model = "bert_import"
-$$);
-```
-
-Or pass the contents of a `tokenizer.json` file directly as a dollar-quoted string:
-
-```sql
-SELECT create_huggingface_model('bge_m3_model', $$
-{
-  "version": "1.0",
-  ...
-}
-$$);
-
-SELECT create_tokenizer('bge_m3_tok', $$
-model = "bge_m3_model"
-$$);
-```
-
----
-
-## 4. Lindera Morphological Models (`create_lindera_model`)
-
-For East Asian languages such as Japanese, Korean, and Chinese that benefit from morphological dictionary analysis, `pg_tokenizer` integrates [`lindera`](https://github.com/lindera/lindera).
-
-For builds using Lindera 6.2, `[segmenter] dictionary = "embedded://ipadic"` is the native dictionary configuration. Existing `[segmenter.dictionary] kind = "ipadic"` configurations in the catalog and preload files remain supported, as do legacy dictionary and user-dictionary `path` tables. External compiled dictionaries must be rebuilt with Lindera 6.
-
-> [!IMPORTANT]
-> Lindera 6.2 embeds the 2025-09-20 IPADIC edition instead of the 2007-08-01 edition used by Lindera 0.42. Token IDs change: regenerate stored Lindera token arrays and rebuild indexes that use them before querying with the upgraded tokenizer. Unknown words continue to be omitted.
-
-> [!NOTE]
-> If you build `pg_tokenizer` from source, enable the desired Lindera dictionary features at compile time:
-> ```bash
-> cargo pgrx install --release --features "lindera-ipadic lindera-ipadic-neologd lindera-unidic lindera-ko-dic lindera-cc-cedict"
-> ```
-
-Example configuration using `ipadic` with iteration mark normalization, NFKC Unicode normalization, character mapping, compound word merging, number normalization, Japanese part-of-speech stop-tags, Katakana stemming, and diacritical mark removal:
-
-```sql
-SELECT create_lindera_model('japanese_ipadic', $$
+SELECT tokenizer_catalog.create_lindera_model('ja_ipadic', $$
 [segmenter]
 mode = "normal"
-  [segmenter.dictionary]
-  kind = "ipadic"
-
-[[character_filters]]
-kind = "japanese_iteration_mark"
-  [character_filters.args]
-  normalize_kanji = true
-  normalize_kana = true
-
-[[character_filters]]
-kind = "unicode_normalize"
-  [character_filters.args]
-  kind = "nfkc"
-
-[[character_filters]]
-kind = "mapping"
-  [character_filters.args.mapping]
-  "リンデラ" = "Lindera"
-
-[[token_filters]]
-kind = "japanese_compound_word"
-  [token_filters.args]
-  kind = "ipadic"
-  tags = [
-    "名詞,数",
-    "名詞,接尾,助数詞",
-  ]
-  new_tag = "名詞,数"
-
-[[token_filters]]
-kind = "japanese_number"
-  [token_filters.args]
-  tags = ["名詞,数"]
-
-[[token_filters]]
-kind = "japanese_stop_tags"
-  [token_filters.args]
-  tags = [
-    "接続詞",
-    "助詞",
-    "助詞,格助詞",
-    "助詞,格助詞,一般",
-    "助詞,格助詞,引用",
-    "助詞,格助詞,連語",
-    "助詞,係助詞",
-    "助詞,副助詞",
-    "助詞,間投助詞",
-    "助詞,並立助詞",
-    "助詞,終助詞",
-    "助詞,副助詞／並立助詞／終助詞",
-    "助詞,連体化",
-    "助詞,副詞化",
-    "助詞,特殊",
-    "助動詞",
-    "記号",
-    "記号,一般",
-    "記号,読点",
-    "記号,句点",
-    "記号,空白",
-    "記号,括弧閉",
-    "その他,間投",
-    "フィラー",
-    "非言語音",
-  ]
-
-[[token_filters]]
-kind = "japanese_katakana_stem"
-  [token_filters.args]
-  min = 3
-
-[[token_filters]]
-kind = "remove_diacritical_mark"
-  [token_filters.args]
-  japanese = false
+dictionary = "embedded://ipadic"
 $$);
 
-SELECT create_tokenizer('jp_tok', $$
-model = "japanese_ipadic"
+SELECT tokenizer_catalog.create_tokenizer('ja_text', $$
+model = "ja_ipadic"
 $$);
 ```
 
----
+The model returns the dictionary ID of each word it finds. Words that are not in the dictionary are left out, and so are the IDs of anything Lindera's token filters remove. Lindera filters that only rewrite a word's text do not change its ID.
 
-## 5. Model Preloading (`add_preload_model`)
+The `dictionary` comes from one of two places:
 
-Large models (`llmlingua2` at ~200 MB, `gemma2b` at ~100 MB, `japanese_ipadic`) take several seconds and significant RAM to load on first query in each new PostgreSQL backend process. By preloading models during `shared_preload_libraries` startup, PostgreSQL loads the model once in the postmaster process and shares it across all backend connections via copy-on-write memory (`llmlingua2` is preloaded by default):
+- **Built into the library**, as `embedded://<name>`. GitHub release packages and default source builds include `embedded://ipadic`. Other dictionaries, `ipadic-neologd`, `unidic`, `ko-dic` (Korean) and `cc-cedict`, are available only in a source build with the matching [feature](/docs/tokenizer/installation/#source). Naming a dictionary the library does not contain fails with `failed to load Lindera dictionary`.
+- **A directory on the database server**, given as a path or a `file://` URI. Pigsty packages include no dictionary, so they need this. The directory must be built for Lindera 7 (format v3) and installed at the same path on every node. PostgreSQL reads it as its operating-system user, so creating the model, and loading it in each new session, requires superuser or membership in `pg_read_server_files`; other roles get `permission denied to load a Lindera dictionary from a file`. A [preloaded](#preload) model is loaded by the server at startup and needs no privilege at use.
+
+`user_dictionary` adds your own words from a CSV or compiled file, read under the same rules. Their IDs start at 1073741824, so they never collide with dictionary IDs.
+
+## Hugging Face tokenizers {#huggingface}
+
+<a id="3-importing-huggingface-tokenizers-create_huggingface_model"></a>
+
+`create_huggingface_model` imports the `tokenizer.json` of any Hugging Face model, so you can produce the same IDs as an embedding model you use outside the database. In `psql`, read the file into a variable and pass it:
 
 ```sql
--- Add a model to the preload list (persisted in $PGDATA/pg_tokenizer/preload_models)
-SELECT add_preload_model('my_model');
+\set content `curl -fsSL https://huggingface.co/google-bert/bert-base-chinese/resolve/main/tokenizer.json`
+SELECT tokenizer_catalog.create_huggingface_model('bert_chinese', :'content');
 
--- List currently configured preload models (default: {llmlingua2})
-SELECT list_preload_models();
-
--- Remove a model from the preload list (e.g., to save ~200 MB if llmlingua2 is unused)
-SELECT remove_preload_model('llmlingua2');
+SELECT tokenizer_catalog.create_tokenizer('bert_chinese', $$
+model = "bert_chinese"
+$$);
 ```
 
-Restart PostgreSQL after calling `add_preload_model(...)` (with `shared_preload_libraries = 'pg_tokenizer.so'` set in `postgresql.conf`) for preloading to take effect across all backends.
+Every ID in the file must fit in `int`, at most 2147483647; a model with larger IDs is rejected.
 
-## Custom model behavior in 1.0.0 {#custom-model-100}
+## Custom models {#custom}
 
-### Concurrent writes
+<a id="2-custom-corpus-models-create_custom_model"></a><a id="custom-model-100"></a><a id="option-a-one-step-helper-create_custom_model_tokenizer_and_trigger"></a><a id="option-b-step-by-step-create_custom_model"></a>
 
-Vocabulary triggers first check for missing tokens. Only rows adding vocabulary entries acquire the per-model transaction advisory lock, then recheck and sort the missing tokens. Rows containing only committed vocabulary do not take this lock. This serializes vocabulary additions across rows and statements, preventing the opposite token-lock order that caused concurrent batch inserts to deadlock. Ordinary tokenization reads and writes to different models can proceed independently. Keep transactions short; when writing multiple models or locking application rows, use a consistent order and retain normal deadlock/serialization retry handling.
+A custom model gives every distinct word in one column of your table an integer ID. Use it when you need compact IDs for your own corpus, for example to build sparse vectors outside the database. vchord_bm25 does not need one.
 
-The embedding trigger refreshes its SPI snapshot after the vocabulary trigger, so at `READ COMMITTED` it can see token IDs committed by a writer it waited for. At `REPEATABLE READ` or `SERIALIZABLE`, a conflicting writer can receive SQLSTATE `40001` and must retry the whole transaction. Existing vocabulary IDs are preserved during upgrade; new IDs are internal mappings and are not guaranteed to match a separately created model.
+`create_custom_model` runs an analyzer over the column and stores each distinct word in a vocabulary table, `tokenizer_data."model_<name>"`. It also adds a trigger, `model_<name>_trigger`, to the source table that adds new words as rows are inserted or updated. The vocabulary only grows: words from deleted or changed rows stay.
 
-### Filtering a corpus
-
-Set `filter` in the custom model's TOML configuration, or pass a seventh `filter` argument to the convenience helper:
+`create_custom_model_tokenizer_and_trigger` does that, creates a tokenizer for the model, fills a target column with each row's IDs, and adds a second trigger that keeps it current:
 
 ```sql
-SELECT create_custom_model('tenant_a', $$
-table = 'public.documents'
-column = 'passage'
-text_analyzer = 'text_analyzer1'
-filter = "tenant_id = 42 AND published IS TRUE"
-$$);
-
--- Alternative: create the model, tokenizer, and embedding trigger together.
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name => 'tenant_b_tok', model_name => 'tenant_b',
-    text_analyzer_name => 'text_analyzer1', table_name => 'public.documents',
-    source_column => 'passage', target_column => 'embedding',
-    filter => 'tenant_id = 43 AND published IS TRUE'
+CREATE TABLE notes (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text,
+    token_ids int[]
 );
+
+SELECT tokenizer_catalog.create_text_analyzer('notes_words', $$
+character_filters = ["to_lowercase"]
+pre_tokenizer = "unicode_segmentation"
+token_filters = [{ stopwords = "nltk_english" }, { stemmer = "english_porter2" }]
+$$);
+
+SELECT tokenizer_catalog.create_custom_model_tokenizer_and_trigger(
+    tokenizer_name     => 'notes_tok',
+    model_name         => 'notes_vocab',
+    text_analyzer_name => 'notes_words',
+    table_name         => 'notes',
+    source_column      => 'body',
+    target_column      => 'token_ids'
+);
+
+INSERT INTO notes (body) VALUES ('Custom models assign IDs to words.');
+SELECT token_ids FROM notes;
+SELECT tokenizer_catalog.tokenize('words and models', 'notes_tok');
 ```
 
-The predicate uses source column names without `NEW.` or `WHERE`, and is evaluated with the caller's privileges. Only `TRUE` matches; `FALSE` and `NULL` do not. Use a deterministic predicate of ordinary source columns, independent of the embedding target column; system columns such as `ctid` and volatile predicates are not supported. Provide a trusted SQL expression, with schema-qualified functions if needed; corpus selection does not replace row-level security. Empty or invalid expressions raise an error even for an empty table.
+The target column receives `int[]`, converted the way an `INSERT` would convert it. To fill other columns yourself, use `create_custom_model` and a `create_tokenizer` that names the same analyzer and the model.
 
-The filter applies to the initial vocabulary scan, embedding backfill, and future inserts/updates. Filtered models observe every UPDATE so changing only a predicate column can bring a row into the corpus. Nonmatching rows are left untouched, including existing embeddings; when a row leaves the corpus, its old embedding and vocabulary entries remain. Apply the same predicate when querying the corpus, or clear excluded embeddings in the application. Vocabulary is append-only and is not pruned on UPDATE/DELETE. A matching row with a NULL source has a NULL embedding.
+Things to know when you use a custom model:
 
-Omitting `filter` (or passing SQL `NULL` to the helper) retains the whole-table behavior. Existing models and six-argument helper calls remain supported. Schema-qualified table names and quoted column names are supported; the stored table name is qualified when the model is created. Qualified names take precedence over a literal name containing a dot; use SQL double quotes (for example, `'"corpus.docs"'`) to select the latter explicitly.
+- `filter`, an SQL condition on the source columns written without `WHERE`, restricts the corpus. Pass it as the seventh argument, `filter => 'tenant_id = 42'`, or in the model's configuration. Only rows for which it is true train the vocabulary and get IDs; other rows keep their target value. It does not replace row-level security.
+- PostgreSQL fires `BEFORE` triggers in name order. A trigger of yours that calls `tokenize` or `tokenize_to_tsvector` on the same table must sort after `model_<name>_trigger`, or the words new in that row are not in the vocabulary yet and are left out.
+- A word longer than 2,600 bytes is split into pieces of at most 2,600 bytes, each with its own ID, and a warning is raised.
+- Concurrent writers wait for each other only when they add new words to the same model. Under `REPEATABLE READ` or `SERIALIZABLE`, such a conflict can fail with SQLSTATE `40001`; retry the transaction.
+- `drop_custom_model` removes the vocabulary table and both triggers, but not the tokenizer.
 
-### Catalog cache invalidation
+## Preload models {#preload}
 
-Definitions are cached in each PostgreSQL backend for fast tokenization. Creating, dropping, or rebuilding an analyzer, tokenizer, model, stopword dictionary, or synonym dictionary clears the current backend immediately and publishes an invalidation at transaction commit. Other backends discard their cached definitions before their next lookup, and a rollback does not leave a phantom object in the current backend. A tokenizer that depends on a rebuilt analyzer or model is invalidated with it.
+<a id="5-model-preloading-add_preload_model"></a>
 
-Cache invalidation does not rewrite values already stored in `INT[]`, `bm25vector`, or `tsvector` columns. After deliberately replacing a definition under the same name, recompute persisted search columns and rebuild any index whose lexeme or token-ID representation changed.
+Each backend loads a model the first time it uses it and keeps it for the life of the connection, which for a large model costs time on the first call and memory in every connection. A preloaded model is loaded once when the server starts and shared by all backends.
 
+```sql
+SELECT tokenizer_catalog.list_preload_models();
+SELECT tokenizer_catalog.add_preload_model('ja_ipadic');
+SELECT tokenizer_catalog.remove_preload_model('llmlingua2');
+```
 
-Backend cache invalidation preserves inherited preload objects. Non-built-in models reuse a preload only if the current database contains the same name and exact stored configuration. Managing the cluster-wide preload list requires administrator privileges; failed entries produce WARNING messages and are skipped. File changes are not transactional.
+Restart PostgreSQL for a change to take effect. The list starts with `llmlingua2`, which costs about 200 MB at every server start; remove it if you do not use it.
 
-Starting in 1.0.0, Lindera user-dictionary IDs start at `1073741824`, so they no longer overlap system-dictionary IDs. Recompute persisted IDs and rebuild their indexes when using a user dictionary. Native RPM/DEB builds require external dictionaries; GitHub release packages embed IPADIC.
-
-Lookups respect SQL snapshots. After an invalidation, objects loaded from an old snapshot are cleared before subsequent statements and at transaction end; parallel workers use the leader's snapshot. Definition-changing transactions cannot use `PREPARE TRANSACTION`. A matching NULL source overwrites even an explicitly supplied embedding with NULL; nonmatching rows remain untouched.
+- Preload the large models that many connections use: a Lindera model, `gemma2b`, `llmlingua2`. Custom models gain nothing, because they look words up in their vocabulary table.
+- The list belongs to the server, not a database. `add_preload_model` stores the model's definition from the current database; another database uses the preloaded copy only if its definition under that name is identical.
+- The list is a directory of files under `$PGDATA/pg_tokenizer/preload_models`. A change takes effect on disk at once, even if the transaction rolls back, and is not replicated: see [Replicas and backups](/docs/tokenizer/installation/#logical-backups).
+- Only superusers can change it, unless granted `EXECUTE` on the two functions. Entries that fail to load are skipped with a warning in the server log.

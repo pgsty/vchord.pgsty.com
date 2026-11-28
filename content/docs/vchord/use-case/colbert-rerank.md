@@ -1,7 +1,7 @@
 ---
-title: "Supercharge vector search with ColBERT rerank in PostgreSQL"
+title: "ColBERT Rerank"
 linkTitle: "ColBERT Rerank"
-description: "Traditional vector search methods typically employ sentence embeddings to locate similar content. However, generating sentence embeddings through pooling token "
+description: "Retrieve candidates with a single-vector vchordrq index, then rerank them in the same SQL query by ColBERTv2 token-level MaxSim with the @# operator."
 weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/use-case/colbert-rerank.md"
 aliases:
@@ -10,199 +10,179 @@ aliases:
 icon: fa-solid fa-ranking-star
 ---
 
-Traditional vector search methods typically employ sentence embeddings to locate similar content. However, generating sentence embeddings through pooling token embeddings can potentially sacrifice fine-grained details present at the token level. [ColBERT](https://github.com/stanford-futuredata/ColBERT) overcomes this by representing text as token-level multi-vectors rather than a single, aggregated vector. This approach, leveraging contextual late interaction at the token level, allows ColBERT to retain more nuanced information and improve search accuracy compared to methods relying solely on sentence embeddings.
+This tutorial builds a two-stage search over a BEIR dataset: a `vchordrq` index on one embedding per passage finds 100 candidates, and ColBERTv2 token embeddings stored in the same row rerank them by MaxSim. A single pooled vector loses the detail of individual tokens, while scoring every passage token by token is too slow for a whole corpus; reranking only the candidates gets most of the token-level accuracy at the cost of a vector search. vchord's `@#` operator computes MaxSim in SQL, so both stages run in one query.
 
-<img src="/docs/images/maxsim.jpeg" alt="ColBERT structure (from the original paper)" width="600" height="400" />
+## How it works {#how-it-works}
 
-As illustrated in the above image, ColBERT encodes each document/query into a list of token vectors and computes the MaxSim during the query time.
+<img src="/docs/images/maxsim.jpeg" alt="ColBERT late interaction: query and document tokens are encoded separately, and each query token is matched to its most similar document token" width="600" />
 
-Token-level late interaction requires more computing power and storage. This makes using ColBERT search in large datasets challenging, especially when low latency is important.
+[ColBERT](https://github.com/stanford-futuredata/ColBERT) encodes a passage into one normalized 128-dimensional vector per token, and a query into 32. The MaxSim score of a passage is the sum, over the query vectors, of each one's largest inner product with any passage vector. `embs @# query` returns that score negated, so `ORDER BY ... ASC` puts the best passage first, as with a distance.
 
-One possible solution is to combine sentence-level vector search with token-level late interaction rerank, which leverages the efficiency of approximate vector search and the high quality of multi-vector similarity search.
+Each row in this tutorial holds the passage, one sentence embedding for the first stage, and the ColBERT token vectors as `vector(128)[]` for the second. To index the token vectors directly instead of reranking candidates, see [Multi-vector retrieval](/docs/vchord/usage/multi-vector-retrieval/) and [ColQwen2 visual search](/docs/vchord/use-case/colqwen2-modal/).
 
-The multi-vector approach is not limited to pure text retrieval tasks; it can also be used in visual document understanding. For multimodal retrieval models, state-of-the-art models like [ColPali](https://huggingface.co/vidore/colpali-v1.3) and [ColQwen](https://huggingface.co/vidore/colqwen2-v1.0-merged) directly encode document images into multi-vectors and demonstrate stronger performance compared to OCR-to-text approaches.
+<a id="Tutorial"></a><a id="tutorial"></a>
 
-This blog will demonstrate using the PostgreSQL extension [VectorChord](https://github.com/pgsty/vchord) and pgvector with ColBERT rerank.
+## Prerequisites {#prerequisites}
 
-<a id="Tutorial"></a>
-## Tutorial
+- PostgreSQL 15–19 with vchord 1.5.0 installed and preloaded, as in the [Overview](/docs/vchord/getting-started/overview/).
+- Python 3 with the encoders and the PostgreSQL driver. Encoding a corpus of tens of thousands of passages with these models needs a GPU.
 
-Assume we already have the documents, let’s create a table to store all of them:
+  ```bash
+  pip install torch sentence-transformers colbert-ai "psycopg[binary]" pgvector requests tqdm
+  ```
 
-```python
-import psycopg
-from pgvector.psycopg import register_vector
+## Build and query {#build}
 
-class PgClient:
-    def __init__(self, url: str, dataset: str, sentence_emb_dim: int, token_emb_dim: int):
-        self.dataset = dataset
-        self.sentence_emb_dim = sentence_emb_dim
-        self.token_emb_dim = token_emb_dim
-        self.conn = psycopg.connect(url, autocommit=True)
-        with self.conn.cursor() as cursor:
-            cursor.execute("CREATE EXTENSION IF NOT EXISTS vchord CASCADE;")
-        register_vector(self.conn)
+1. <a id="create-schema"></a>Create the extension and the table. `emb` holds a 1536-dimensional embedding from `gte-Qwen2-1.5B-instruct`; `embs` holds the ColBERT token vectors.
 
-    def create(self):
-        with self.conn.cursor() as cursor:
-            cursor.execute(
-                f"CREATE TABLE IF NOT EXISTS {self.dataset}_corpus "
-                "(id INT BY DEFAULT AS IDENTITY PRIMARY KEY, text TEXT, "
-                f"emb vector({self.sentence_emb_dim}), embs vector({self.token_emb_dim})[]);"
-            )
-```
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 
-Here we created a table with sentence-level embedding and token-level embeddings.
+   CREATE TABLE corpus (
+       id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+       doc_id text NOT NULL,
+       text text NOT NULL,
+       emb vector(1536) NOT NULL,
+       embs vector(128)[] NOT NULL
+   );
+   ```
 
-There are numerous embedding APIs and [open-source models](https://huggingface.co/spaces/mteb/leaderboard). You can choose the one that fits your use case.
+1. <a id="encode-tokens"></a>Start `colbert_rerank.py` with the two encoders:
 
-For token-level embedding:
+   ```python
+   import io
+   import json
+   import sys
+   import zipfile
 
-```python
-from colbert.infra import ColBERTConfig
-from colbert.modeling.checkpoint import Checkpoint
+   import psycopg
+   import requests
+   from colbert.infra import ColBERTConfig
+   from colbert.modeling.checkpoint import Checkpoint
+   from pgvector.psycopg import register_vector
+   from sentence_transformers import SentenceTransformer
+   from tqdm import tqdm
 
-class TokenEncoder:
-    def __init__(self):
-        self.config = ColBERTConfig(doc_maxlen=220, query_maxlen=32)
-        self.checkpoint = Checkpoint(
-            "colbert-ir/colbertv2.0", colbert_config=self.config, verbose=0
-        )
+   DB_URL = "postgresql://postgres@localhost:5432/postgres"
+   DATASET = "fiqa"
+   BEIR_URL = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{}.zip"
 
-    def encode_doc(self, doc: str):
-        return self.checkpoint.docFromText([doc], keep_dims=False)[0].numpy()
 
-    def encode_query(self, query: str):
-        return self.checkpoint.queryFromText([query])[0].numpy()
-```
+   class SentenceEncoder:
+       def __init__(self):
+           self.model = SentenceTransformer(
+               "Alibaba-NLP/gte-Qwen2-1.5B-instruct", trust_remote_code=True
+           )
 
-ColBERT model produces 128-dim vectors by default.
+       def encode_doc(self, doc):
+           return self.model.encode([doc])[0]
 
-To insert the data:
+       def encode_query(self, query):
+           return self.model.encode([query], prompt_name="query")[0]
 
-```python
-class PgClient:
-    ...
-    def insert(self, documents: list[str]):
-        with self.conn.cursor() as cursor:
-            for doc in tqdm(documents):
-                sentence_emb = sentence_encoder.encode_doc(doc)
-                token_embs = [emb for emb in token_encoder.encode(doc)]
-                cursor.execute(
-                    f"INSERT INTO {self.dataset}_corpus (text, emb, embs) VALUES (%s, %s, %s)"
-                    (doc, sentence_emb, token_embs)
-                )
-```
 
-For the vector search part, we can use VectorChord to build a high-performance RaBitQ index:
+   class TokenEncoder:
+       def __init__(self):
+           config = ColBERTConfig(doc_maxlen=220, query_maxlen=32)
+           self.checkpoint = Checkpoint("colbert-ir/colbertv2.0", colbert_config=config, verbose=0)
 
-```python
-class PgClient:
-    ...
-    def index(self, num_doc: int, workers: int):
-        n_cluster = 1 << math.ceil(math.log2(num_doc ** 0.5 * 4))
-        config = f"""
-        residual_quantization = true
-        [build.internal]
-        lists = [{n_cluster}]
-        build_threads = {workers}
-        spherical_centroids = false
-        """
-        with self.conn.cursor() as cursor:
-            cursor.execute(f"SET max_parallel_maintenance_workers TO {workers}")
-            cursor.execute(f"SET max_parallel_workers TO {workers}")
-            cursor.execute(
-                f"CREATE INDEX {self.dataset}_rabitq ON {self.dataset}_corpus USING "
-                f"vchordrq (emb vector_l2_ops) WITH (options = $${config}$$)"
-            )
-```
+       def encode_doc(self, doc):
+           return self.checkpoint.docFromText([doc], keep_dims=False)[0].cpu().numpy()
 
-To speed up the indexing building process, we can utilize the external centroids build. Check “[Benefits and Steps of External Centroids Building in VectorChord](/blog/post/benefits-and-steps-of-external-centroids-building-in-vectorchord/)” for more details.
+       def encode_query(self, query):
+           return self.checkpoint.queryFromText([query])[0].cpu().numpy()
+   ```
 
-Now, we can query the PostgreSQL:
+1. <a id="insert-and-index"></a>Add loading and indexing. The script downloads the dataset from BEIR, stores both embeddings for every passage, and then builds the first-stage index. psycopg passes a list of NumPy arrays as a `vector[]`.
 
-```python
-class PgClient:
-    ...
-    def query(self, doc: str, topk: int):
-        sentence_emb = sentence_encoder.encode_query(doc)
-        with self.conn.cursor() as cursor:
-            cursor.execute(
-                f"SELECT id, text FROM {self.dataset}_corpus ORDER BY emb <-> %s LIMIT {topk}"
-            )
-            res = cursor.fetchall()
-        return res
-```
+   ```python
+   def load(conn, sentence, token):
+       url = BEIR_URL.format(DATASET)
+       archive = zipfile.ZipFile(io.BytesIO(requests.get(url, timeout=600).content))
+       with archive.open(f"{DATASET}/corpus.jsonl") as f:
+           docs = [json.loads(line) for line in f]
+       with conn.cursor() as cur:
+           for doc in tqdm(docs):
+               text = f"{doc['title']} {doc['text']}"
+               cur.execute(
+                   "INSERT INTO corpus (doc_id, text, emb, embs) VALUES (%s, %s, %s, %s)",
+                   (doc["_id"], text, sentence.encode_doc(text), list(token.encode_doc(text))),
+               )
+       lists = min(4 * int(len(docs) ** 0.5), len(docs) // 40)
+       conn.execute(f"""
+           CREATE INDEX corpus_emb_idx ON corpus USING vchordrq (emb vector_l2_ops)
+           WITH (options = $$
+           residual_quantization = true
+           [build.internal]
+           lists = [{lists}]
+           build_threads = 8
+           $$, probes = '{max(1, lists // 10)}')
+       """)
+   ```
 
-To support `MaxSim` rerank, we’ll need to create a function:
+   The `lists` and `probes` formulas are the ones the measured run used. For your own table, choose them as described in [vchordrq index](/docs/vchord/usage/indexing/#lists).
 
-```python
-class PgClient:
-    def __init__(self, url: str, dataset: str, sentence_emb_dim: int, token_emb_dim: int):
-        ...
-        self.conn.execute("""
-            CREATE OR REPLACE FUNCTION max_sim(document vector[], query vector[]) RETURNS double precision AS $$
-            WITH queries AS (
-                SELECT row_number() OVER () AS query_number, * FROM (SELECT unnest(query) AS query)
-            ),
-            documents AS (
-                SELECT unnest(document) AS document
-            ),
-            similarities AS (
-                SELECT query_number, document <=> query AS similarity FROM queries CROSS JOIN documents
-            ),
-            max_similarities AS (
-                SELECT MAX(similarity) AS max_similarity FROM similarities GROUP BY query_number
-            )
-            SELECT SUM(max_similarity) FROM max_similarities
-            $$ LANGUAGE SQL
-        """)
-```
+1. <a id="query-and-rerank"></a>Add the search. The inner query takes 100 candidates from the index; the outer query reranks them by MaxSim:
 
-Now, we can rerank the documents retrieved by vector search:
+   ```python
+   SEARCH_SQL = """
+   SELECT doc_id, text
+   FROM (
+       SELECT doc_id, text, embs
+       FROM corpus
+       ORDER BY emb <-> %(emb)s
+       LIMIT %(candidates)s
+   ) AS candidates
+   ORDER BY embs @# %(embs)s::vector[]
+   LIMIT %(k)s
+   """
 
-```python
-class PgClient:
-    def rerank(self, query: str, ids: list[int], topk: int):
-        token_embs = [emb for emb in token_encoder.encode_query(query)]
-        with self.conn.cursor() as cursor:
-            cursor.execute(
-                f"SELECT id, text FROM {self.dataset}_corpus WHERE id = ANY(%s) ORDER BY "
-                f"max_sim(embs, %s) DESC LIMIT {topk}"
-                (ids, token_embs)
-            )
-            res = cursor.fetchall()
-        return res
-```
+
+   def search(conn, query, sentence, token, candidates=100, k=10):
+       params = {
+           "emb": sentence.encode_query(query),
+           "embs": list(token.encode_query(query)),
+           "candidates": candidates,
+           "k": k,
+       }
+       return conn.execute(SEARCH_SQL, params).fetchall()
+
+
+   if __name__ == "__main__":
+       sentence, token = SentenceEncoder(), TokenEncoder()
+       with psycopg.connect(DB_URL, autocommit=True) as conn:
+           register_vector(conn)
+           if sys.argv[1] == "load":
+               load(conn, sentence, token)
+           else:
+               for doc_id, text in search(conn, sys.argv[1], sentence, token):
+                   print(doc_id, text[:80])
+   ```
+
+1. Load the corpus once, then search:
+
+   ```bash
+   python colbert_rerank.py load
+   python colbert_rerank.py "How do I report foreign income on my tax return?"
+   ```
+{.steps}
+
+`candidates` bounds the result: a passage the first stage misses cannot be reranked into the top 10. Raise it, or `probes`, when the reranked results miss passages you expect.
 
 <a id="Evaluation"></a>
-## Evaluation
 
-We have tested this method on several [BEIR](https://github.com/beir-cellar/beir) datasets. Here are the results:
+## Results {#evaluation}
 
-| Dataset | Search NDCG@10 | Rerank NDCG@10 |
+The companion repository [kemingy/vectorchord-colbert](https://github.com/kemingy/vectorchord-colbert) measured NDCG@10 with these encoders on two BEIR datasets, reranking the vector search's top 10. It scored the candidates with its own SQL function rather than `@#`, so results from this tutorial can differ.
+
+| Dataset | Vector search | With ColBERT rerank |
 | --- | --- | --- |
-| fiqa | 0.23211 | 0.3033 |
-| quora | 0.31599 | 0.3934 |
-{.wide .expand}
+| FiQA | 0.23211 | **0.30330** |
+| Quora | 0.31599 | **0.39340** |
 
-This shows that ColBERT reranking can significantly enhance the results of vector searches.
+## Limits {#limits}
 
-All the related benchmark codes can be found [here](https://github.com/kemingy/vectorchord-colbert).
+- Token vectors make rows large: a 220-token passage stores about 110 KB of `vector(128)[]`. Declaring the column `halfvec(128)[]` halves that; `@#` is defined for `halfvec[]` as well.
+- The rerank reads `embs` for every candidate, so its cost grows with `candidates` rather than with the table.
 
-## Future work
-
-Vector search and full-text search with ColBERT rerank can further improve performance. We’re also working on the [PostgreSQL BM25 extensions](https://github.com/pgsty/vchord_bm25). Stay tuned.
-
-<a id="References"></a>
-### References
-
-* [https://www.answer.ai/posts/colbert-pooling.html](https://www.answer.ai/posts/colbert-pooling.html)
-
-* [https://github.com/stanford-futuredata/ColBERT](https://github.com/stanford-futuredata/ColBERT)
-
-* [https://github.com/pgsty/vchord](https://github.com/pgsty/vchord)
-
-* [https://github.com/pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25)
-
-* [https://huggingface.co/blog/manu/colpali](https://huggingface.co/blog/manu/colpali)
+<a id="future-work"></a><a id="References"></a><a id="references"></a>

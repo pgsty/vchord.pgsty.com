@@ -1,250 +1,75 @@
 ---
 title: "量化类型"
 linkTitle: "量化类型"
-description: "量化不仅可以应用于索引，还可以直接应用于向量本身。为此，VectorChord 提供了用于量化向量的数据类型。"
-weight: 40
+description: "用 rabitq8 和 rabitq4 列类型以每维 8 或 4 比特存储向量，并了解它在精度上的代价。"
+weight: 50
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/quantization-types.md"
-math: true
 aliases:
-  - "/zh/docs/usage/quantization-types/"
+  - "/docs/usage/quantization-types/"
   - "/vectorchord/usage/quantization-types/"
 icon: fa-solid fa-compress
 ---
 
-{{< badge text="since v1.1.0" tone="info" >}}
+vchord 的索引内部已经压缩了向量，但表里仍然存着每个向量的完整大小。到了几亿行，这一列就占了数据库的大头。pgvector 的 `halfvec` 能把它减半，vchord 的 `rabitq8` 和 `rabitq4` 类型更进一步：基于[扩展 RaBitQ](https://arxiv.org/abs/2409.09913)，每个向量存成每维一个 8 比特或 4 比特的编码，外加四个缩放值：
 
+| 类型 | 一条 768 维向量的大致大小 | 相对 `vector` |
+| --- | --- | --- |
+| `vector` | 3,072 字节 | 1 |
+| `halfvec` | 1,536 字节 | 1/2 |
+| `rabitq8` | 784 字节 | 约 1/4 |
+| `rabitq4` | 400 字节 | 约 1/8 |
 
-量化不仅可以应用于索引，还可以直接应用于向量本身。为此，VectorChord 提供了专门用于量化向量的数据类型。
+代价是量化向量之间的距离都是估算值，在索引里和在 SQL 里都一样。用 `rabitq8` 检索候选时，召回率损失通常不到 1%；`rabitq4` 损失更多。如果最终排序需要精确距离，就把原始向量保存在别处，用它们对排名靠前的候选重新排序。
 
-`rabitq8` 是量化向量的数据类型。在相同维度下，它的存储开销约为全精度向量（`vector`）的 \(\frac{1}{4}\)，半精度向量（`halfvec`）的 \(\frac{1}{2}\)。该类型以其所使用的量化算法命名。[^exrabitq]
+## 使用方法 {#basic-usage}
 
-[^exrabitq]: Jianyang Gao, Yutong Gou, Yuexuan Xu, Yongyi Yang, Cheng Long, Raymond Chi-Wing Wong, "Practical and Asymptotically Optimal Quantization of High-Dimensional Vectors in Euclidean Space for Approximate Nearest Neighbor Search", SIGMOD 2025, available at https://arxiv.org/abs/2409.09913.
+插入时量化向量，查询向量也用同样的方式量化：
 
 ```sql
 CREATE TABLE items (id bigserial PRIMARY KEY, embedding rabitq8(3));
-INSERT INTO items (embedding) VALUES (quantize_to_rabitq8('[0,0,0]'::vector));
-INSERT INTO items (embedding) VALUES (quantize_to_rabitq8('[1,1,1]'::vector));
-INSERT INTO items (embedding) VALUES (quantize_to_rabitq8('[2,2,2]'::vector));
---- ...
-SELECT id FROM items ORDER BY embedding <-> quantize_to_rabitq8('[0.9,0.9,1.1]'::vector) LIMIT 100;
+
+INSERT INTO items (embedding) VALUES
+    (quantize_to_rabitq8('[0, 0, 0]'::vector)),
+    (quantize_to_rabitq8('[1, 1, 1]'::vector)),
+    (quantize_to_rabitq8('[2, 2, 2]'::vector));
+
+CREATE INDEX ON items USING vchordrq (embedding rabitq8_l2_ops);
+
+SELECT id FROM items
+ORDER BY embedding <-> quantize_to_rabitq8('[0.9, 0.9, 1.1]'::vector)
+LIMIT 10;
 ```
 
-与普通向量类型一样，也可以在 `rabitq8` 类型的列上创建索引。
+这两种类型可以用于 vchordrq 和 vchordg，可以组成数组做[多向量检索](/zh/docs/vchord/usage/multi-vector-retrieval/)，也支持[距离范围](/zh/docs/vchord/usage/filtering/#distance-range)。按距离选用对应的 `rabitq8_*` 或 `rabitq4_*` 运算符类。
+
+如果想让应用或 ORM 直接插入普通的向量字面量，注册一次赋值转换即可：
 
 ```sql
-CREATE INDEX ON items USING vchordrq (embedding rabitq8_l2_ops);
+CREATE CAST (vector AS rabitq8) WITH FUNCTION quantize_to_rabitq8(vector) AS ASSIGNMENT;
 ```
 
-通过使用 `rabitq8`，表大小和索引大小都将缩小为使用 `vector` 类型时的 \(\frac{1}{4}\)。其代价是量化会明显折损性能与精度。因此，它适用于检索大量候选结果的场景。
+## 限制 {#limits}
 
-此外，VectorChord 还提供了 `rabitq4` 类型。`rabitq8` 量化向量在每个维度上使用 \(8\) 比特，而 `rabitq4` 量化向量在每个维度上仅使用 \(4\) 比特。它专为在受限环境下优先追求低存储开销而非高精度的场景而设计。
+<a id="input-validation"></a>
 
-### 输入校验与数值行为 {#input-validation}
+- 这两种类型上的索引不能用 `residual_quantization`。
+- `rabitq8(n)` 中声明的维度在插入时还不检查（[#31](https://github.com/pgsty/vchord/issues/31)），不过列上的索引会拒绝维度不符的行。在此之前，请在应用中检查维度。
+- 用 `dequantize_to_vector` 或 `dequantize_to_halfvec` 转换回去，得到的是原始向量的近似值，并受 pgvector 的维度上限约束：`vector` 最多 16,000 维，`halfvec` 最多 4,000 维。
 
-`rabitq4` 与 `rabitq8` 的数据类型最多接受 65,535 维；`rabitq4` 编码必须在 `0..15` 内，`rabitq8` 编码必须在 `0..255` 内。1.2.0 会拒绝数字内部的空白、尾随垃圾和截断的二进制输入。`quantize_to_*` 遇到元数据溢出时会报错；旧版本已存储的非有限元数据仍可读入，以兼容已有转储。
-
-1.2.0 修正了零向量、常量向量和半精度运算的数值边界。量化向量的 L2 距离估算会限制为非负值，避免舍入误差导致开方产生 NaN；零向量的余弦距离仍无数学定义。
-
-`halfvec` 的 ANN 路由可以降低精度以提高吞吐量。在支持 FP16 和 FHM 的 ARM CPU 上，IVF 质心选择和图剪枝先将 L2 差值舍入到 `f16`，再以 `f32` 相乘和累加。差值舍入给平方距离带来的相对误差上限约为 0.1%，另有 `f32` 求和误差；这不是召回率损失的上限。差值溢出时会改用 `f32` 差值重新计算。最终重排和 SQL 球查询谓词保持原有精度，其他 CPU 使用已有的 `f32` 计算路径。调整 probes 和搜索宽度时应实测召回率，尤其要关注距离相近的候选项。
-
-> [!NOTE] 尚未发布的 1.3.0 候选版本
-> 候选版本将 RaBitQ 向量范数为零或非有限值时的余弦距离定义为 `NaN`。余弦索引跳过没有有效方向的向量，零向量或非有限余弦查询不返回索引行。安装修复后的编码器后需重建受影响的旧索引；仅更新扩展目录不会重写已有元数据。
->
-> `rabitq4(n)` / `rabitq8(n)` 的维度校验推迟实现；本候选保留既有转换目录与表达式索引匹配方式。SQL 字面量、同类型赋值、`COPY` 和二进制输入都不检查声明的维度，因此 `INSERT` 已接受的行仍可从转储恢复。列上的 `vchordrq` 或 `vchordg` 索引会拒绝维度不符的值。向未建索引的列写入时请自行校验维度，不能仅依赖类型修饰符。
-
-<a id="Reference"></a>
 ## 参考 {#reference}
 
-### 操作符类 {#operator-classes}
+<a id="operator-classes"></a><a id="types"></a><a id="rabitq8"></a><a id="rabitq4"></a><a id="operators"></a><a id="rabitq8-l2-op"></a><a id="rabitq8-ip-op"></a><a id="rabitq8-cosine-op"></a><a id="rabitq4-l2-op"></a><a id="rabitq4-ip-op"></a><a id="rabitq4-cosine-op"></a>
 
-请参阅：
+两种类型最多 65,535 维；vchordrq 最多能索引 60,000 维，vchordg 最多 30,000 维。它们支持 `<->`、`<#>`、`<=>`，返回估算距离，运算符类见 [vchordrq](/zh/docs/vchord/usage/indexing/#operator-classes) 和 [vchordg](/zh/docs/vchord/usage/graph-index/#operator-classes)。文本形式如 `(2.99, 160.6, 647, 2.85)[255, 205, 187]`，先是四个缩放值，然后每维一个编码；请用下面的函数生成，而不要手写。
 
-* [操作符类（`vchordrq`）](/zh/docs/vchord/usage/indexing/#operator-classes)。
-* [操作符类（`vchordg`）](/zh/docs/vchord/usage/graph-index/#operator-classes)。
-
-<a id="Types"></a>
-### 数据类型 {#types}
-
-#### `rabitq8` {#rabitq8}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：使用 `uint8` 进行内部存储的量化向量数据类型。基于扩展版 RaBitQ 算法。[^exrabitq]
-- 文本表示：与 `vector`/`halfvec` 不同，`rabitq8` 的文本表示更为复杂。假设维度为 \(d\)，它由括在圆括号中的 \(4\) 个浮点数数组与括在方括号中的 \(d\) 个 `uint8` 整数数组拼接而成。例如 `(2.999999, 160.63234, 647, 2.8498733)[255, 205, 187]`。其内部解释无需手动处理，但您可以通过 `dequantize_to_vector(rabitq8)` / `dequantize_to_halfvec(rabitq8)` 获取它所代表的近似向量。
-
-#### `rabitq4` {#rabitq4}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：使用 `uint4` 进行内部存储的量化向量数据类型。基于扩展版 RaBitQ 算法。[^exrabitq]
-- 文本表示：与 `vector`/`halfvec` 不同，`rabitq4` 的文本表示更为复杂。假设维度为 \(d\)，它由括在圆括号中的 \(4\) 个浮点数数组与括在方括号中的 \(d\) 个 `uint4` 整数数组拼接而成。例如 `(2.999999, 9.420722, 38, 2.8498733)[15, 12, 11]`。其内部解释无需手动处理，但您可以通过 `dequantize_to_vector(rabitq4)` / `dequantize_to_halfvec(rabitq4)` 获取它所代表的近似向量。
-
-<a id="Functions"></a>
 ### 函数 {#functions}
 
-<a id="quantize-to-rabitq8-vector"></a>
-#### `quantize_to_rabitq8(vector)` {#quantize-to-rabitq8-vector}
+<a id="Functions"></a><a id="quantize-to-rabitq8-vector"></a><a id="quantize-to-rabitq8-halfvec"></a><a id="dequantize-to-vector-rabitq8"></a><a id="dequantize-to-halfvec-rabitq8"></a><a id="quantize-to-rabitq4-vector"></a><a id="quantize-to-rabitq4-halfvec"></a><a id="dequantize-to-vector-rabitq4"></a><a id="dequantize-to-halfvec-rabitq4"></a>
 
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：将向量量化为 `rabitq8`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。
-- 返回值：`rabitq8`，量化后的向量
-- 参数：
-    - `vector`，待量化的向量
-- 示例：
-    - `SELECT quantize_to_rabitq8('[1,1,1]'::vector)`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (vector AS rabitq8) WITH FUNCTION quantize_to_rabitq8(vector) AS ASSIGNMENT` 手动创建。
-
-<a id="quantize-to-rabitq8-halfvec"></a>
-#### `quantize_to_rabitq8(halfvec)` {#quantize-to-rabitq8-halfvec}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：将半精度向量量化为 `rabitq8`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。
-- 返回值：`rabitq8`，量化后的向量
-- 参数：
-    - `halfvec`，待量化的向量
-- 示例：
-    - `SELECT quantize_to_rabitq8('[1,1,1]'::halfvec)`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (halfvec AS rabitq8) WITH FUNCTION quantize_to_rabitq8(halfvec) AS ASSIGNMENT` 手动创建。
-
-<a id="dequantize-to-vector-rabitq8"></a>
-#### `dequantize_to_vector(rabitq8)` {#dequantize-to-vector-rabitq8}
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- 说明：将量化向量反量化为 `vector`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。使用此函数无法精确重建原始向量。
-- 返回值：`vector`，反量化后的向量
-- 参数：
-    - `rabitq8`，待反量化的量化向量
-- 示例：
-    - `SELECT dequantize_to_vector(quantize_to_rabitq8('[1,1,1]'::vector))`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (rabitq8 AS vector) WITH FUNCTION dequantize_to_vector(rabitq8) AS ASSIGNMENT` 手动创建。
-
-<a id="dequantize-to-halfvec-rabitq8"></a>
-#### `dequantize_to_halfvec(rabitq8)` {#dequantize-to-halfvec-rabitq8}
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- 说明：将量化向量反量化为 `halfvec`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。使用此函数无法精确重建原始向量。
-- 返回值：`halfvec`，反量化后的向量
-- 参数：
-    - `rabitq8`，待反量化的量化向量
-- 示例：
-    - `SELECT dequantize_to_halfvec(quantize_to_rabitq8('[1,1,1]'::halfvec))`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (rabitq8 AS halfvec) WITH FUNCTION dequantize_to_halfvec(rabitq8) AS ASSIGNMENT` 手动创建。
-
-<a id="quantize-to-rabitq4-vector"></a>
-#### `quantize_to_rabitq4(vector)` {#quantize-to-rabitq4-vector}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：将向量量化为 `rabitq4`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。
-- 返回值：`rabitq4`，量化后的向量
-- 参数：
-    - `vector`，待量化的向量
-- 示例：
-    - `SELECT quantize_to_rabitq4('[1,1,1]'::vector)`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (vector AS rabitq4) WITH FUNCTION quantize_to_rabitq4(vector) AS ASSIGNMENT` 手动创建。
-
-<a id="quantize-to-rabitq4-halfvec"></a>
-#### `quantize_to_rabitq4(halfvec)` {#quantize-to-rabitq4-halfvec}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：将半精度向量量化为 `rabitq4`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。
-- 返回值：`rabitq4`，量化后的向量
-- 参数：
-    - `halfvec`，待量化的向量
-- 示例：
-    - `SELECT quantize_to_rabitq4('[1,1,1]'::halfvec)`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (halfvec AS rabitq4) WITH FUNCTION quantize_to_rabitq4(halfvec) AS ASSIGNMENT` 手动创建。
-
-<a id="dequantize-to-vector-rabitq4"></a>
-#### `dequantize_to_vector(rabitq4)` {#dequantize-to-vector-rabitq4}
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- 说明：将量化向量反量化为 `vector`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。使用此函数无法精确重建原始向量。
-- 返回值：`vector`，反量化后的向量
-- 参数：
-    - `rabitq4`，待反量化的量化向量
-- 示例：
-    - `SELECT dequantize_to_vector(quantize_to_rabitq4('[1,1,1]'::vector))`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (rabitq4 AS vector) WITH FUNCTION dequantize_to_vector(rabitq4) AS ASSIGNMENT` 手动创建。
-
-<a id="dequantize-to-halfvec-rabitq4"></a>
-#### `dequantize_to_halfvec(rabitq4)` {#dequantize-to-halfvec-rabitq4}
-
-{{< badge text="since v1.1.1" tone="info" >}}
-
-- 说明：将量化向量反量化为 `halfvec`。请注意，在不同的 VectorChord 版本或不同的机器上，该函数对相同输入可能会产生略有差异的结果。使用此函数无法精确重建原始向量。
-- 返回值：`halfvec`，反量化后的向量
-- 参数：
-    - `rabitq4`，待反量化的量化向量
-- 示例：
-    - `SELECT dequantize_to_halfvec(quantize_to_rabitq4('[1,1,1]'::halfvec))`
-- 注意：该函数没有对应的默认类型转换（`CAST`）。如有需要，您可以使用 `CREATE CAST (rabitq4 AS halfvec) WITH FUNCTION dequantize_to_halfvec(rabitq4) AS ASSIGNMENT` 手动创建。
-
-<a id="Operators"></a>
-### 操作符 {#operators}
-
-#### `<->(rabitq8, rabitq8)` {#rabitq8-l2-op}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：计算两个量化向量之间的 L2 距离。
-- 返回值：`real`，两个量化向量的 L2 距离
-- 参数：
-    - `rabitq8`
-    - `rabitq8`
-
-#### `<#>(rabitq8, rabitq8)` {#rabitq8-ip-op}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：计算两个量化向量之间的负点积距离。
-- 返回值：`real`，两个量化向量的负点积距离
-- 参数：
-    - `rabitq8`
-    - `rabitq8`
-
-#### `<=>(rabitq8, rabitq8)` {#rabitq8-cosine-op}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：计算两个量化向量之间的余弦距离。
-- 返回值：`real`，两个量化向量的余弦距离
-- 参数：
-    - `rabitq8`
-    - `rabitq8`
-
-#### `<->(rabitq4, rabitq4)` {#rabitq4-l2-op}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：计算两个量化向量之间的 L2 距离。
-- 返回值：`real`，两个量化向量的 L2 距离
-- 参数：
-    - `rabitq4`
-    - `rabitq4`
-
-#### `<#>(rabitq4, rabitq4)` {#rabitq4-ip-op}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：计算两个量化向量之间的负点积距离。
-- 返回值：`real`，两个量化向量的负点积距离
-- 参数：
-    - `rabitq4`
-    - `rabitq4`
-
-#### `<=>(rabitq4, rabitq4)` {#rabitq4-cosine-op}
-
-{{< badge text="since v1.1.0" tone="info" >}}
-
-- 说明：计算两个量化向量之间的余弦距离。
-- 返回值：`real`，两个量化向量的余弦距离
-- 参数：
-    - `rabitq4`
-    - `rabitq4`
+| 函数 | 返回 | 说明 |
+| --- | --- | --- |
+| `quantize_to_rabitq8(vector \| halfvec)` | `rabitq8` | 量化为每维 8 比特。 |
+| `quantize_to_rabitq4(vector \| halfvec)` | `rabitq4` | 量化为每维 4 比特。 |
+| `dequantize_to_vector(rabitq8 \| rabitq4)` | `vector` | 近似还原原始向量。 |
+| `dequantize_to_halfvec(rabitq8 \| rabitq4)` | `halfvec` | 以半精度近似还原原始向量。 |
+{.fields meta="type"}

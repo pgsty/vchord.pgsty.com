@@ -1,7 +1,7 @@
 ---
 title: "vchord Documentation"
 linkTitle: "vchord"
-description: "Scalable, fast, and disk-friendly vector similarity search in PostgreSQL powered by RaBitQ quantization."
+description: "Disk-friendly approximate nearest-neighbor indexes for pgvector columns in PostgreSQL."
 weight: 100
 icon: fa-solid fa-layer-group
 type: docs
@@ -19,50 +19,27 @@ cascade:
   upstream_modified: true
 ---
 
-**`vchord`** (VectorChord) is a PostgreSQL extension built on [`pgvector`](/docs/vector/) for scalable, high-performance, and disk-friendly vector similarity search. Powered by **RaBitQ** 1-bit/4-bit/8-bit quantization, it delivers inverted-file (`vchordrq`) and single-layer graph (`vchordg`) index access methods, native multi-vector MaxSim (`@#`), sphere range queries (`<<->>`), and external centroid precomputation.
+`vchord` adds two approximate nearest-neighbor indexes to PostgreSQL for [pgvector](/docs/vector/) columns: `vchordrq`, which keeps memory small and scales past RAM, and `vchordg`, a graph for low-latency search. Your tables and queries stay as they are. The current release is [1.5.0](https://github.com/pgsty/vchord/releases/tag/1.5.0), for PostgreSQL 15–19 on Linux `x86_64` and `aarch64`.
 
-## Documentation Sections
+## Start here {#start}
 
-{{< cards >}}
-{{< card title="Getting Started" icon="fa-solid fa-rocket" link="/docs/vchord/getting-started/" >}}
-Architecture overview, quickstart SQL walkthrough, installation via Pigsty packages, Docker (Obsolete), or source, and step-by-step migration from [`pgvecto.rs`](/docs/vectors/).
-{{< /card >}}
-{{< card title="Usage Guide" icon="fa-solid fa-code" link="/docs/vchord/usage/" >}}
-Build `vchordrq` and `vchordg` indexes, run KNN and sphere range queries, apply `WHERE` prefilters, prewarm indexes, and run external centroid builds.
-{{< /card >}}
-{{< card title="Use Cases" icon="fa-solid fa-diagram-project" link="/docs/vchord/use-case/" >}}
-ColBERT late-interaction MaxSim (`@#`) over `vector[]` arrays and hybrid semantic + BM25 search with [`vchord_bm25`](/docs/bm25/) and [`pg_tokenizer`](/docs/tokenizer/).
-{{< /card >}}
-{{< card title="Benchmarks & TCO" icon="fa-solid fa-chart-line" link="/docs/vchord/benchmark/" >}}
-Reproducible recall, QPS throughput, index build speed, memory footprint, and cloud cost comparisons across GIST-1M, Cohere-10M, and LAION-100M.
-{{< /card >}}
-{{< card title="Administration" icon="fa-solid fa-sliders" link="/docs/vchord/admin/" >}}
-Production GUC parameter tuning, shared memory sizing, I/O concurrency settings, index maintenance, routine vacuuming, and version upgrades.
-{{< /card >}}
-{{< card title="Customer Stories" icon="fa-solid fa-earth-americas" link="/docs/vchord/customer-stories/" >}}
-Discover how the University of Oxford and Earth Genome store and query 3 billion satellite embedding vectors on a single PostgreSQL node with `vchord`.
-{{< /card >}}
-{{< /cards >}}
+- [Overview](/docs/vchord/getting-started/overview/) — Why vchord, which index to choose, and a five-minute quick start.
+- [Installation](/docs/vchord/getting-started/installation/) — Pigsty packages, release archives, or a build from source.
+- [vchordrq index](/docs/vchord/usage/indexing/) — How the main index works, how to size it, and how to tune it.
+- [Filtering](/docs/vchord/usage/filtering/) — Nearest rows within one tenant, category, date range, or distance.
+- [Upgrade and migration](/docs/vchord/admin/migration/) — Upgrade in place, or move over from pgvector and pgvecto.rs.
+- [Performance tuning](/docs/vchord/usage/postgresql-tuning/) — Parallel builds, memory, prewarming, and disk reads.
+{.cards}
 
-## Key Topics & Deep Dives
+## Go further {#more}
 
-{{< cards >}}
-{{< card title="vchordrq vs vchordg Indexing" icon="fa-solid fa-sitemap" link="/docs/vchord/usage/indexing/" >}}
-Compare disk-friendly hierarchical K-Means (`vchordrq`) against low-latency single-layer graphs (`vchordg`) and configure index build and scan options.
-{{< /card >}}
-{{< card title="RaBitQ4 & RaBitQ8 Types" icon="fa-solid fa-compress" link="/docs/vchord/usage/quantization-types/" >}}
-Compress 32-bit floating-point vectors into native 4-bit (`rabitq4`) or 8-bit (`rabitq8`) quantized types with proven theoretical error bounds.
-{{< /card >}}
-{{< card title="Multi-Vector MaxSim (@#)" icon="fa-solid fa-cubes" link="/docs/vchord/usage/multi-vector-retrieval/" >}}
-Index `vector[]` token embedding arrays with WARP dynamic pruning for ColBERTv2 late interaction and ColPali visual document retrieval in SQL.
-{{< /card >}}
-{{< card title="External Index Precomputation" icon="fa-solid fa-server" link="/docs/vchord/usage/external-build/" >}}
-Offload K-Means centroid clustering to external CPUs or GPUs and build 100M-vector indexes in roughly 20 minutes with zero primary DB contention.
-{{< /card >}}
-{{< card title="Performance Tuning & Sizing" icon="fa-solid fa-gauge-high" link="/docs/vchord/usage/postgresql-tuning/" >}}
-Tune `probes`, `epsilon`, `ef_search`, `io_search`, `max_scan_tuples`, and PostgreSQL shared memory settings for high-concurrency production workloads.
-{{< /card >}}
-{{< card title="Migrating from pgvecto.rs" icon="fa-solid fa-right-left" link="/docs/vchord/admin/migration/" >}}
-Follow the step-by-step SQL migration guide from [`pgvecto.rs`](/docs/vectors/) (`vectors` extension) or [`pgvector`](/docs/vector/) HNSW/IVFFlat to `vchord`.
-{{< /card >}}
-{{< /cards >}}
+- [vchordg index](/docs/vchord/usage/graph-index/) — The graph index and its memory needs.
+- [Multi-vector retrieval](/docs/vchord/usage/multi-vector-retrieval/) — Token-level MaxSim search.
+- [Quantized types](/docs/vchord/usage/quantization-types/) — Vectors at 8 or 4 bits per dimension.
+- [Measure recall](/docs/vchord/usage/measure-recall/) — Tune against your own real queries.
+- [Building large indexes](/docs/vchord/usage/partitioning-tuning/) — Builds for 100 million rows and up.
+- [External build](/docs/vchord/usage/external-build/) — Train the centroids on a GPU.
+- [Benchmarks](/docs/vchord/benchmark/) — Throughput, recall, and cost against other systems.
+- [Use cases](/docs/vchord/use-case/) — Hybrid search, ColBERT reranking, and visual document retrieval.
+- [Customer stories](/docs/vchord/customer-stories/) — 3.2 billion satellite embeddings on three PostgreSQL servers.
+{.cards}

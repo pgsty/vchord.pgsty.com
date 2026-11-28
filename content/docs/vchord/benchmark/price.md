@@ -1,7 +1,7 @@
 ---
 title: "Price Benchmark"
 linkTitle: "Price"
-description: "Using VectorChord, you can achieve a QPS of 131 with 0.95 precision on 100 million 768-dimensional vectors for the top 10 queries. This setup costs only $250 mo"
+description: "What it cost in December 2024 to serve 100 million 768-dimensional vectors from one PostgreSQL server with vchord, compared with Pinecone, Qdrant, and in-memory pgvector."
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/benchmark/price.md"
 aliases:
@@ -10,15 +10,27 @@ aliases:
 icon: fa-solid fa-coins
 ---
 
-Using VectorChord, you can achieve a QPS of 131 with 0.95 precision on 100 million 768-dimensional vectors for the top 10 queries. This setup costs only $250 monthly and can be hosted on a single machine. If you are interested in the details of our implementation, please refer to our blog [VectorChord: Store 400k Vectors for $1 in PostgreSQL](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/).
+This page compares the monthly cost of hosting 100 million 768-dimensional vectors on one PostgreSQL server with vchord against hosted and in-memory alternatives. The figures come from [Store 400k Vectors for $1 in PostgreSQL](/blog/vectorchord-store-400k-vectors-for-1-in-postgresql/) and use cloud list prices from December 2024.
 
-This means you can store 400k vectors for only $1, allowing you to save significantly: 6x more vectors compared to Pinecone (storage optimized instance) and 26x more than pgvector/pgvecto.rs for the same price.
+## Vectors per dollar {#vectors-per-dollar}
 
-<img src="/docs/images/price-benchmark.png" alt="Pricing Benchmark" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+The run used the LAION-100M dataset (100 million vectors, 768 dimensions) on one AWS `i4i.xlarge`: 4 vCPU, 32 GB of memory, and a 937 GB NVMe SSD that holds the vectors and the index, for about $250 a month. It answered 131 queries per second at 0.95 top-10 recall with 16 client threads; the [Performance](/docs/vchord/benchmark/performance/#laion-100m-on-i4ixlarge) page has the per-thread figures.
 
-In the monthly cost comparison for storing vectors, based on MyScale benchmark data, the chart highlights how VectorChord emerges as an affordable option, priced at just $247 for storing 100 million vectors. In contrast, Pinecone, despite its optimized storage, costs $1,600 per month, while Qdrant is priced at $4,374. pgvector/pgvecto.rs has a considerably higher cost of $6,580.
+That works out to 400,000 vectors stored per dollar per month: 6 times as many as Pinecone's storage-optimized instances and 26 times as many as an in-memory pgvector or pgvecto.rs HNSW index.
 
-<img src="/docs/images/price-benchmark-monthly.png" alt="Pricing Benchmark" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+<img src="/docs/images/price-benchmark.png" alt="Vectors stored per dollar per month for vchord, Pinecone, Qdrant, and in-memory pgvector or pgvecto.rs" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 
-> [!TIP]
-> The price benchmark is tested on December 5, 2024. We are ongoingly enhancing performance and optimizing costs. For example, VectorChord 0.2 builds on its predecessor with a 30% smaller index size and 50% faster builds. If you want to know the latest benchmark, please contact us at [discord](https://discord.gg/KqswhpVgdU).
+## Monthly cost for 100 million vectors {#monthly-cost}
+
+Costs for the other systems are derived from the [MyScale benchmark](https://myscale.github.io/benchmark/) data:
+
+| System | Monthly cost |
+| --- | --- |
+| vchord on one `i4i.xlarge` | $247 |
+| Pinecone, storage-optimized | $1,600 |
+| Qdrant | $4,374 |
+| pgvector or pgvecto.rs, index in memory | $6,580 |
+
+<img src="/docs/images/price-benchmark-monthly.png" alt="Monthly cost to store 100 million 768-dimensional vectors in vchord, Pinecone, Qdrant, and in-memory pgvector or pgvecto.rs" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+
+The cost advantage comes from where the index lives. vchord serves queries from an NVMe SSD with only the centroids and hot lists in memory, while an HNSW index needs memory for the whole graph to stay fast; see [Overview](/docs/vchord/getting-started/overview/).

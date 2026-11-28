@@ -9,7 +9,7 @@ upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#usage
 
 This guide walks through a complete BM25 text retrieval pipeline using `pg_bestmatch` and [`pgvector`](/docs/vector/) (`sparsevec`), followed by the equivalent configuration for [`pgvecto.rs`](/docs/vectors/) (`svector`).
 
-## 1. Enable Extensions & Set Search Path
+## 1. Enable Extensions & Set Search Path {#1-enable-extensions-set-search-path}
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_bestmatch;
@@ -18,7 +18,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 SET search_path TO "$user", public, bm25_catalog;
 ```
 
-## 2. Create the Documents Table & Load Data
+## 2. Create the Documents Table & Load Data {#2-create-the-documents-table-load-data}
 
 ```sql
 CREATE TABLE documents (
@@ -32,7 +32,7 @@ INSERT INTO documents (id, passage) VALUES
   (3, 'BM25 is a bag-of-words ranking function used in information retrieval.');
 ```
 
-## 3. Create BM25 Corpus Statistics
+## 3. Create BM25 Corpus Statistics {#3-create-bm25-corpus-statistics}
 
 Call `bm25_create(table_name, column_name, statistic_name, b, k)` to register corpus statistics (`b = 0.75` and `k = 1.2` are standard defaults):
 
@@ -50,7 +50,7 @@ What `bm25_create` does under the hood:
 > SELECT bm25_refresh('documents_passage_bm25');
 > ```
 
-## 4. Materialize Document Sparse Vectors (`pgvector`)
+## 4. Materialize Document Sparse Vectors (`pgvector`) {#4-materialize-document-sparse-vectors-pgvector}
 
 Add a `sparsevec` column to `documents` and populate it using `bm25_document_to_svector`:
 
@@ -65,7 +65,7 @@ SET embedding = bm25_document_to_svector(
 )::sparsevec;
 ```
 
-## 5. Create an HNSW Sparse Vector Index
+## 5. Create an HNSW Sparse Vector Index {#5-create-an-hnsw-sparse-vector-index}
 
 Use [`pgvector`](/docs/vector/)'s HNSW index with inner-product operator class `sparsevec_ip_ops`:
 
@@ -75,7 +75,7 @@ ON documents
 USING hnsw (embedding sparsevec_ip_ops);
 ```
 
-## 6. Run BM25 Queries
+## 6. Run BM25 Queries {#6-run-bm25-queries}
 
 Convert the search query into a sparse vector with `bm25_query_to_svector` and order by `<#>` (negative inner product):
 
@@ -91,7 +91,7 @@ LIMIT 5;
 
 ---
 
-## Using `pg_bestmatch` with `pgvecto.rs` (`svector`)
+## Using `pg_bestmatch` with `pgvecto.rs` (`svector`) {#using-pg_bestmatch-with-pgvectors-svector}
 
 If you are using [`pgvecto.rs`](/docs/vectors/) (`v0.3.0+`) instead of `pgvector`, omit the `'pgvector'` style argument (or pass `'pgvecto.rs'`) and cast to `svector`:
 

@@ -10,7 +10,7 @@ aliases:
 icon: fa-solid fa-scale-balanced
 ---
 
-原文：[pgvector vs. pgvecto.rs in 2024: A Comprehensive Comparison for Vector Search in PostgreSQL](/zh/blog/post/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/)
+原文：[pgvector vs. pgvecto.rs in 2024: A Comprehensive Comparison for Vector Search in PostgreSQL](/zh/blog/pgvector-vs-pgvectors-in-2024-a-comprehensive-comparison-for-vector-search-in-postgresql/)
 
 太长不看（TL; DR）：请直接跳转到[总结部分](#summary)，查看展示两者核心差异的对比表格。
 

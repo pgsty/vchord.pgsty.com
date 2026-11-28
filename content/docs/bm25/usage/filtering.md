@@ -1,85 +1,92 @@
 ---
-math: true
-title: "Filtered Search & Prefiltering"
-description: "Combine SQL WHERE clauses with BM25 Top-K ranking using post-filtering, pre-filtering, and partial indexes."
+title: "Filtering"
+linkTitle: "Filtering"
+description: "Combine BM25 ranking with WHERE conditions: how filters are applied, when to prefilter, partial indexes for fixed subsets, privileges, and row-level security."
 weight: 30
 icon: fa-solid fa-filter
 ---
 
-The examples below use the **1.0.0 native `tsvector` API**. Combine BM25 ranking with structured filters such as category, tenant, or date ranges. Use the same text search configuration for documents and queries.
+Most searches rank within a condition: a tenant, a category, a date range. This page shows how a `WHERE` clause interacts with the batched index scan, when to switch to prefiltering, and how partial indexes and row-level security change the statistics behind a score.
 
-## 1. Post-Filtering vs. Pre-Filtering
+## Filter with WHERE {#where}
+
+Add the condition as usual:
 
 ```sql
 SELECT id, passage
 FROM documents
 WHERE category = 'database'
-ORDER BY vector <&> to_bm25query(
-    to_tsvector('english', 'PostgreSQL BM25'), 'documents_bm25_idx')
+ORDER BY terms <&> to_bm25query(to_tsvector('english', 'full text search'), 'documents_bm25')
 LIMIT 10;
 ```
 
-### Post-Filtering (`bm25.prefilter = false`) {#post-filtering-enable_prefilter--false}
+The filter decides which rows are returned, not how they score: scores still come from the statistics of the whole index. To score within a subset, index only that subset with a [partial index](#partial-indexes).
 
-The BM25 index supplies ranked candidates, and PostgreSQL applies the `WHERE` predicate. If the initial batch contains fewer than 10 qualifying rows, the scan continues in growing batches until the SQL limit is satisfied or the input is exhausted.
+## Post-filtering {#post-filter}
 
-`bm25.limit` and the index's `limit` option control the **initial batch size**, not the result count. Both default to 100; zero also selects 100. A query is no longer limited to matches found in the first 100 candidates.
+By default the index ranks a batch of rows, PostgreSQL drops the rows that fail the `WHERE` clause, and if fewer than `LIMIT` remain, the scan ranks another batch twice as large (see [How a ranked query runs](/docs/bm25/usage/querying/#how-a-query-runs)). The result is always complete, but the cost grows as the filter gets more selective: if 1% of rows pass, `LIMIT 10` needs about 1,000 ranked rows, four batches starting from the default of 100, each walking the posting lists again.
 
-### Pre-Filtering (`bm25.prefilter = true`) {#pre-filtering-enable_prefilter--true}
+## Prefiltering {#prefilter}
 
-Pre-filtering checks visibility and supported query predicates before admitting candidates into the Top-K heap. Rejected candidates do not raise the pruning threshold. This can reduce wasted ranking work for selective filters, at the cost of heap checks during ranking. Volatile predicates remain in the executor.
-
-Both modes support continuing scans in 1.0.0. Choose between them by measuring your workload; pre-filtering does not eliminate all work on irrelevant postings.
-
-In 1.1.0, `WHERE vector @@ ...` is still an executor filter rather than a native BM25 scan key. A highly selective or empty full-text match can therefore walk the zero-score tail; add a GIN index when that predicate should drive the plan.
-
-### Enabling Pre-Filtering
+With prefiltering on ([`bm25.prefilter`](/docs/bm25/reference/gucs/#field-bm25-prefilter)), the index checks each candidate's visibility and the `WHERE` clause before the candidate can take a place in the batch. Rows that fail never occupy a slot, so the first batch is usually enough. The price is one table row read for every candidate that could enter the batch.
 
 ```sql
--- Override the index default for this session:
-SET bm25.prefilter = true;
-
--- Or set the index default:
-ALTER INDEX documents_bm25_idx SET (prefilter = true);
+SET bm25.prefilter = on;
 ```
 
-An explicit GUC setting, including `false`, overrides the index option. `RESET bm25.prefilter` restores the configured default; the index option applies only when the GUC source is the built-in default. See [GUC precedence](/docs/bm25/reference/gucs/#session-guc-parameters-main).
+| The filter keeps | Start with |
+| --- | --- |
+| Most rows | Post-filtering, the default |
+| A small fraction of rows | Prefiltering |
+| A fixed subset you search often | A [partial index](#partial-indexes) on that subset |
 
-### Historical 0.1–0.3 Behavior
-
-Older releases use `bm25_catalog.bm25_limit` as a candidate cap. With post-filtering, a batch of 100 candidates containing only 3 qualifying rows can return just 3 rows despite more qualifying documents in the table. Prefiltering is available from 0.2.2 via `bm25_catalog.enable_prefilter`. These settings and the candidate-cap behavior do not apply to 1.0.0.
-
-## 2. Partial BM25 Indexes for High-Selectivity Partition Keys
-
-For a fixed subset such as published documents, use a partial index:
+To decide, run the query with `EXPLAIN (ANALYZE, BUFFERS)` with prefiltering off and on, keep the faster setting, and store it on the index so every session gets it:
 
 ```sql
-CREATE INDEX documents_published_bm25
-ON documents
-USING bm25 (vector bm25_ops)
+ALTER INDEX documents_bm25 SET (prefilter = on);
+```
+
+The index setting applies only while `bm25.prefilter` is not set anywhere else; see [precedence](/docs/bm25/reference/gucs/#precedence).
+
+Prefiltering is skipped, and the query is filtered after ranking with the same result, when:
+
+- the table has row-level security enabled;
+- the `WHERE` clause calls a volatile function;
+- the query reads through a security-barrier view, locks rows with `FOR UPDATE` or `FOR SHARE`, or contains a data-modifying `WITH`;
+- a subquery in the `WHERE` clause does more than plain table scans, B-tree index scans, and `count(*)`.
+
+With a selective condition on a B-tree-indexed column, PostgreSQL may also skip the bm25 index altogether: it fetches the few matching rows, scores them, and sorts. That is often the cheapest plan; `EXPLAIN` shows which one it chose.
+
+## Partial indexes {#partial-indexes}
+
+A partial index covers one subset and keeps statistics for that subset only:
+
+```sql
+CREATE INDEX documents_published_bm25 ON documents
+USING bm25 (terms bm25_ops)
 WHERE status = 'published';
-```
 
-Reference that same index in `to_bm25query` and include a `WHERE` condition that implies its predicate:
-
-```sql
 SELECT id, passage
 FROM documents
 WHERE status = 'published'
-ORDER BY vector <&> to_bm25query(
-    to_tsvector('english', 'PostgreSQL BM25'), 'documents_published_bm25')
+ORDER BY terms <&> to_bm25query(to_tsvector('english', 'full text search'), 'documents_published_bm25')
 LIMIT 10;
 ```
 
-A partial index has its own corpus statistics, so scores can differ from an index over the full table. Statistics include physical records and tombstones until compaction; see [maintenance](/docs/bm25/usage/indexing/#growing-segments-and-maintenance-in-100).
+The query's `WHERE` clause must imply the index predicate, and `to_bm25query` must name the partial index. Scores differ from those of a full-table index, because document counts and term frequencies come from the subset. For many subsets, such as one per tenant, partitioning the table gives each partition its own index; see [Limits](/docs/bm25/usage/indexing/#limits) for how to query them.
 
-## Choosing the Right Filtering Strategy
+## Privileges and row-level security {#access-control}
 
-| Workload | Starting Point | Tradeoff |
-| :--- | :--- | :--- |
-| Most rows pass the filter | Post-filtering | Avoids predicate checks inside the ranking loop; continues scanning when needed. |
-| Few rows pass the filter | Pre-filtering | Keeps rejected rows out of the Top-K heap, but adds heap checks during ranking. |
-| Fixed tenant or status subset | Partial index or table partitioning | Smaller corpus and independent statistics; queries must target the appropriate index. |
-{.wide .expand}
+A BM25 score reveals statistics about the whole index: how many documents there are, their average length, and how many contain each term, including rows the caller cannot read. Scoring is therefore guarded beyond what the `SELECT` itself checks.
 
-SQL filters do not bypass the [permission and RLS restrictions](/docs/bm25/reference/migration/#schema-access). When RLS applies to the current role, 1.1.0 rejects BM25 scoring and native index scans.
+- **Privileges.** The role that scores needs `SELECT` on the table, or column `SELECT` on the indexed column, the columns of an index expression or partial-index predicate, and `EXECUTE` on the functions they use. A grant on a view is not enough: the role querying the view needs these privileges on the table too. Otherwise scoring fails with `permission denied for table documents`.
+- **Row-level security.** When a row-level security policy applies to the current role, scoring fails with `bm25 cannot expose global corpus statistics under row-level security`. The table owner (unless the table has `FORCE ROW LEVEL SECURITY`) and roles with `BYPASSRLS` are exempt. Setting `row_security = off` does not help.
+- **Opting in.** The index owner can allow scoring under row-level security with [`shared_corpus_stats`](/docs/bm25/reference/gucs/#field-shared_corpus_stats):
+
+  ```sql
+  ALTER INDEX documents_bm25 SET (shared_corpus_stats = on);
+  ```
+
+  Policies still decide which rows are returned, but scores reflect how common each term is across every row, so a tenant can learn something about other tenants' vocabulary. Prefiltering stays off on tables with row-level security.
+
+To score each tenant with its own statistics and no shared information, give each tenant a partial index or a partition.

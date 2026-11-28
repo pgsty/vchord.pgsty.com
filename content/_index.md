@@ -1,6 +1,6 @@
 ---
-title: "Vchord: Scalable Vector Search for PostgreSQL"
-description: "Scalable, fast, and disk-friendly vector & BM25 search extensions for PostgreSQL (vchord, vchord_bm25, pg_tokenizer), maintained by PGSTY."
+title: "Vchord: Scalable Vector & BM25 Search for PostgreSQL"
+description: "Scalable, disk-friendly vector and BM25 search extensions for PostgreSQL (vchord 1.3.0, vchord_bm25 1.1.0, pg_tokenizer 1.1.0), maintained by PGSTY."
 url: "/"
 weight: 1
 type: home

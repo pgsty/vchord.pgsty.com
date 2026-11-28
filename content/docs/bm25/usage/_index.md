@@ -1,27 +1,24 @@
 ---
-title: "Usage & Hybrid Search"
-description: "Index management, Top-K querying, prefiltering, hybrid search with vchord, and Block-WeakAnd internals."
+title: "Usage"
+description: "Build and maintain bm25 indexes, write and tune ranked queries, combine them with filters, and fuse them with vector search."
 weight: 20
 icon: fa-solid fa-code
 no_list: true
 ---
 
-Learn how to build, tune, and query `vchord_bm25` indexes in production:
+These pages follow a table from text to results: produce the `tsvector` and build the index, run ranked queries and size their batches, add `WHERE` conditions, and merge keyword and vector rankings.
 
 {{< cards >}}
-  {{< card link="/docs/bm25/usage/indexing/" title="Indexing & Maintenance" icon="fa-solid fa-database" >}}
-Create and maintain `bm25` inverted indexes, tune segment sizes and BM25 parameters (`k1`, `b`), monitor parallel builds, and inspect index pages.
+  {{< card link="/docs/bm25/usage/indexing/" title="Indexing" icon="fa-solid fa-database" >}}
+Produce the `tsvector`, build the index, choose `k1` and `b`, keep it fast under writes, and rebuild it safely.
 {{< /card >}}
-  {{< card link="/docs/bm25/usage/querying/" title="Querying & Scoring" icon="fa-solid fa-ranking-star" >}}
-Execute Top-K Block-WeakAnd queries with the `<&>` operator, understand negative BM25 relevance scores, and tune candidate limit settings.
+  {{< card link="/docs/bm25/usage/querying/" title="Querying" icon="fa-solid fa-ranking-star" >}}
+How a ranked query runs, what the scores mean, how to size `bm25.limit`, and how to keep the index in the plan.
 {{< /card >}}
-  {{< card link="/docs/bm25/usage/filtering/" title="Filtered Search & Prefiltering" icon="fa-solid fa-filter" >}}
-Combine relational `WHERE` predicates with BM25 ranking using post-filtering, in-index pre-filtering, and partial indexes for multi-tenant workloads.
+  {{< card link="/docs/bm25/usage/filtering/" title="Filtering" icon="fa-solid fa-filter" >}}
+`WHERE` with ranking, prefiltering for selective conditions, partial indexes, privileges, and row-level security.
 {{< /card >}}
-  {{< card link="/docs/bm25/usage/hybrid-search/" title="Hybrid Search (BM25 + VectorChord)" icon="fa-solid fa-code-merge" >}}
-Fuse sparse BM25 lexical search with `vchord` dense vector search in a single SQL query via Reciprocal Rank Fusion (RRF) and ColBERT reranking.
-{{< /card >}}
-  {{< card link="/docs/bm25/usage/algorithms/" title="BM25 & Block-WeakAnd Internals" icon="fa-solid fa-microchip" >}}
-Take a deep dive into the Okapi BM25 scoring formula, 1-byte fieldnorm quantization, delta-bitpacking compression, and Block-Max WAND pruning.
+  {{< card link="/docs/bm25/usage/hybrid-search/" title="Hybrid search" icon="fa-solid fa-code-merge" >}}
+A runnable recipe that fuses BM25 and vchord vector rankings with Reciprocal Rank Fusion.
 {{< /card >}}
 {{< /cards >}}

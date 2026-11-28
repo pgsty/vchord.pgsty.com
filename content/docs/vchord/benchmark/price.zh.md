@@ -1,24 +1,36 @@
 ---
-title: "价格基准测试"
+title: "价格基准"
 linkTitle: "价格"
-description: "使用 VectorChord，仅需每月 250 美元的单机配置即可在 1 亿条 768 维向量上实现 0.95 召回率下 131 QPS 的检索性能。"
+description: "2024 年 12 月，用一台装了 vchord 的 PostgreSQL 服务器承载 1 亿条 768 维向量要花多少钱，与 Pinecone、Qdrant 和全内存 pgvector 的对比。"
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/benchmark/price.md"
 aliases:
-  - "/zh/docs/benchmark/price/"
+  - "/docs/benchmark/price/"
   - "/vectorchord/benchmark/price/"
 icon: fa-solid fa-coins
 ---
 
-使用 VectorChord，您可以在单台机器上对 1 亿条 768 维向量执行 Top-10 查询，在保持 0.95 召回率（Precision/Recall）的同时实现 131 的 QPS，而整套配置的月度成本仅为 250 美元。如果您对我们的技术实现细节感兴趣，请参阅我们的博文《[VectorChord：在 PostgreSQL 中仅需 1 美元存储 400k 向量](/zh/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)》。
+本页比较在一台装了 vchord 的 PostgreSQL 服务器上存放 1 亿条 768 维向量的月成本，以及托管服务和全内存方案的月成本。数据出自 [Store 400k Vectors for $1 in PostgreSQL](/zh/blog/vectorchord-store-400k-vectors-for-1-in-postgresql/)，云服务价格取 2024 年 12 月的标价。
 
-这意味着您只需花费 1 美元即可存储 400k（40 万）条向量，从而实现显著的成本节约：在同等价格下，可存储的向量数量是 Pinecone（存储优化型实例）的 6 倍，是 pgvector/pgvecto.rs 的 26 倍。
+## 每美元能存多少向量 {#vectors-per-dollar}
 
-<img src="/docs/images/price-benchmark.png" alt="Pricing Benchmark" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+测试使用 LAION-100M 数据集（1 亿条 768 维向量），跑在一台 AWS `i4i.xlarge` 上：4 vCPU、32 GB 内存，向量和索引都放在一块 937 GB 的 NVMe SSD 上，每月约 250 美元。在 16 个客户端线程下，它以 0.95 的 top-10 召回率每秒回答 131 次查询；按线程数拆分的数据见[性能](/zh/docs/vchord/benchmark/performance/#laion-100m-on-i4ixlarge)。
 
-在基于 MyScale 基准测试数据的向量存储月度成本对比中，下图清晰地展示了 VectorChord 极具竞争力的性价比——存储 1 亿条向量的月均成本仅需 247 美元。相比之下，尽管 Pinecone 采用了优化型存储，其月成本仍高达 1,600 美元；Qdrant 的月成本为 4,374 美元；而 pgvector/pgvecto.rs 的成本则更高，达到每月 6,580 美元。
+折算下来，每月每美元能存 40 万条向量：是 Pinecone 存储优化型实例的 6 倍，是全内存 pgvector 或 pgvecto.rs HNSW 索引的 26 倍。
 
-<img src="/docs/images/price-benchmark-monthly.png" alt="Pricing Benchmark" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+<img src="/docs/images/price-benchmark.png" alt="vchord、Pinecone、Qdrant 与全内存 pgvector 或 pgvecto.rs 每月每美元可存储的向量数" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
 
-> [!TIP]
-> 上述价格基准测试于 2024 年 12 月 5 日执行。我们正在持续提升性能并优化成本。例如，VectorChord 0.2 在前代版本的基础上将索引体积缩减了 30%，并将索引构建速度提升了 50%。如果您想了解最新的基准测试数据，欢迎通过 [Discord](https://discord.gg/KqswhpVgdU) 联系我们。
+## 1 亿条向量的月成本 {#monthly-cost}
+
+其他系统的成本根据 [MyScale benchmark](https://myscale.github.io/benchmark/) 的数据推算：
+
+| 系统 | 每月费用 |
+| --- | --- |
+| vchord，一台 `i4i.xlarge` | $247 |
+| Pinecone，存储优化型 | $1,600 |
+| Qdrant | $4,374 |
+| pgvector 或 pgvecto.rs，索引全部放在内存 | $6,580 |
+
+<img src="/docs/images/price-benchmark-monthly.png" alt="在 vchord、Pinecone、Qdrant 与全内存 pgvector 或 pgvecto.rs 中存放 1 亿条 768 维向量的月成本" style="width: 100%; height: auto; margin: 0 auto; display: block;" />
+
+成本差距来自索引放在哪里。vchord 从 NVMe SSD 上回答查询，内存里只需要聚类中心和常用的列表；HNSW 索引要保持速度，就得把整张图放进内存。原理见[概览](/zh/docs/vchord/getting-started/overview/)。

@@ -8,7 +8,7 @@ upstream_link: https://github.com/pgvector/pgvector#querying
 math: true
 ---
 
-## 距离操作符
+## 距离操作符 {#distance-operators}
 
 `pgvector` 提供六种距离操作符，可用于排序（`ORDER BY`）与阈值过滤：
 
@@ -25,7 +25,7 @@ math: true
 > [!TIP] 归一化向量建议
 > 如果您的嵌入向量已经归一化为单位长度（例如 OpenAI `text-embedding-3-*` 或 BGE 模型输出），建议优先使用内积（`<#>`）而非余弦距离（`<=>`），以获得更高的 CPU 计算吞吐量。
 
-### 最近邻检索示例
+### 最近邻检索示例 {#nearest-neighbor-queries}
 
 ```sql
 -- 按 L2 欧氏距离查询最近的 5 条记录
@@ -40,7 +40,7 @@ SELECT * FROM items ORDER BY embedding <#> '[3,1,2]' LIMIT 5;
 
 ---
 
-## 计算距离与相似度得分
+## 计算距离与相似度得分 {#calculating-distances-similarity-scores}
 
 在查询结果中同时返回距离或相似度数值：
 
@@ -55,7 +55,7 @@ SELECT id, (embedding <#> '[3,1,2]') * -1 AS inner_product FROM items;
 SELECT id, 1 - (embedding <=> '[3,1,2]') AS cosine_similarity FROM items;
 ```
 
-### 距离阈值过滤查询
+### 距离阈值过滤查询 {#distance-threshold-queries}
 
 检索距离在指定半径内的所有记录：
 
@@ -73,11 +73,11 @@ LIMIT 5;
 ```
 
 > [!NOTE] `vchord` 的原生球面范围查询
-> 如果您的业务需要频繁按距离半径做范围过滤，[`vchord`](/zh/docs/vchord/) 提供了专用的 `<<->>` 球面操作符（`WHERE embedding <<->> sphere('[3,1,2]'::vector, 5)`），可直接在 `vchordrq` 或 `vchordg` 索引内部完成半径剪枝，而无需强制携带 `ORDER BY ... LIMIT`。详见 [`vchord` 相似度范围过滤](/zh/docs/vchord/usage/similarity-filter/)。
+> 如果您的业务需要频繁按距离半径做范围过滤，[`vchord`](/zh/docs/vchord/) 提供了专用的 `<<->>` 球面操作符（`WHERE embedding <<->> sphere('[3,1,2]'::vector, 5)`），可直接在 `vchordrq` 或 `vchordg` 索引内部完成半径剪枝，而无需强制携带 `ORDER BY ... LIMIT`。详见 [`vchord` 相似度范围过滤](/zh/docs/vchord/usage/filtering/#distance-range)。
 
 ---
 
-## 向量聚合函数
+## 向量聚合函数 {#aggregates}
 
 计算一组向量的均值中心（`AVG`）或逐元素累加和（`SUM`）：
 
@@ -91,7 +91,7 @@ GROUP BY category_id;
 
 ---
 
-## 条件过滤（`WHERE`）与迭代式索引扫描
+## 条件过滤（`WHERE`）与迭代式索引扫描 {#filtering-where-clauses-iterative-index-scans}
 
 将向量相似性检索与结构化关系谓词结合：
 
@@ -99,7 +99,7 @@ GROUP BY category_id;
 SELECT * FROM items WHERE category_id = 123 ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
 ```
 
-### 为过滤列建立索引
+### 为过滤列建立索引 {#indexing-filter-columns}
 
 1. **在过滤列上创建标准 B-tree 索引**（适用于 `category_id = 123` 选择率极高、仅匹配极少行数的场景）：
    ```sql
@@ -114,7 +114,7 @@ SELECT * FROM items WHERE category_id = 123 ORDER BY embedding <-> '[3,1,2]' LIM
    CREATE TABLE items (embedding vector(3), category_id int) PARTITION BY LIST(category_id);
    ```
 
-### 迭代式索引扫描（Iterative Index Scans，`pgvector 0.8.0+`）
+### 迭代式索引扫描（Iterative Index Scans，`pgvector 0.8.0+`） {#iterative-index-scans}
 
 默认情况下，近似向量索引扫描只会访问固定数量的候选集（`hnsw.ef_search` 或 `ivfflat.probes`）。如果 `WHERE` 过滤条件过滤掉了绝大部分候选行，最终返回的行数可能会少于 `LIMIT`。
 
@@ -143,7 +143,7 @@ WITH relaxed_results AS MATERIALIZED (
 SELECT * FROM relaxed_results ORDER BY distance + 0;
 ```
 
-#### 控制迭代扫描开销上限
+#### 控制迭代扫描开销上限 {#controlling-iterative-scan-budgets}
 
 ```sql
 -- HNSW 迭代扫描最多访问的元组数（默认：20000）
@@ -158,11 +158,11 @@ SET ivfflat.max_probes = 100;
 
 ---
 
-## 混合检索（Hybrid Search）
+## 混合检索（Hybrid Search） {#hybrid-search}
 
 您可以使用 **倒数排序融合（Reciprocal Rank Fusion, RRF）** 将 `pgvector` 语义检索与关键词全文检索结合。
 
-### 结合 PostgreSQL 内置 `tsvector`
+### 结合 PostgreSQL 内置 `tsvector` {#hybrid-search-with-postgresql-tsvector}
 
 ```sql
 SELECT id, content FROM (
@@ -180,7 +180,7 @@ ORDER BY SUM(score) DESC
 LIMIT 5;
 ```
 
-### 结合 `vchord_bm25` 或 `pg_bestmatch`
+### 结合 `vchord_bm25` 或 `pg_bestmatch` {#hybrid-search-with-vchord_bm25-or-pg_bestmatch}
 
 如果您需要具备文档长度归一化与全局语料库 IDF 权重的标准 Okapi BM25 排序：
 - 将 `pgvector`（或 [`vchord`](/zh/docs/vchord/)）与 [`vchord_bm25`](/zh/docs/bm25/) 及 [`pg_tokenizer`](/zh/docs/tokenizer/) 搭配使用——详见[混合检索指南](/zh/docs/bm25/usage/hybrid-search/)。

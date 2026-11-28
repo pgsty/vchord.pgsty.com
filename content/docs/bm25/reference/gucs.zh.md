@@ -1,67 +1,52 @@
 ---
-math: true
-title: "GUC 与索引参数"
-description: "vchord_bm25 会话级 GUC 参数与索引存储选项的完整参考手册。"
+title: "参数与索引选项"
+linkTitle: "参数"
+description: "bm25.* 参数、bm25 索引的存储选项，以及两者同时设置时以谁为准。"
 weight: 20
 icon: fa-solid fa-sliders
 ---
 
-> [!IMPORTANT]
-> **1.0.0** 是 PGSTY 的首个正式版本，使用原生 `tsvector` 和新的索引格式。标注 0.3.x 的 `bm25vector` 示例仅适用于旧版。两者不能原地升级；请先阅读[1.0.0 迁移指南](/zh/docs/bm25/reference/migration/)。
+查询行为由三个 `bm25.*` 参数控制，其中两个也可以按索引设置；构建与维护行为只由索引选项控制。这些值调节的是哪种扫描，见[查询](/zh/docs/bm25/usage/querying/#how-a-query-runs)。
 
+## 参数 {#settings}
 
-## 历史版本（`v0.1.0` – `v0.3.0`）：`bm25_catalog.*` GUC 参数 {#stable-releases-v010--v030-bm25_catalog-gucs}
+任何用户都可以用 `SET` 修改这些参数；默认值可以用 `ALTER ROLE ... SET`、`ALTER DATABASE ... SET` 或 `postgresql.conf` 设置。在 `SET` 中要给 `"bm25.limit"` 加引号，因为 `LIMIT` 是保留字。
 
-在 `v0.1.0` 至 `v0.3.0` 版本中，所有会话级 GUC 参数均使用 `bm25_catalog.` 前缀，任何普通用户均可在会话或事务级别修改（`GucContext::Userset`）：
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `bm25.enable_scan` | boolean | `on` | 允许规划器使用 bm25 索引扫描。关闭后，PostgreSQL 给每一行打分再排序，分数完全相同；可在测试时作为参照。 |
+| `bm25.limit` | integer | `100` | 索引扫描第一批的行数，取值 `0` 到 `65535`；`0` 表示 100。之后每一批翻倍。批次不小于 `LIMIT + OFFSET` 时不需要第二轮；批次越大，能跳过的倒排块越少。见[确定批次大小](/zh/docs/bm25/usage/querying/#batch-size)。 |
+| `bm25.prefilter` | boolean | `off` | 候选行进入批次之前，先检查行可见性和 `WHERE` 子句。条件选择性高时更快；大部分行都能通过时更慢，因为每个有竞争力的候选都要读一次表。见[预过滤](/zh/docs/bm25/usage/filtering/#prefilter)。 |
+{.fields meta="type default"}
 
-| 参数名称 | 类型 | 默认值 | 有效范围 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `bm25_catalog.bm25_limit` | `integer` | `100` | `-1` .. `65535` | 单次 `bm25` 索引扫描返回的高分文档最大数量。设为 `-1` 时禁用 Block-WeakAnd 剪枝并执行全量暴力扫描；设为 `0` 时直接返回空结果。必须 \(\ge\) SQL 查询中的 `LIMIT` 值。 |
-| `bm25_catalog.enable_index` | `boolean` | `true` | `true` / `false` | 在 PostgreSQL 查询规划器中启用或禁用 `bm25` 索引扫描。设为 `false` 可强制执行顺序扫描并调用 `search_bm25query` 精确求值。 |
-| `bm25_catalog.enable_prefilter` | `boolean` | `true` | `true` / `false` | 自 `v0.2.2` 引入。设为 `true` 时，会在将候选文档推入 Block-WeakAnd Top-K 最小堆之前，先行过滤掉不满足查询过滤条件或 MVCC 可见性检查的文档。 |
-| `bm25_catalog.segment_growing_max_page_size` | `integer` | `4096` | `1` .. `1000000` | 仅追加的增长段（Growing Segment）在被封存为差分位打包压缩的只读封闭段（Sealed Segment）之前的最大尺寸（以 8 KB 页面为单位，默认值 `4096` 即 32 MB）。 |
-{.wide .expand}
+## 优先级 {#precedence}
 
-### 配置示例（`v0.1` – `v0.3`） {#examples-v01--v03}
+`bm25.limit` 和 `bm25.prefilter` 都有作用相同的索引选项：`limit` 和 `prefilter`。参数一旦在任何地方被赋值，无论是 `postgresql.conf`、`ALTER DATABASE`、`ALTER ROLE`、连接参数还是 `SET`，哪怕赋的就是默认值，它都会作用于所有索引。只有在哪里都没有设置它时，各索引才使用自己的选项。`RESET` 恢复的是配置中设定的值，不一定回到索引选项。
+
+把调好的值存在索引上，并保持参数未设置，每个索引就能各用各的。
+
+## 索引选项 {#index-options}
+
+用 `CREATE INDEX ... WITH (...)` 或 `ALTER INDEX ... SET (...)` 设置，用 `ALTER INDEX ... RESET (...)` 移除。
+
+| 选项 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `options` | TOML 字符串 | `k1 = 1.2` 与 `b = 0.75` | BM25 参数。`k1` 取值 1.2 到 2.0，决定重复出现的词加分多快饱和；`b` 取值 0 到 1，决定对长文档的惩罚力度。只在建索引时读取：修改后要 `REINDEX`。见[选择 k1 和 b](/zh/docs/bm25/usage/indexing/#scoring-parameters)。 |
+| `limit` | integer | `100` | 本索引第一批的大小，取值 `0` 到 `65535`；`0` 表示 100。在 `bm25.limit` 未设置时生效。 |
+| `prefilter` | boolean | `off` | 本索引是否预过滤。在 `bm25.prefilter` 未设置时生效。 |
+| `maintenance_min_rows` | integer | `1000` | `VACUUM` 合并增长段前，增长段至少要有的行数，取值 `0` 到 `2147483647`。 |
+| `maintenance_scale_factor` | real | `0.1` | 取值 `0` 到 `1`。增长段达到已合并行数的这一比例（且满足 `maintenance_min_rows`），或已删除的行达到全部行数的这一比例时，`VACUUM` 执行合并。值越小合并越频繁：查询更快、统计信息更新鲜，代价是 `VACUUM` 的工作量更大。 |
+| `shared_corpus_stats` | boolean | `off` | 允许受行级安全约束的角色基于整个索引的统计信息打分。这样一来，分数会透露各个词在这些角色无权读取的行中有多常见。见[权限与行级安全](/zh/docs/bm25/usage/filtering/#access-control)。[降级](/zh/docs/bm25/reference/migration/#downgrade)到 1.3.0 之前的版本前要先重置。 |
+{.fields meta="type default"}
+
+`options` 的值是 TOML，每行一个键：
 
 ```sql
--- 为深度分页（例如 LIMIT 500）调大 Top-K 候选窗口
-SET bm25_catalog.bm25_limit = 500;
-
--- 强制对索引中的所有倒排项执行全量暴力扫描
-SET bm25_catalog.bm25_limit = -1;
-
--- 为包含高选择性 WHERE 子句的查询启用预过滤
-SET bm25_catalog.enable_prefilter = true;
-
--- 禁用索引扫描，用于对比顺序扫描基线性能
-SET bm25_catalog.enable_index = false;
+CREATE INDEX documents_bm25 ON documents USING bm25 (terms bm25_ops)
+WITH (options = $$
+k1 = 1.5
+b = 0.6
+$$, limit = 200);
 ```
 
----
-
-## 1.0.0：`bm25.*` GUC 参数与索引存储参数 {#next-gen-main-branch-bm25-gucs--index-reloptions}
-
-在 1.0.0 中，会话级 GUC 参数改用 `bm25.` 前缀，并与每个索引独立的存储参数（`WITH (...)`）配合工作：
-
-### 会话级 GUC 参数（1.0.0） {#session-guc-parameters-main}
-
-| 参数名称 | 类型 | 默认值 | 有效范围 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `bm25.enable_scan` | `boolean` | `true` | `true` / `false` | 在查询规划器中启用或禁用 `bm25` 索引扫描。 |
-| `bm25.limit` | `integer` | `100` | `0` .. `65535` | 首批扫描大小；零值自动选择 100。显式设置覆盖索引参数。扫描会按 SQL `LIMIT`、`OFFSET` 和后置过滤的需要继续取候选。 |
-| `bm25.prefilter` | `boolean` | `false` | `true` / `false` | 在 `bm25` 索引扫描期间启用预过滤（显式设置时覆盖索引自身的 `prefilter` 存储参数，包括 `false`）。 |
-{.wide .expand}
-
-`postgresql.conf`、`ALTER DATABASE`、`ALTER ROLE` 或客户端启动选项中的设置也会覆盖索引参数。`RESET` 会恢复这些配置默认值；只有 GUC 来源恢复为内置默认值时，才会回退到索引参数。
-
-### 索引存储参数（1.0.0 中的 `WITH (...)`） {#index-storage-parameters-with--in-main}
-
-| 存储参数 | 类型 | 默认值 | 有效范围 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `options` | `string` (TOML) | `k1 = 1.2`<br>`b = 0.75` | `k1`: `1.2..2.0`<br>`b`: `0.0..1.0` | 用于配置该索引 Okapi BM25 超参数 \(k_1\) 与 \(b\) 的 TOML 字符串。 |
-| `limit` | `integer` | `100` | `0` .. `65535` | 当 `bm25.limit` 来源为内置默认值时使用的首批大小。零值选择 100，不限制 SQL 返回行数。 |
-| `prefilter` | `boolean` | `false` | `true` / `false` | 索引级的默认预过滤设置。 |
-| `maintenance_min_rows` | `integer` | `1000` | `0` .. `2147483647` | 自动合并的最小增长记录数。实际门槛取该值与 `maintenance_scale_factor` × 封闭段记录数中的较大值。 |
-| `maintenance_scale_factor` | `real` | `0.1` | `0` .. `1` | VACUUM 合并的增长段/封闭段记录比，或 tombstone/总记录比门槛。旧快照可能延迟回收和下一次合并。 |
-{.wide .expand}
+用 `ALTER INDEX` 修改 `options`、`limit`、`prefilter` 或 `shared_corpus_stats` 会在索引上加 `ACCESS EXCLUSIVE` 锁：它要等使用该索引的查询结束，并在提交前阻塞新的查询。两个维护选项只加 `SHARE UPDATE EXCLUSIVE` 锁。

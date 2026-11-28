@@ -9,7 +9,7 @@ aliases:
 icon: fa-solid fa-server
 ---
 
-欢迎阅读我们的完整博客文章：[我们真的需要专用向量数据库吗？(2023) | vchord.pgsty.com](/zh/blog/post/do-we-really-need-a-specialized-vector-database-2023/)。
+欢迎阅读我们的完整博客文章：[我们真的需要专用向量数据库吗？(2023) | vchord.pgsty.com](/zh/blog/do-we-really-need-a-specialized-vector-database-2023/)。
 
 试想一下：你现有的业务数据已经存储在 Postgres 数据库中，现在你希望引入向量数据库来执行向量相似度检索。如果采用专用向量数据库，你就必须将数据从 Postgres 同步迁移到向量数据库中，并且同时运维两套数据库系统。这显然不是一个好主意。
 

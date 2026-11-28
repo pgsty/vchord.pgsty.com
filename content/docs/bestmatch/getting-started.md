@@ -8,7 +8,7 @@ math: true
 upstream_link: https://github.com/tensorchord/pg_bestmatch.rs#how-does-it-work
 ---
 
-## How Does `pg_bestmatch` Work?
+## How Does `pg_bestmatch` Work? {#how-does-pg_bestmatch-work}
 
 Given a document \(D\) and a query \(Q\) tokenized into vocabulary terms \(q_1, q_2, \dots, q_n\), the **Okapi BM25** relevance score is:
 
@@ -28,13 +28,13 @@ When you compute the inner product \(\vec{v}_D \cdot \vec{v}_Q\) using [`pgvecto
 
 ---
 
-## Installation
+## Installation {#installation}
 
-### Prerequisites
+### Prerequisites {#prerequisites}
 
 Install either [`pgvector`](/docs/vector/) (`v0.7.0+` for `sparsevec` support) or [`pgvecto.rs`](/docs/vectors/) (`v0.3.0+` for `svector` support) first.
 
-### Install from Release Packages (Debian / Ubuntu)
+### Install from Release Packages (Debian / Ubuntu) {#install-from-release-packages-debian-ubuntu}
 
 Download the prebuilt `.deb` package matching your PostgreSQL major version from [GitHub Releases](https://github.com/tensorchord/pg_bestmatch.rs/releases):
 
@@ -44,7 +44,7 @@ wget https://github.com/tensorchord/pg_bestmatch.rs/releases/download/v0.0.1/pg-
 sudo dpkg -i pg-bestmatch-pg16_0.0.1_amd64.deb
 ```
 
-### Build from Source (`cargo pgrx`)
+### Build from Source (`cargo pgrx`) {#build-from-source-cargo-pgrx}
 
 Ensure Rust and `cargo-pgrx` (`0.12.0-alpha.1` or compatible) are installed:
 
@@ -56,7 +56,7 @@ cargo pgrx install --release
 
 ---
 
-## Enable the Extension
+## Enable the Extension {#enable-the-extension}
 
 Connect to PostgreSQL, create the extension, and add `bm25_catalog` to your `search_path`:
 

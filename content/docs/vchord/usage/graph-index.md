@@ -1,246 +1,130 @@
 ---
-title: "Graph Index"
-linkTitle: "Graph Index"
-description: "VectorChord's index type vchordg is a disk-based graph index. It has low memory consumption."
-weight: 30
+title: "vchordg Index"
+linkTitle: "vchordg Index"
+description: "When to use the vchordg graph index, how much memory it needs, and how to tune its build and search parameters."
+weight: 20
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/graph-index.md"
-math: true
 aliases:
   - "/docs/usage/graph-index/"
   - "/vectorchord/usage/graph-index/"
 icon: fa-solid fa-diagram-project
 ---
 
-{{< badge text="since v0.5.0" tone="info" >}}
+`vchordg` is vchord's graph index. Like pgvector's HNSW, a query walks a graph of neighboring vectors, so there are no lists to size and recall is good with the defaults. Unlike HNSW, the walk compares RaBitQ codes of 1 or 2 bits per dimension instead of full vectors, which are read only to rerank the final candidates. The part of the index every query touches is therefore a fraction of the table's size. Use it when that part fits in memory and you want low latency without tuning `lists`; use [`vchordrq`](/docs/vchord/usage/indexing/) for tables that do not fit, and for filter keys, multi-vector columns, or external builds.
 
+## How it works {#how-it-works}
 
-VectorChord's index type `vchordg` is a disk-based graph index. It has low memory consumption.
+A query starts at an entry vertex and repeatedly moves to the neighbors closest to the query vector, keeping the best `ef_search` candidates it has seen. Distances along the way come from the RaBitQ codes. The candidates are then reranked with exact distances, read from the full-precision vectors, and returned in order.
 
-Let's start by creating a table named `items` with an `embedding` column of type `vector(n)`, and then populate it with sample data.
+Each inserted row links to at most `m` neighbors, chosen by a search with `ef_construction` candidates. Larger values give a better graph and better recall at the same `ef_search`, at the cost of a slower build and a larger index.
 
-To create a `vchordg` index, you can use the following SQL.
+## Create an index {#create}
+
+Operator classes are the same as for vchordrq: `vector_l2_ops`, `vector_ip_ops`, `vector_cosine_ops`, and their `halfvec`, `rabitq8`, and `rabitq4` versions. See the [full list](#operator-classes).
 
 ```sql
-CREATE INDEX ON items USING vchordg (embedding vector_l2_ops);
+CREATE INDEX ON items USING vchordg (embedding vector_cosine_ops);
+
+SET vchordg.ef_search = 100;
+SELECT id FROM items ORDER BY embedding <=> '[3, 1, 2]' LIMIT 10;
 ```
 
-> [!TIP]
-> This feature is in preview.
+On PostgreSQL 17 and later the build uses parallel workers; see [PostgreSQL tuning](/docs/vchord/usage/postgresql-tuning/#parallel-index-builds).
 
+## Size the memory {#memory}
 
-<a id="Tuning"></a>
-## Tuning
+<a id="Tuning"></a><a id="tuning"></a>
 
-When building an index, two options usually need tuning: `m` and `ef_construction`. `m` is the maximum number of neighbors per vertex, and `ef_construction` is the size of the dynamic list containing the nearest neighbors during insertion.
+vchordg is fast while the RaBitQ codes stay in `shared_buffers` or the OS page cache. With the default `bits = 2`, a 768-dimensional vector takes 192 bytes of codes, so 10 million rows need about 1.8 GiB, plus the neighbor lists.
 
-In search, you need to tune `ef_search`. `ef_search` is the size of the dynamic list containing the nearest neighbors during search.
-
-```sql
-CREATE INDEX ON items USING vchordg (embedding vector_l2_ops) WITH (options = $$
-m = 64
-ef_construction = 128
-$$);
-
-SET vchordg.ef_search TO '128';
-SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 10;
-```
-
-As a disk-based index, `vchordg` usually requires only the quantized vectors to be kept in the buffer pool to maintain performance. By default, `vchordg` quantizes a \(D\)-dimensional vector to \(2D\) bits. Let the number of rows be \(N\). Then, the total memory required for the index is \(2DN\) bits. If you have very limited memory and are using ultra-high dimensional vectors, consider quantizing a vector to \(D\) bits. Then, the total memory required for the index is \(DN\) bits.
+If that does not fit, set `bits = 1` to halve it. Recall at the same `ef_search` drops a little, which you can win back with a higher `ef_search`:
 
 ```sql
-CREATE INDEX ON items USING vchordg (embedding vector_l2_ops) WITH (options = $$
+CREATE INDEX ON items USING vchordg (embedding vector_cosine_ops)
+WITH (options = $$
 bits = 1
-m = 64
-ef_construction = 128
 $$);
 ```
 
-The index building can be sped up by using multiple processes. Refer to [PostgreSQL Tuning](/docs/vchord/usage/postgresql-tuning/).
+After a restart, [`vchordg_prewarm`](/docs/vchord/usage/postgresql-tuning/#prewarm) loads the codes back into `shared_buffers`. If the graph lives on SSD rather than in memory, `vchordg.beam_search` (and `beam_construction` at build time) expands several vertices per step so their reads overlap; keep both at `1` when the graph is in memory.
 
-## Querying and maintenance {#querying-and-maintenance}
+## Tune recall and speed {#tune}
 
-In 1.2.0, searches exclude deleted vertices after `VACUUM`, including when their heap locations are reused. A deleted graph entry point may remain available for traversal without being returned as a result.
+`vchordg.ef_search` is the one query-time knob: higher means better recall and slower queries. Start at the default `64`, [measure recall](/docs/vchord/usage/measure-recall/#vchordg) on real queries, and raise it until you reach your target. Store the value on the index so every session uses it:
 
-Sphere filters compare the radius in the distance operator's units: Euclidean distance for `<->` and cosine distance for `<=>`. PostgreSQL rechecks the filter on returned candidates, including additional sphere conditions. Search remains approximate; this does not guarantee that every matching row is found.
+```sql
+ALTER INDEX items_embedding_idx SET (ef_search = 128);
+```
 
-Partial indexes are supported for vector queries whose predicates imply the index predicate. Queries without a usable vector ordering or sphere condition, such as `COUNT(*)`, use other plans. `CREATE INDEX`, `REINDEX`, and `VACUUM` report tuple and page statistics to PostgreSQL; `ANALYZE` alone does not rebuild the graph.
+If recall stays short even at a high `ef_search`, rebuild with larger `m` (for example `64`) and `ef_construction` (for example `128`), which helps most on high-dimensional embeddings.
 
-### Maintenance and rebuilding {#maintenance}
+## Filters {#filters}
 
-In 1.5.0, VACUUM follows deleted bridges within a fixed budget when a vertex has spare neighbor slots. If the entry point is still isolated, it can reconnect to a live vertex sampled during the scan. VACUUM then reclaims the dead vertices.
+<a id="querying-and-maintenance"></a>
 
-Version 1.5.0 also publishes the contents of a new vector page and the link from its predecessor in a single WAL record.
+`WHERE` conditions are checked after the graph search, on the rows it returns. A selective filter therefore needs a large `ef_search` to return enough rows, and a filter that matches almost nothing can make the scan walk most of the graph; `vchordg.max_scan_tuples` caps that. For tenant or category filters on large tables, vchordrq [filter keys](/docs/vchord/usage/filtering/#filter-keys) are the better fit. Distance range conditions work as on vchordrq; see [Filtering](/docs/vchord/usage/filtering/#distance-range).
 
-Keep autovacuum enabled for dead-row cleanup, space reuse and freezing. After large or clustered deletes, measure recall against an exact query. If recall degrades or the index has accumulated excess space, rebuild it from the table:
+## Keep the index healthy {#maintenance}
+
+Autovacuum removes deleted rows from the graph, repairs the links around them, and reuses their space. Repair is local, so after deleting a large share of the table, [measure recall](/docs/vchord/usage/measure-recall/#vchordg) again; if it dropped, rebuild online:
 
 ```sql
 REINDEX INDEX CONCURRENTLY items_embedding_idx;
 ```
 
-Run this outside a transaction block. Concurrent rebuilding permits reads and writes, but needs space for the replacement index and adds CPU, I/O and WAL work. Long-running transactions can delay completion; queries continue using the old index until the replacement becomes valid. Rebuilding restores the quality of a fresh ANN index, not an exact-search guarantee. See PostgreSQL's [concurrent reindex documentation](https://www.postgresql.org/docs/18/sql-reindex.html#SQL-REINDEX-CONCURRENTLY).
+## Result order {#result-order}
 
-<a id="result-order"></a>
+The scan returns rows while it is still exploring the graph, so a slightly nearer row found later can come after a farther one. A larger `ef_search` makes this rarer. When an application needs strict distance order, overfetch and sort in SQL:
 
-> [!WARNING] Result order
-> `vchordg` keeps searching while it returns rows, so a row found later can be closer than one already returned. As a result, `ORDER BY ... LIMIT` output is not always in ascending distance order. A larger `vchordg.ef_search` makes this rarer but does not rule it out: in a 100,000-row, 768-dimension test with the default `ef_search = 64`, about 2.5% of `LIMIT 10` queries returned a row ahead of one more than 0.1% closer, by up to about 38%, while `ef_search = 128` left only the half-precision swaps described below. Queries with a `WHERE` filter read further into the index and are affected more often. With `halfvec` columns, rows whose distances differ by about 0.0001 or less can also be swapped, because the index compares half-precision copies of the vectors. This is expected of approximate search and is documented rather than changed; see [pgsty/vchord#17](https://github.com/pgsty/vchord/issues/17). When strict order matters, re-sort the candidates in an outer query. Recall still depends on the number of candidates and the search parameters.
->
-> ```sql
-> WITH candidates AS MATERIALIZED (
->     SELECT id, embedding <-> '[3,1,2]' AS distance
->     FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 100
-> )
-> SELECT * FROM candidates ORDER BY distance LIMIT 10;
-> ```
+```sql
+SELECT * FROM (
+    SELECT id, embedding <=> '[3, 1, 2]' AS distance
+    FROM items
+    ORDER BY embedding <=> '[3, 1, 2]'
+    LIMIT 100
+) AS candidates
+ORDER BY distance
+LIMIT 10;
+```
 
-<a id="Reference"></a>
-## Reference
+## Reference {#reference}
 
-### Operator Classes (`vchordg`) {#operator-classes}
+### Operator classes {#operator-classes}
 
-{{< badge text="vchordg" tone="neutral" >}}
+| Column type | L2 `<->` | Inner product `<#>` | Cosine `<=>` |
+| --- | --- | --- | --- |
+| `vector` | `vector_l2_ops` | `vector_ip_ops` | `vector_cosine_ops` |
+| `halfvec` | `halfvec_l2_ops` | `halfvec_ip_ops` | `halfvec_cosine_ops` |
+| `rabitq8` | `rabitq8_l2_ops` | `rabitq8_ip_ops` | `rabitq8_cosine_ops` |
+| `rabitq4` | `rabitq4_l2_ops` | `rabitq4_ip_ops` | `rabitq4_cosine_ops` |
 
-The following table lists all available operator classes supported by `vchordg`.
+Each class also serves the matching [range operator](/docs/vchord/usage/filtering/#distance-range). Indexed columns can have 1 to 30,000 dimensions.
 
-| Operator Class       | Description                                               | Operator 1             | Operator 2               |
-| -------------------- | --------------------------------------------------------- | ---------------------- | ------------------------ |
-| `vector_l2_ops`      | index works for `vector` type and Euclidean distance      | `<->(vector,vector)`   | `<<->>(vector,vector)`   |
-| `vector_ip_ops`      | index works for `vector` type and negative inner product  | `<#>(vector,vector)`   | `<<#>>(vector,vector)`   |
-| `vector_cosine_ops`  | index works for `vector` type and cosine distance         | `<=>(vector,vector)`   | `<<=>>(vector,vector)`   |
-| `halfvec_l2_ops`     | index works for `halfvec` type and Euclidean distance     | `<->(halfvec,halfvec)` | `<<->>(halfvec,halfvec)` |
-| `halfvec_ip_ops`     | index works for `halfvec` type and negative inner product | `<#>(halfvec,halfvec)` | `<<#>>(halfvec,halfvec)` |
-| `halfvec_cosine_ops` | index works for `halfvec` type and cosine distance        | `<=>(halfvec,halfvec)` | `<<=>>(halfvec,halfvec)` |
-| `rabitq8_l2_ops`     | index works for `rabitq8` type and Euclidean distance     | `<->(rabitq8,rabitq8)` | `<<->>(rabitq8,rabitq8)` |
-| `rabitq8_ip_ops`     | index works for `rabitq8` type and negative inner product | `<#>(rabitq8,rabitq8)` | `<<#>>(rabitq8,rabitq8)` |
-| `rabitq8_cosine_ops` | index works for `rabitq8` type and cosine distance        | `<=>(rabitq8,rabitq8)` | `<<=>>(rabitq8,rabitq8)` |
-| `rabitq4_l2_ops`     | index works for `rabitq4` type and Euclidean distance     | `<->(rabitq4,rabitq4)` | `<<->>(rabitq4,rabitq4)` |
-| `rabitq4_ip_ops`     | index works for `rabitq4` type and negative inner product | `<#>(rabitq4,rabitq4)` | `<<#>>(rabitq4,rabitq4)` |
-| `rabitq4_cosine_ops` | index works for `rabitq4` type and cosine distance        | `<=>(rabitq4,rabitq4)` | `<<=>>(rabitq4,rabitq4)` |
-{.wide .expand}
+### Index options {#indexing-options}
 
-`<<->>`, `<<#>>`, `<<=>>` are operators defined by VectorChord. For more information about `<<->>`, `<<#>>`, `<<=>>`, refer to [Similarity Filter](/docs/vchord/usage/similarity-filter/).
+<a id="bits"></a><a id="m"></a><a id="ef-construction"></a><a id="alpha"></a><a id="beam-construction"></a>
 
-`rabitq8`, `rabitq4` are types defined by VectorChord. For more information about `rabitq8`, `rabitq4`, refer to [Quantization Types](/docs/vchord/usage/quantization-types/).
+Set in the `options` TOML string of `CREATE INDEX`. Changing them requires a rebuild.
 
-The first 6 operator classes are available since version `0.5.0`, and the last 6 operator classes are available since version `1.1.0`.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `bits` | integer | `2` | RaBitQ bits per dimension, `1` or `2`. `1` halves memory at some loss of recall. |
+| `m` | integer | `32` | Most neighbors per vertex, up to `512`. Higher improves recall on high-dimensional data; costs build time and space. |
+| `ef_construction` | integer | `64` | Candidates kept while inserting a row. Higher builds a better graph, more slowly. |
+| `alpha` | float array | `[1.0, 1.2]` | Pruning thresholds for choosing neighbors, ascending, starting at `1.0`, each below `2.0`. `[1.0]` prunes like HNSW. Applies to L2 and cosine. |
+| `beam_construction` | integer | `1` | Vertices expanded per step while inserting. Raise only when the graph is on SSD. |
+{.fields meta="type default"}
 
-<a id="indexing-options"></a>
-### Indexing Options (`vchordg`)
+### Search parameters {#search-parameters}
 
-{{< badge text="vchordg" tone="neutral" >}}
+<a id="vchordg-enable-scan"></a><a id="vchordg-ef-search"></a><a id="search-parameters-vchordg-ef-search"></a><a id="vchordg-beam-search"></a><a id="vchordg-max-scan-tuples"></a>
 
-#### `bits`
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `vchordg.ef_search` | integer | `64` | Candidates kept during the search. Higher improves recall and order, slows queries. Can be [stored on the index](/docs/vchord/usage/fallback-parameters/). |
+| `vchordg.beam_search` | integer | `1` | Vertices expanded per step. Raise only when the graph is on SSD. |
+| `vchordg.max_scan_tuples` | integer | `-1` | Stop after returning this many rows to the executor, so a filter that matches almost nothing cannot walk the whole graph. `-1` means no limit. |
+| `vchordg.enable_scan` | boolean | `on` | Let the planner use vchordg indexes. Turn off to compute exact results. |
+{.fields meta="type default"}
 
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: The ratio of bits to dimensions after RaBitQ quantization. `bits = 2` provides better recall and QPS, while `bits = 1` consumes less memory.
-- Type: integer
-- Default: `2`
-- Example:
-    - `bits = 2` means a \(D\)-dimensional vector is quantized to \(2D\) bits.
-    - `bits = 1` means a \(D\)-dimensional vector is quantized to \(D\) bits .
-
-#### `m`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: The maximum number of neighbors per vertex. The larger `m` is, the better the performance, but the higher the storage requirement. `m` corresponds to \(m_0\) in HNSW and \(m\) in DiskANN.
-- Type: integer
-- Default: `32`
-- Example:
-    - `m = 32` means that there are at most \(32\) neighbors per vertex.
-    - `m = 64` means that there are at most \(64\) neighbors per vertex.
-
-<a id="ef-construction"></a>
-#### `ef_construction`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: The size of the dynamic list containing the nearest neighbors during insertion. The larger `ef_construction` is, the better the performance, but the slower the insertion. `ef_construction` corresponds to \(\text{ef}_\text{construction}\) in HNSW and \(\text{ef}_C\) in DiskANN.
-- Type: integer
-- Default: `64`
-- Example:
-    - `ef_construction = 64` means that the size of the dynamic list containing the nearest neighbors is \(64\) during insertion.
-    - `ef_construction = 128` means that the size of the dynamic list containing the nearest neighbors is \(128\) during insertion.
-
-#### `alpha`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: The `alpha` values selected during pruning. `alpha` corresponds to \(\alpha\) in DiskANN. This option must contain 1–8 values in ascending order, where the first element is `1.0` and the last element is less than `2.0`. An empty list is invalid.
-- Type: list of floats
-- Default: `[1.0, 1.2]`
-- Example:
-    - `alpha = [1.0, 1.2]` is equivalent to setting `alpha = 1.2` in DiskANN.
-    - `alpha = [1.0]` is equivalent to the default pruning strategy in HNSW.
-- Note: this option is ineffective when the distance metric is negative inner product.
-
-<a id="beam-construction"></a>
-#### `beam_construction`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: Beam width used during insertion. Beam width refers to the number of vertices accessed at once. Since the time to randomly read a small number of sectors from the SSD is almost the same as reading a single sector, a larger beam width effectively reduces the number of round trips to the SSD, resulting in better performance. Since it increases computation, it is disadvantageous for indexes that fit entirely in memory.
-- Type: integer
-- Default: `1`
-- Example:
-    - `beam_construction = 8` means that the index accesses 8 vertices at once during insertion.
-    - `beam_construction = 1` means that the index accesses 1 vertex at once during insertion.
-
-<a id="search-parameters"></a>
-### Search Parameters (`vchordg`)
-
-{{< badge text="vchordg" tone="neutral" >}}
-
-<a id="vchordg-enable-scan"></a>
-#### `vchordg.enable_scan`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: Enables or disables the query planner's use of `vchordg` index scan. It's for testing purposes.
-- Type: boolean
-- Default: `on`
-- Example:
-    - `vchordg.enable_scan = off` disables the query planner's use of `vchordg` index scan.
-    - `vchordg.enable_scan = on` enables the query planner's use of `vchordg` index scan.
-
-<a id="vchordg-ef-search"></a>
-#### `vchordg.ef_search` {#search-parameters-vchordg-ef-search}
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: The size of the dynamic list containing the nearest neighbors in search. The larger `vchordg.ef_search` is, the better the recall, but the worse the QPS. A larger value also makes out-of-order results rarer, but does not rule them out; see [Result order](#result-order). `vchordg.ef_search` corresponds to \(\text{ef}\) in HNSW and DiskANN.
-- Type: integer
-- Default:
-    - `64`
-    - This parameter supports [fallback](/docs/vchord/usage/fallback-parameters/).
-- Domain: `[1, 65535]`
-- Example:
-    - `SET vchordg.ef_search = 64` indicates the size of the dynamic list containing the nearest neighbors is \(64\) during search.
-    - `SET vchordg.ef_search = 128` indicates the size of the dynamic list containing the nearest neighbors is \(128\) during search.
-
-<a id="vchordg-beam-search"></a>
-#### `vchordg.beam_search`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: Beam widths used during search. Beam width refers to the number of vertices accessed at once. Since the time to randomly read a small number of sectors from the SSD is almost the same as reading a single sector, a larger beam width effectively reduces the number of round trips to the SSD, resulting in better performance. Since it increases computation, it is disadvantageous for indexes that fit entirely in memory.
-- Type: integer
-- Default: `1`
-- Domain: `[1, 65535]`
-- Example:
-    - `SET vchordg.beam_search = 8` indicates that the index accesses 8 vertices at once during search.
-    - `SET vchordg.beam_search = 1` indicates that the index accesses 1 vertex at once during search.
-
-<a id="vchordg-max-scan-tuples"></a>
-#### `vchordg.max_scan_tuples`
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- Description: The GUC parameter `vchordg.max_scan_tuples` controls the maximum number of tuples that can be scanned in a vector search. In most cases, you do not need to set this parameter, because the `LIMIT` clause serves a similar purpose. However, when a `WHERE` clause is present, the `LIMIT` clause applies after filtering, while this GUC parameter applies before filtering. This parameter is intended to prevent performance degradation when the filtering selectivity is very low.
-- Type: integer
-- Default: `-1`
-- Domain: `[-1, 2147483647]`
-- Example:
-  - `SET vchordg.max_scan_tuples = 999` indicates the index scan returns at most \(999\) tuples.
-  - `SET vchordg.max_scan_tuples = -1` indicates no limit on the number of tuples.
-- Note: This parameter has no effect when set to `-1`.
+`vchordg.io_search` and `vchordg.io_rerank` choose how pages are read; see [PostgreSQL tuning](/docs/vchord/usage/postgresql-tuning/#prefetch).

@@ -1,8 +1,8 @@
 ---
 title: "Multi-Vector Retrieval"
-linkTitle: "Multi-Vector Retrieval"
-description: "Multi-Vector Retrieval is an advanced technique used in Retrieval-Augmented Generation (RAG) systems to enhance document retrieval by leveraging multiple vector"
-weight: 20
+linkTitle: "Multi-Vector"
+description: "Index arrays of token or patch embeddings from ColBERT- and ColPali-style models and rank documents by MaxSim with the @# operator."
+weight: 40
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/multi-vector-retrieval.md"
 math: true
 aliases:
@@ -13,101 +13,72 @@ aliases:
 icon: fa-solid fa-cubes
 ---
 
-{{< badge text="since v0.3.0" tone="info" >}}
+A single embedding per document has to squeeze every detail into one vector, and fine-grained matches get lost. Late-interaction models such as ColBERT for text and ColQwen2 for page images keep one vector per token or image patch instead, and score a document by **MaxSim**: for each query vector, take its best match among the document's vectors, then add those up.
 
+\[
+\operatorname{MaxSim}(Q, D) = \sum_{i} \max_{j} \; q_i \cdot d_j
+\]
 
-Multi-Vector Retrieval is an advanced technique used in Retrieval-Augmented Generation (RAG) systems to enhance document retrieval by leveraging multiple vectors per document.
+vchordrq indexes such arrays directly. The `@#` operator returns the negative MaxSim, so that `ORDER BY ... LIMIT` puts the best documents first, like the other distance operators. For complete pipelines, see [ColBERT rerank](/docs/vchord/use-case/colbert-rerank/) and [ColQwen2 visual RAG](/docs/vchord/use-case/colqwen2-modal/).
 
-Unlike Single-Vector Retrieval, Multi-Vector Retrieval using the `MaxSim` operator enables capturing fine-grained semantic relationships.
+## Index and query {#how-to-start}
 
-Refer to [our blog](/blog/post/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/) for more details on building an end-to-end Multi-Vector Retrieval application.
-
-## How to start
-
-Late interaction models embed documents and queries as vector arrays separately and compute similarity through an operator called `MaxSim`. The definition of the `MaxSim` operator is \(\sum_i \max_j q_i \cdot d_j\), meaning that for each vector in the query vector array, the closest vector in the document vector array is found, their dot product is calculated, and the results are summed.
-
-In VectorChord, the symbol for this operator is `@#`. The left operand is the document vector array, and the right operand is the query vector array. While the original `MaxSim` operator is similarity-based, while the operator in VectorChord is based on distance. VectorChord’s implementation interprets it as a distance metric by negating the similarity score.
-
-To construct an index for vector arrays, first create a table named `items` with a column named `embeddings` of type `vector(n)[]`. Then, populate the table with generated data.
+Store each document's vectors as an array, index it with a `*_maxsim_ops` class, and pass the query's vectors as an array:
 
 ```sql
-CREATE TABLE items (id bigserial PRIMARY KEY, embeddings vector(3)[]);
+CREATE TABLE docs (id bigserial PRIMARY KEY, embeddings vector(3)[]);
 
-INSERT INTO items (embeddings) 
-SELECT
-    ARRAY[
-        ARRAY[random(), random(), random()]::vector,
-        ARRAY[random(), random(), random()]::vector,
-        ARRAY[random(), random(), random()]::vector
-    ]
+INSERT INTO docs (embeddings)
+SELECT ARRAY[
+    ARRAY[random(), random(), random()]::vector,
+    ARRAY[random(), random(), random()]::vector,
+    ARRAY[random(), random(), random()]::vector
+]
 FROM generate_series(1, 1000);
+
+CREATE INDEX ON docs USING vchordrq (embeddings vector_maxsim_ops);
+
+SELECT id FROM docs
+ORDER BY embeddings @# ARRAY['[3, 1, 2]'::vector, '[2, 2, 2]'::vector]
+LIMIT 5;
 ```
 
-Queries using the `MaxSim` operator can be accelerated with indexing, like other vector operators.
+Every vector in every array is indexed on its own, so size `lists` from the total number of vectors, not rows: 1 million passages of about 100 tokens are 100 million vectors. Arrays of `halfvec`, `rabitq8`, and `rabitq4` use `halfvec_maxsim_ops`, `rabitq8_maxsim_ops`, and `rabitq4_maxsim_ops`. Storing token vectors as [`rabitq8`](/docs/vchord/usage/quantization-types/) cuts the table to a quarter of its `vector` size.
 
-```sql
-CREATE INDEX ON items USING vchordrq (embeddings vector_maxsim_ops);
-```
+## How a query is scored {#scoring}
 
-Then you can perform a vector search with the index.
+For each query vector, vchordrq probes its own lists and collects the nearest document vectors, then adds up each document's best matches. A document whose vectors were not found for some query vector, because they sat in lists that were not probed, gets an estimate for that term: the worst distance seen for that query vector, or a bound from `maxsim_threshold`.
 
-```sql
-SELECT * FROM items
-ORDER BY embeddings @# 
-    ARRAY[
-        '[3,1,2]'::vector,
-        '[2,2,2]'::vector
-    ] LIMIT 5;
-```
+By default, the distances come from RaBitQ estimates without reranking. Two settings trade speed for accuracy:
 
-<a id="Reference"></a>
-## Reference
+- `vchordrq.probes` decides how many lists each query vector reads, as for single vectors. Raise it first.
+- `vchordrq.maxsim_refine` recomputes exact distances for the top documents. `0` keeps estimates only; values such as `1024` improve recall at a higher cost.
 
-This feature is not supported by `vchordg`.
+Measure recall with [`vchordrq_evaluate_query_recall`](/docs/vchord/usage/measure-recall/) and `exact_search => true`; the default estimated mode does not support `@#`.
 
-### Operator Classes
+## Limits {#limits}
 
-Refer to
+MaxSim indexes are vchordrq only, and do not support `rerank_in_table`, filter keys, or `vchordrq.max_scan_tuples`.
 
-* [Operator Classes (`vchordrq`)](/docs/vchord/usage/indexing/#operator-classes).
+## Reference {#reference}
 
-<a id="search-parameters"></a>
-### Search Parameters (`vchordrq`)
+### Operator classes {#operator-classes}
 
-{{< badge text="vchordrq" tone="neutral" >}}
+| Column type | Operator class | Operator |
+| --- | --- | --- |
+| `vector[]` | `vector_maxsim_ops` | `@#` |
+| `halfvec[]` | `halfvec_maxsim_ops` | `@#` |
+| `rabitq8[]` | `rabitq8_maxsim_ops` | `@#` |
+| `rabitq4[]` | `rabitq4_maxsim_ops` | `@#` |
 
-The indexing mechanism for `MaxSim` operators works similarly to other vector operators. When an index is built on a column of vector arrays, each vector within the arrays is individually inserted into the index data structure. During querying, the index performs a separate vector search for each vector in the query array. By default, the index does not rerank the results. Instead, it uses RaBitQ's estimated distances as a substitute for actual distances. The index then merges the results from all separated vector searches to produce the final output.
+### Search parameters {#search-parameters}
 
-There are a few extra parameters used by maxsim indexes.
+<a id="vchordrq-maxsim-refine"></a><a id="search-parameters-vchordrq-maxsim-refine"></a><a id="vchordrq-maxsim-threshold"></a><a id="search-parameters-vchordrq-maxsim-threshold"></a>
 
-With partial probes, a document may be absent from one query vector's candidate set. In 1.2.0, when neither refinement nor a threshold provides an estimate, its missing distance uses the worst distance in that candidate set. Missing candidates therefore do not receive a `-Infinity` distance that incorrectly ranks them first. This remains an approximation; evaluate recall with [`exact_search => true`](/docs/vchord/usage/measure-recall/).
+Both can also be [stored on the index](/docs/vchord/usage/fallback-parameters/).
 
-<a id="vchordrq-maxsim-refine"></a>
-#### `vchordrq.maxsim_refine` {#search-parameters-vchordrq-maxsim-refine}
-
-{{< badge text="since v0.3.0" tone="info" >}}
-
-- Description: This GUC parameter `vchordrq.maxsim_refine` makes the index rerank the results, replacing RaBitQ’s estimated distances with actual distances, until the distances of the top-k nearest vectors have all been recalculated.
-- Type: integer
-- Domain: `[0, 2147483647]`
-- Default:
-    - `0`
-    - This parameter supports [fallback](/docs/vchord/usage/fallback-parameters/).
-- Example:
-    - `SET vchordrq.maxsim_refine = 0` means that the index always uses RaBitQ's estimated distances.
-    - `SET vchordrq.maxsim_refine = 1024` means that the index reranks the results, replacing RaBitQ’s estimated distances with actual distances, until the distances of the top-1024 nearest vectors have all been recalculated.
-
-<a id="vchordrq-maxsim-threshold"></a>
-#### `vchordrq.maxsim_threshold` {#search-parameters-vchordrq-maxsim-threshold}
-
-{{< badge text="since v0.3.0" tone="info" >}}
-
-- Description: This GUC parameter `vchordrq.maxsim_threshold` enables more aggressive estimation of missing values. With this setting, the index identifies the first cluster in the lowest-level lists whose cumulative size meets or exceeds `vchordrq.maxsim_threshold`, and uses its distance to the query vector for estimating the missing values.
-- Type: integer
-- Domain: `[0, 2147483647]`
-- Default:
-    - `0`
-    - This parameter supports [fallback](/docs/vchord/usage/fallback-parameters/).
-- Example:
-    - `SET vchordrq.maxsim_threshold = 0` means that the more aggressive estimation strategy is not enabled.
-    - `SET vchordrq.maxsim_threshold = 1024` means that the index identifies the first cluster in the lowest-level lists whose cumulative size meets or exceeds `1024`, and uses its distance to the query vector for estimating the missing values.
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `vchordrq.maxsim_refine` | integer | `0` | Number of top documents whose distances are recomputed exactly. `0` uses RaBitQ estimates only. |
+| `vchordrq.maxsim_threshold` | integer | `0` | When above `0`, bound the distance of a query vector's unfound matches by the centroid of the first leaf list at which this many vectors have been counted. `0` uses the worst distance seen instead. |
+{.fields meta="type default"}

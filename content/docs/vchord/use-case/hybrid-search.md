@@ -1,7 +1,7 @@
 ---
-title: "Hybrid search with Postgres Native BM25 and VectorChord"
+title: "Hybrid Search with BM25 and Vectors"
 linkTitle: "Hybrid Search"
-description: "In the era of RAG (Retrieval-Augmented Generation), efficiently retrieving relevant data from vast datasets is crucial for businesses and developers. Traditiona"
+description: "Search one PostgreSQL table with a BM25 keyword query and a vector query, merge the two rankings with Reciprocal Rank Fusion in one SQL statement, and optionally rerank with a cross-encoder."
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/use-case/hybrid-search.md"
 math: true
@@ -11,294 +11,239 @@ aliases:
 icon: fa-solid fa-code-merge
 ---
 
-> [!NOTE]
-> This upstream benchmark uses the historical `bm25vector` API (0.2–0.3). For `vchord_bm25` 1.0.0, use the [native `tsvector` hybrid search example](/docs/bm25/usage/hybrid-search/) and [migration guide](/docs/bm25/reference/migration/).
+This tutorial builds a search over the SciFact corpus that runs a BM25 keyword query and a vector query against the same table and merges the two rankings. Keyword search finds documents containing the query's exact terms, such as identifiers and rare words; vector search finds documents that say the same thing in other words; each catches what the other misses. Because [vchord_bm25](/docs/bm25/) and vchord index the same PostgreSQL table, one SQL statement runs both searches and fuses the results, and a cross-encoder can rerank the merged list when accuracy matters more than latency.
 
-In the era of RAG (Retrieval-Augmented Generation), efficiently retrieving relevant data from vast datasets is crucial for businesses and developers. Traditional keyword-based retrieval methods, such as those utilizing **BM25** as a scoring mechanism, excel in ranking documents based on term frequency and exact keyword matches. This makes them highly effective for structured queries and keyword-heavy content. However, they struggle with understanding synonyms, contextual nuances, and semantic intent. Conversely, vector-based retrieval captures deep semantic meaning, enabling better generalization across varied queries but sometimes sacrificing precision in exact keyword matches. Hybrid Search bridges this gap by combining BM25’s precision with vector search’s contextual understanding, delivering faster, more accurate, and semantically aware results.
+<a id="what-is-the-vectorchord"></a><a id="what-is-vectorchord-bm25"></a><a id="what-is-bm25"></a><a id="why-a-postgres-native-bm25-ranking-implementation-is-needed"></a>
 
-This article explores how to implement Hybrid Search in Postgres using [VectorChord-bm25](https://github.com/pgsty/vchord_bm25) for keyword-based retrieval and [VectorChord](https://github.com/pgsty/vchord) for semantic search. By leveraging VectorChord-bm25's BM25 ranking with the **Block-WeakAnd** algorithm and VectorChord's advanced vector similarity capabilities, you can build a robust search system that seamlessly integrates keyword precision with semantic understanding. Whether you're building a recommendation engine, a document retrieval system, or an enterprise search solution, this guide will walk you through the steps to unlock the full potential of hybrid search.
+## How it works {#hybrid-search-explained}
 
-All related benchmark codes can be found [here](https://github.com/xieydd/vectorchord-hybrid-search).
+<img src="/docs/images/hybrid-search-1.jpeg" alt="A query runs as a vector search and a keyword search, and the two result lists are fused or reranked into one" width="600" />
 
-## Hybrid Search Explained
+Each row stores the text, its embedding in a `vector` column, and its terms in a `tsvector` column. A `vchordrq` index answers `ORDER BY embedding <=> query LIMIT 100`, and a `bm25` index answers `ORDER BY terms <&> query LIMIT 100`. Reciprocal Rank Fusion (RRF) then scores each document by its rank in each list, so the two scales, cosine distance and BM25 score, never need to be compared:
 
-<img src="/docs/images/hybrid-search-1.jpeg" alt="Hybrid Search" width="600" align="center"/>
+$$
+\operatorname{RRF}(d) = \sum_{i} \frac{1}{k + \operatorname{rank}_i(d)}
+$$
 
-Hybrid Search merges the results from vector search and keyword search. Vector search is based on the semantic similarity between the query and the documents, while keyword search relies on the BM25 ranking algorithm. However, it is important to note that BM25 itself is only responsible for scoring documents, while the broader keyword search process also includes steps such as **tokenization**, **indexing**, and **query parsing**. Hybrid Search utilizes reranker or fuses the results from both methods. Fuses include RRF (Reciprocal Rank Fusion) or weighted scoring for multiple recall strategies. Model-based rerank includes cross encoder models like `bge-reranker-v2-m3` and multi-vector representation model `ColBERT`.
+A document missing from one list gets nothing from it. `k = 60` is the customary constant; a larger `k` flattens the difference between the top ranks.
 
-## What is the VectorChord?
+<a id="tutorial-use-vectorchord-bm25-and-vectorchord-implement-hybrid-search"></a><a id="tutorial"></a><a id="Prerequisites"></a>
 
-You may be familiar with [pgvector](/docs/vector/), an open-source vector similarity search extension for Postgres. However, scalable or performance-critical scenarios may require a more advanced vector search solution. [VectorChord](https://github.com/pgsty/vchord) is an excellent choice.
+## Prerequisites {#prerequisites}
 
-Check out the blog post "[VectorChord: Store 400k Vectors for $1 in PostgreSQL](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)" to learn more about its motivation and design.
+- PostgreSQL 15–19 with vchord 1.5.0 and vchord_bm25 1.3.0. From the Pigsty repository:
 
-## What is VectorChord-BM25
+  ```bash
+  pig ext add vchord vchord_bm25
+  ```
 
-VectorChord-BM25 is a PostgreSQL extension for keyword search. It not only implements BM25 ranking but also includes a tokenizer and a Block-WeakAnd index to improve speed.
+- Python 3 and these packages. The models run on CPU, but a GPU makes embedding the corpus much faster.
 
-### What is BM25?
+  ```bash
+  pip install "psycopg[binary]" pgvector FlagEmbedding requests
+  ```
 
-BM25 (Best Matching 25) is a probabilistic ranking function used in information retrieval to assess how well a document matches a query. It calculates relevance scores based on term frequency (TF) and inverse document frequency (IDF), while also applying document length normalization. The formula ensures that terms appearing frequently within a document (TF) and those rare across the corpus (IDF) are appropriately weighted, improving search accuracy and relevance. **IDF** measures how often a word appears across the document collection. The fewer the occurrences, the higher its value. **TF** represents the frequency of a specific word from the query appearing in the given document. A higher TF indicates a stronger relevance between the query and the document.
+## Build the search {#prepare-data}
 
-### Why a Postgres native BM25 Ranking implementation is needed?
+1. Preload both libraries and restart PostgreSQL. Keep any libraries already in the list.
 
-In our previous blog post, [*VectorChord-BM25: Revolutionizing PostgreSQL Search with BM25 Ranking — 3x Faster Than Elasticsearch*](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/), my colleague Allen has already provided a detailed and sufficient explanation, which can be referred to.
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'vchord, vchord_bm25';
+   ```
 
-## Tutorial: Use VectorChord-BM25 and VectorChord implement Hybrid Search
+1. Create the extensions and the table. `terms` is generated from `content`, so it stays in step with every insert and update:
 
-<img src="/docs/images/hybrid-search.jpeg" alt="Hybrid Search 1" width="600" align="center"/>
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+   CREATE EXTENSION IF NOT EXISTS vchord_bm25;
 
-In this tutorial, we will guide you through the steps to implement Hybrid Search using VectorChord-BM25 and VectorChord in PostgreSQL. We will cover the following topics:
+   CREATE TABLE documents (
+       id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+       content text NOT NULL,
+       embedding vector(1024) NOT NULL,
+       terms tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED
+   );
+   ```
 
-* **Semantic Search with VectorChord**
+1. Load the corpus. Save this as `load.py` and run `python load.py`. It downloads the SciFact corpus from BEIR, embeds each document with BGE-M3, whose 1024-dimensional vectors are normalized, and copies the rows in:
 
-* **Keyword Search with VectorChord-BM25**
+   ```python
+   import io
+   import json
+   import zipfile
 
-* **Rerank**
+   import psycopg
+   import requests
+   from FlagEmbedding import BGEM3FlagModel
+   from pgvector.psycopg import register_vector
+
+   DB_URL = "postgresql://postgres@localhost:5432/postgres"
+   BEIR_URL = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/scifact.zip"
+
+   archive = zipfile.ZipFile(io.BytesIO(requests.get(BEIR_URL, timeout=600).content))
+   with archive.open("scifact/corpus.jsonl") as f:
+       texts = [f"{doc['title']} {doc['text']}" for doc in map(json.loads, f)]
+
+   model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
+   embeddings = model.encode(texts, batch_size=32, max_length=8192)["dense_vecs"]
+
+   with psycopg.connect(DB_URL) as conn:
+       register_vector(conn)
+       with conn.cursor().copy(
+           "COPY documents (content, embedding) FROM STDIN WITH (FORMAT BINARY)"
+       ) as copy:
+           copy.set_types(["text", "vector"])
+           for text, embedding in zip(texts, embeddings):
+               copy.write_row((text, embedding))
+   ```
+
+1. Index both columns. SciFact has about 5,000 documents, so the vector index needs only its default single list; for a corpus over 100,000 rows, set `lists` and `probes` as described in [vchordrq index](/docs/vchord/usage/indexing/#lists).
+
+   ```sql
+   CREATE INDEX documents_embedding_idx ON documents
+   USING vchordrq (embedding vector_cosine_ops);
+
+   CREATE INDEX documents_terms_bm25 ON documents
+   USING bm25 (terms bm25_ops);
+   ```
+{.steps}
+
+<a id="semantic-search-with-vectorchord"></a><a id="key-word-search-with-vectorchord-bm25"></a><a id="rerank-fuse"></a><a id="rerankfuse"></a><a id="rerank-and-fuse"></a>
+
+## Search with RRF {#rrf}
+
+Each subquery takes 100 candidates from its index in index order, `row_number()` turns that order into ranks, and the outer query adds up the RRF scores. `<&>` returns the BM25 score negated, so ascending order puts the best match first, the same as a distance. Save this as `search.py`:
+
+```python
+import sys
+
+import psycopg
+from FlagEmbedding import BGEM3FlagModel
+from pgvector.psycopg import register_vector
+
+DB_URL = "postgresql://postgres@localhost:5432/postgres"
+
+HYBRID_SQL = """
+WITH semantic AS (
+    SELECT id, row_number() OVER (ORDER BY distance) AS rank
+    FROM (
+        SELECT id, embedding <=> %(embedding)s AS distance
+        FROM documents
+        ORDER BY embedding <=> %(embedding)s
+        LIMIT 100
+    ) AS s
+),
+keyword AS (
+    SELECT id, row_number() OVER (ORDER BY score) AS rank
+    FROM (
+        SELECT id, terms <&> to_bm25query(to_tsvector('english', %(query)s),
+                                          'documents_terms_bm25'::regclass) AS score
+        FROM documents
+        ORDER BY terms <&> to_bm25query(to_tsvector('english', %(query)s),
+                                        'documents_terms_bm25'::regclass)
+        LIMIT 100
+    ) AS k
+)
+SELECT id, content,
+       coalesce(1.0 / (60 + semantic.rank), 0) + coalesce(1.0 / (60 + keyword.rank), 0) AS rrf
+FROM semantic
+FULL JOIN keyword USING (id)
+JOIN documents USING (id)
+ORDER BY rrf DESC
+LIMIT %(limit)s
+"""
+
+model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
 
-<a id="Prerequisites"></a>
-### Prerequisites
+def hybrid_search(conn, query, limit=10):
+    embedding = model.encode([query])["dense_vecs"][0]
+    params = {"embedding": embedding, "query": query, "limit": limit}
+    return conn.execute(HYBRID_SQL, params).fetchall()
 
-1. Postgres with VectorChord-BM25 and VectorChord
 
-
-If you want to reproduce the tutorial quickly, you can use the `tensorchord/vchord-suite` image to run multiple extensions which are provided by TensorChord.
-
-You can run the following command to build and start the Postgres with VectorChord-BM25 and VectorChord.
-
-> [!WARNING]
-> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
+if __name__ == "__main__":
+    with psycopg.connect(DB_URL) as conn:
+        register_vector(conn)
+        for doc_id, content, score in hybrid_search(conn, sys.argv[1]):
+            print(f"{score:.4f}  {doc_id:>5}  {content[:80]}")
+```
 
 ```bash
-docker run \
-  --name vchord-suite \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d tensorchord/vchord-suite:pg17-latest
+python search.py "Vitamin D deficiency increases the risk of multiple sclerosis"
 ```
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
-\dx
-pg_tokenizer | 0.1.0   | tokenizer_catalog | pg_tokenizer
-vchord       | 0.3.0   | public            | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
-vchord_bm25  | 0.2.0   | bm25_catalog      | vchord_bm25: A postgresql extension for bm25 ranking algorithm
-vector       | 0.8.0   | public            | vector data type and ivfflat and hnsw access methods
-```
+To weight one side more, multiply its term in the `rrf` expression, for example `2 * coalesce(1.0 / (60 + keyword.rank), 0)`.
 
-2. Prepare the Embedding Model and Data
+## Rerank with a cross-encoder {#cross-encoder}
 
-For embedding, we can use a pre-trained embedding model like `BGE-M3` to generate embeddings for the documents. `BGE-M3` is a high-quality embedding model known for its versatility in multi-functionality, multi-linguality, and multi-granularity.
-
-For validation, we use the [BEIR](https://github.com/beir-cellar/beir) dataset, a heterogeneous benchmark for information retrieval. It is easy to use and allows you to evaluate your models across 15+ diverse IR datasets.
-
-First, you need to load your data into PostgreSQL. Then you can use the following SQL query to generate embeddings for the documents.
+A cross-encoder reads the query and a document together, so it judges relevance better than either index, but it costs one model call per candidate. Fetch more fused candidates and let it choose the top 10. Add this to `search.py` above the `if __name__` block, and in that block print `rerank(sys.argv[1], hybrid_search(conn, sys.argv[1], limit=100))` instead:
 
 ```python
-with self.conn.cursor() as cursor:
-    cursor.execute(
-        f"CREATE TABLE IF NOT EXISTS {self.dataset}_corpus (id TEXT, text TEXT, emb vector({self.vector_dim}), bm25 bm25vector);"
-    )
+from FlagEmbedding import FlagReranker
 
-    for did, doc in tqdm(zip(doc_ids, docs), desc="insert corpus"):
-        emb = self.sentence_encoder.encode_doc(doc)
-        cursor.execute(
-            f"INSERT INTO {self.dataset}_corpus (id, text, emb) VALUES (%s, %s, %s)",
-            (did, doc, emb),
-        )
+reranker = FlagReranker("BAAI/bge-reranker-v2-m3", use_fp16=True)
+
+
+def rerank(query, rows, limit=10):
+    scores = reranker.compute_score([[query, content] for _, content, _ in rows], normalize=True)
+    ranked = sorted(zip(rows, scores), key=lambda pair: pair[1], reverse=True)
+    return [(doc_id, content, score) for (doc_id, content, _), score in ranked[:limit]]
 ```
 
-For embedding:
+## Other languages with pg_tokenizer {#pg-tokenizer}
 
-```python
-from FlagEmbedding import BGEM3FlagModel
-class SentenceEmbedding:
-    def __init__(self, model_name: str = "BAAI/bge-m3"):
-        self.model = BGEM3FlagModel(
-            model_name,
-            use_fp16=True,
-        )
-    def encode_docs(self, documents: list[str]):
-        return self.model.encode(
-            documents,
-            batch_size=32,
-            max_length=8192,
-        )['dense_vecs']
-```
+`to_tsvector` covers the languages PostgreSQL ships text search configurations for. For Chinese, Japanese, or a custom pipeline, produce the `tsvector` with [pg_tokenizer](/docs/tokenizer/) 1.3.0 instead. Its `analyze_to_tsvector` reads the analyzer from a catalog table, so it cannot be used in a generated column; fill a plain column with a trigger:
 
-The data process and embedding generation code can be found [here](https://github.com/xieydd/vectorchord-hybrid-search).
+1. Install `pg_tokenizer`, add it to `shared_preload_libraries`, restart, and create an analyzer:
 
-### Semantic Search with VectorChord
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
 
-For semantic search, we utilize the [RaBitQ](https://dev.to/gaoj0017/quantization-in-the-counterintuitive-high-dimensional-space-4feg) algorithm, which is highly optimized in the VectorChord PostgreSQL extension. RaBitQ is a quantization algorithm for high-dimensional spaces, designed to improve the storage and retrieval efficiency of high-dimensional data, such as embedded vectors.
+   SELECT tokenizer_catalog.create_text_analyzer('en_analyzer', $$
+   pre_tokenizer = "unicode_segmentation"
+   [[character_filters]]
+   to_lowercase = {}
+   [[token_filters]]
+   stopwords = "nltk_english"
+   [[token_filters]]
+   stemmer = "english_porter2"
+   $$);
+   ```
 
-It achieves this by mapping high-dimensional vectors to a low-dimensional discrete space while preserving the similarity information of the original vectors. This process reduces storage requirements and computational costs while maintaining high retrieval accuracy.
+   For Chinese, use `[pre_tokenizer.jieba]` as the whole configuration.
 
-```python
-centroids = min(4 * int(self.num**0.5), self.num // 40)
-ivf_config = f"""
-residual_quantization = true
-[build.internal]
-lists = [{centroids}]
-build_threads = {workers}
-spherical_centroids = false
-"""
-with self.conn.cursor() as cursor:
-    cursor.execute(f"SET max_parallel_maintenance_workers TO {workers}")
-    cursor.execute(f"SET max_parallel_workers TO {workers}")
-    cursor.execute(
-        f"CREATE INDEX {self.dataset}_rabitq ON {self.dataset}_corpus USING vchordrq (emb vector_l2_ops) WITH (options = $${ivf_config}$$)"
-    )
-```
+1. Declare `terms tsvector` without `GENERATED ...` in `CREATE TABLE`, and keep it filled with a trigger:
 
-If you find that building the index on your own dataset is too slow, you can utilize external build to accelerate the process. For more details, please refer to our previous blog: [Benefits and Steps of External Centroids Building in VectorChord](/blog/post/benefits-and-steps-of-external-centroids-building-in-vectorchord/).
+   ```sql
+   CREATE FUNCTION documents_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+   BEGIN
+       NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.content, 'en_analyzer');
+       RETURN NEW;
+   END
+   $$;
 
-Once the index is built, you can use the following SQL query to search for similar documents:
+   CREATE TRIGGER documents_terms BEFORE INSERT OR UPDATE OF content ON documents
+   FOR EACH ROW EXECUTE FUNCTION documents_terms();
+   ```
 
-```python
-probe = int(0.1 * min(4 * int(self.num**0.5), self.num // 40))
-with self.conn.cursor() as cursor:
-    cursor.execute(f"SET vchordrq.probes = {probe}")
-    cursor.execute(
-        f"select q.id as qid, c.id, c.score from {self.dataset}_query q, lateral ("
-        f"select id, {self.dataset}_corpus.emb <-> q.emb as score from "
-        f"{self.dataset}_corpus order by score limit {topk}) c;"
-    )
-```
-
-### Key-Word Search with VectorChord-BM25
-
-For keyword search, we need to use a **tokenizer** to convert the text into a **BM25 vector**, which is similar to a sparse vector that stores the vocabulary ID and frequency.
-
-```python
-cursor.execute(
-    f"SELECT create_tokenizer('{self.dataset}_token', $$",
-    f"tokenizer = 'unicode'",
-    f"stopwords = 'nltk'",
-    f"table = '{self.dataset}_corpus'",
-    f"column = 'text'",
-    f"$$);"
-)
-cursor.execute(
-    f"UPDATE {self.dataset}_corpus SET bm25 = tokenize(text, '{self.dataset}_token')"
-)
-```
-
-Let me explain this operation in detail. The `tokenize` function is used to tokenize the text with the specified tokenizer. In this case, we used the **Unicode tokenizer**. The output of the `tokenize` function is a BM25 vector, which is a sparse vector that stores the vocabulary ID and frequency of each word in the text. For example, `1035:7` means the word with vocabulary ID `1035` appears 7 times in the text.
-
-```SQL
-postgres=# select bm25 from fiqa_corpus limit 1;
--- Output: {1035:7, 1041:1, 1996:1, 1997:1, 1999:3, 2010:3, 2015:7, 2019:1, 2022:1, 2028:4, 2036:2, 2041:1, 2051:2, 2054...
-```
-
-After creating the index, you can calculate the BM25 score between the query and the vectors. Note that the BM25 score is **negative**, meaning that the higher the score, the more relevant the document is. We intentionally make it negative so that you can use the default `ORDER BY` to retrieve the most relevant documents first.
-
-```python
-with self.conn.cursor() as cursor:
-    cursor.execute(
-        f"SELECT q.id AS qid, c.id, c.score FROM {self.dataset}_query q, LATERAL ("
-        f"SELECT id, {self.dataset}_corpus.bm25 <&> to_bm25query('{self.dataset}_text_bm25', q.text , '{self.dataset}_token') AS score "
-        f"FROM {self.dataset}_corpus "
-        f"ORDER BY score "
-        f"LIMIT {topk}) c;"
-    )
-```
-
-<a id="rerank-fuse"></a>
-### Rerank/Fuse
-
-Once you obtain the results from both semantic search and keyword search, you can use a **fuse or rerank** process to merge the results.
-
-1. Fuse (**Reciprocal Rank Fusion (RRF)**)
-
-
-The advantage of **RRF** lies in its independence from specific score units; it is based on ranking for fusion, making it suitable for sorting systems with different scoring criteria.
-
-
-$$
-\text{RRF}(d) = \sum_{i=1}^{n} \frac{1}{k + \text{rank}_i(d)}
-$$
-
-
-Among them:
-
-* `d` is the document.
-
-* `n` is the number of ranking systems.
-
-* `rank` is the ranking in the sorting system.
-
-* `k` is the adjustment parameter, the value is usually 60 (empirical value), used to control the impact of ranking on scores.
-
-
-```python
-for rank, (query_id, doc_id, _) in enumerate(result, start=1):
-    if query_id not in rrf_scores:
-        rrf_scores[query_id] = {}
-    if doc_id not in rrf_scores[query_id]:
-        rrf_scores[query_id][doc_id] = 0
-    # Calculate and accumulate RRF scores
-    rrf_scores[query_id][doc_id] += 1 / (k + rank)
-```
-
-2. Cross-Encoder model Rerank
-
-<img src="/docs/images/cross-encoder.jpeg" alt="Cross-Encoder" width="600" align="center"/>
-
-In semantic search, we already use Bi-Encoder vectorized the documents and queries separately. But this independent encoding leads to a lack of interaction between the query and the document. Cross-Encoder model will input the query and document as a whole into the model, the model will see the content of both at the same time, capturing the fine-grained semantic relationship between them through the Transformer layer. Compared with RRF, Cross-Encoder model can capture the fine-grained semantic relationship between the query and the document, and it can be more accurate but slower.
-
-```python
-reranker = FlagReranker(
-    'BAAI/bge-reranker-v2-m3',
-    query_max_length=256,
-    passage_max_length=512,
-    use_fp16=True,
-    devices=["cuda:0"] # change ["cpu"] if you do not have gpu, but it will be very slow
-) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-
-for query_id, docs in tqdm(results.items()):
-    scores = reranker.compute_score(pairs, normalize=True)
-    for i, doc_id in enumerate(docs):
-        bge_scores[query_id][doc_id] = scores[i]
-```
+1. Analyze the query text with the same analyzer. In `HYBRID_SQL`, replace both `to_tsvector('english', %(query)s)` with `tokenizer_catalog.analyze_to_tsvector(%(query)s, 'en_analyzer')`.
+{.steps}
 
 <a id="Evaluation"></a>
-### Evaluation
 
-We have tested the **NDCG@10** with those methods on several BEIR datasets. Here are the top10 results:
+## Results on BEIR {#evaluation}
 
-| Dataset | Semantic Search | BM25 | Cross-Encoder Rerank | RRF |
+[Hybrid Search with Postgres Native BM25 and VectorChord](/blog/hybrid-search-with-postgres-native-bm25-and-vectorchord/) (March 2025) measured NDCG@10 on four [BEIR](https://github.com/beir-cellar/beir) datasets with BGE-M3 embeddings, BM25, RRF, and `bge-reranker-v2-m3`. Its BM25 used a Unicode word tokenizer instead of `to_tsvector('english', ...)`, so BM25 numbers from this tutorial will differ somewhat.
+
+| Dataset | Vector | BM25 | RRF | Cross-encoder |
 | --- | --- | --- | --- | --- |
-| FiQA-2018 | 0.40343 | 0.25301 | **0.42706** | 0.37632 |
-| Quora | 0.88433 | 0.78687 | **0.89069** | 0.87014 |
-| SCIDOCS | 0.16055 | 0.15584 | **0.17942** | 0.17299 |
-| SciFact | 0.57631 | 0.68495 | **0.74635** | 0.67855 |
-{.wide .expand}
+| FiQA-2018 | 0.40343 | 0.25301 | 0.37632 | **0.42706** |
+| Quora | 0.88433 | 0.78687 | 0.87014 | **0.89069** |
+| SCIDOCS | 0.16055 | 0.15584 | 0.17299 | **0.17942** |
+| SciFact | 0.57631 | 0.68495 | 0.67855 | **0.74635** |
+{.wide}
 
-The table above demonstrates several conclusions:
+The cross-encoder is best on every dataset. RRF beats both single methods only on SCIDOCS, where they score alike; on the other three it falls below the stronger method. Measure RRF on your own queries before relying on it, and weight the stronger side if one is clearly better. The benchmark code is in [xieydd/vectorchord-hybrid-search](https://github.com/xieydd/vectorchord-hybrid-search).
 
-* Compared to BM25 and semantic search, the cross-encoder model rerank can significantly improve search performance across different datasets.
-
-* On some datasets, RRF may lead the performance decrease. Please conduct verification tests before deciding whether to use RRF. If effective, choosing RRF will be a very economical choice, as it is much, much faster than reranking with the cross-encoder model, and almost no resource consumption.
-
-All related benchmark codes can be found [here](https://github.com/xieydd/vectorchord-hybrid-search). If you have any questions, please feel free to contact us on [Discord](https://discord.gg/KqswhpVgdU) or email us at [rh@vonng.com](mailto:rh@vonng.com).
-
-## Future Work
-
-The results highlight the great potential of the hybrid search method. In the future, we will focus on the following aspects to advance RAG:
-
-* **Improve the reranking method**: Explore the other model-based rerank, such as ColBERT or ColPali, to enhance reranking performance.
-* **Integrate graph search**: Investigate the use of the [**Apache AGE**](https://github.com/apache/age) extension for graph search and integrate it with the hybrid search method to further improve search performance.
-
-<a id="References"></a>
-## References
-
-* [https://github.com/pgsty/vchord](https://github.com/pgsty/vchord)
-* [https://github.com/pgsty/vchord_bm25](https://github.com/pgsty/vchord_bm25)
-* [https://techcommunity.microsoft.com/blog/adforpostgresql/introducing-the-graphrag-solution-for-azure-database-for-postgresql/4299871](https://techcommunity.microsoft.com/blog/adforpostgresql/introducing-the-graphrag-solution-for-azure-database-for-postgresql/4299871)
-* [https://www.pinecone.io/learn/hybrid-search-intro/](https://www.pinecone.io/learn/hybrid-search-intro/)
-* [https://www.pinecone.io/learn/series/rag/rerankers/](https://www.pinecone.io/learn/series/rag/rerankers/)
-* [https://blog.vespa.ai/improving-zero-shot-ranking-with-vespa-part-two/](https://blog.vespa.ai/improving-zero-shot-ranking-with-vespa-part-two/)
+<a id="future-work"></a><a id="References"></a><a id="references"></a>

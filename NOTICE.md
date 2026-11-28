@@ -4,7 +4,7 @@ This repository (`pgsty/vchord.pgsty.com`) powers `https://vchord.pgsty.com/`, t
 
 ## Upstream Documentation and Blog Material
 
-Substantial portions of the documentation under `content/docs/vchord/`, `content/docs/bm25/`, `content/docs/vector/`, `content/docs/vectors/`, `content/docs/tokenizer/`, `content/docs/bestmatch/`, and `content/cloud/` are adapted from the upstream `VectorChord`, `VectorChord-bm25`, `pgvector`, `pgvecto.rs`, `pg_tokenizer.rs`, and `pg_bestmatch.rs` repositories:
+Substantial portions of the documentation under `content/docs/vchord/`, `content/docs/bm25/`, `content/docs/vector/`, `content/docs/vectors/`, `content/docs/tokenizer/`, and `content/docs/bestmatch/` are adapted from the upstream `VectorChord`, `VectorChord-bm25`, `pgvector`, `pgvecto.rs`, `pg_tokenizer.rs`, and `pg_bestmatch.rs` repositories:
 
 - **Upstream Documentation Repository**: [`tensorchord/pgvecto.rs-docs`](https://github.com/tensorchord/pgvecto.rs-docs) (`https://docs.vectorchord.ai/`)
 - **Upstream Blog**: [`blog.vectorchord.ai`](https://blog.vectorchord.ai/)

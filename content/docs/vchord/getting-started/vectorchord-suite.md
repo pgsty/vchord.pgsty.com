@@ -1,7 +1,7 @@
 ---
 title: "Vchord Suite"
 linkTitle: "Vchord Suite"
-description: "Retrieval-Augmented Generation (RAG) is revolutionizing our interaction with vast datasets and language models. Build production-ready RAG directly in PostgreSQL with the Vchord Suite."
+description: "Vector search, BM25 keyword ranking, and multilingual tokenization in one PostgreSQL database: what each extension does and how to install all three."
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/getting-started/vectorchord-suite.md"
 aliases:
@@ -10,161 +10,54 @@ aliases:
 icon: fa-solid fa-boxes-stacked
 ---
 
-Retrieval-Augmented Generation (RAG) is revolutionizing our interaction with vast datasets and language models. RAG systems offer more precise, contextually aware, and current answers by retrieving pertinent information before generating responses. Nonetheless, constructing robust, scalable, and efficient RAG pipelines poses considerable challenges, particularly for production use.
+Search and retrieval-augmented generation need two kinds of matching. Embeddings find text that means the same thing in other words; keyword ranking finds the exact product code, error message, or name that an embedding blurs. Many systems run a vector database and a search engine next to PostgreSQL for this, and then spend their effort keeping three copies of the data in sync.
 
-Many solutions feature complex architectures, using distinct databases for vector search, keyword search, and primary data storage. This commonly results in data synchronization challenges, greater infrastructure complexity, and higher operational costs.
+The Vchord suite does both inside PostgreSQL, so one transaction updates the rows, the vector index, and the keyword index together, and backups, replication, and access control cover all of them.
 
-What if you could build a powerful, production-ready RAG system directly within your trusted PostgreSQL database?
+| Extension | What it adds | Release | Docs |
+| --- | --- | --- | --- |
+| [`vchord`](https://github.com/pgsty/vchord) | Vector indexes for pgvector columns | 1.5.0 | [vchord](/docs/vchord/) |
+| [`vchord_bm25`](https://github.com/pgsty/vchord_bm25) | BM25-ranked top-k search over `tsvector` columns | 1.3.0 | [vchord_bm25](/docs/bm25/) |
+| [`pg_tokenizer`](https://github.com/pgsty/pg_tokenizer) | Text analyzers and tokenizers that produce `tsvector` values, including for Chinese and Japanese | 1.3.0 | [pg_tokenizer](/docs/tokenizer/) |
 
-Enter the **Vchord Suite**, a collection of PostgreSQL extensions designed to bring high-performance vector search, native BM25 ranking, and flexible tokenization capabilities right into Postgres. Let's explore the components and how they enable next-generation RAG solutions.
+Each works on its own. You need `pg_tokenizer` only when PostgreSQL's built-in `to_tsvector` does not split your language or vocabulary well.
 
-## What is the Vchord Suite?
+## Install all three {#how-to-use-the-vchord-suite}
 
-The suite comprises three key PostgreSQL extensions working in concert:
+<a id="how-to-use-the-vectorchord-suite"></a>
 
-1. [**`vchord` (`pgsty/vchord`):**](https://github.com/pgsty/vchord) The core vector search engine. It's specifically designed for scalable, high-performance, and disk-efficient vector similarity search within PostgreSQL.
+All three support PostgreSQL 15–19 on Linux `x86_64` and `aarch64`, and all three must be preloaded.
 
-2. [**`vchord_bm25` (`pgsty/vchord_bm25`):**](https://github.com/pgsty/vchord_bm25) This extension implements the sophisticated BM25 ranking algorithm directly inside PostgreSQL, leveraging efficient Block-WeakAnd algorithms. BM25 is a standard for relevance ranking based on keyword frequency and document characteristics.
+1. Install the packages:
 
-3. [**`pg_tokenizer` (`pgsty/pg_tokenizer`):**](https://github.com/pgsty/pg_tokenizer) Provides essential text tokenization capabilities needed for effective full-text search, enabling fine-grained control over how text is processed for full-text search.
+   ```bash
+   curl -fsSL https://repo.pigsty.io/pig | bash
+   pig repo add pgsql -u
+   pig ext add vchord vchord_bm25 pg_tokenizer
+   ```
 
+1. Preload them, keeping any libraries already in the list, and restart PostgreSQL:
 
-By combining these extensions, you unlock powerful capabilities for building advanced RAG systems entirely within PostgreSQL.
+   ```sql
+   ALTER SYSTEM SET shared_preload_libraries = 'vchord, vchord_bm25, pg_tokenizer';
+   ```
 
-## Released versions
+1. Create the extensions in your database:
 
-| Extension | Current release | Current document/search interface |
-| --- | --- | --- |
-| `vchord` | `1.2.0` | `vector`, `halfvec`, `rabitq4`, `rabitq8`, `vchordrq`, `vchordg` |
-| `vchord_bm25` | `1.0.0` | Native PostgreSQL `tsvector` and `USING bm25` |
-| `pg_tokenizer` | `1.0.0` | Token analyzers plus `analyze_to_tsvector` and `tokenize_to_tsvector` |
-{.wide .expand}
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+   CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+   CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+   ```
+{.steps}
 
-## How to Use the Vchord Suite
+Release packages and source builds for each extension are described on its installation page. The `tensorchord/vchord-suite` container image contains older upstream releases with a different BM25 API.
 
-> [!WARNING]
-> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
+## What to build with it {#use-cases-for-the-vchord-suite}
 
-You can use the `tensorchord/vchord-suite` Docker image to run multiple extensions which are provided by TensorChord. The image is based on the Docker official PostgreSQL image and includes the following extensions:
-- `vchord`
-- `pg_tokenizer`
-- `vchord_bm25`
-- `vector`
+<a id="use-cases-for-the-vectorchord-suite"></a><a id="hybrid-search"></a><a id="ocr-free-visual-rag"></a><a id="references"></a>
 
-```shell
-docker run \
-  --name vchord-suite \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d tensorchord/vchord-suite:pg18-latest
-
-# If you want to use ghcr image, you can change the image to `ghcr.io/tensorchord/vchord-suite:pg18-latest`.
-docker run \
-  --name vchord-suite \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d tensorchord/vchord-suite:pg18-latest
-
-# If you want to use the specific version, you can use the tag `pg17-20250414`, supported version can be found in the support matrix.
-docker run \
-  --name vchord-suite \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d tensorchord/vchord-suite:pg17-20250414
-```
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-CREATE EXTENSION IF NOT EXISTS pg_tokenizer CASCADE;
-CREATE EXTENSION IF NOT EXISTS vchord_bm25 CASCADE;
-\dx
-pg_tokenizer | 0.1.1   | tokenizer_catalog | pg_tokenizer
-vchord       | 1.1.1   | public            | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
-vchord_bm25  | 0.3.0   | bm25_catalog      | vchord_bm25: A postgresql extension for bm25 ranking algorithm
-vector       | 0.8.1   | public            | vector data type and ivfflat and hnsw access methods
-```
-
-## Use Cases for the Vchord Suite
-
-### Use Case 1: Powerful Hybrid Search with Native BM25 and `vchord`
-
-<img src="/docs/images/hybrid-search.jpeg" alt="Hybrid Search" width="600" align="center"/>
-
-In the RAG era, effective retrieval is paramount. Neither keyword search nor vector search alone is perfect:
-
-* **Keyword Search (like BM25):** Excels at precision, finding documents with exact keyword matches. It's great for structured queries and term-specific searches. However, it struggles with synonyms, paraphrasing, and understanding the underlying *meaning* or semantic intent. (Leverages `vchord_bm25` and `pg_tokenizer`).
-
-* **Vector Search:** Captures deep semantic meaning and relationships between concepts, allowing it to find relevant information even if the exact keywords aren't present. However, it can sometimes lack precision for queries demanding specific term matches. (Leverages `vchord`).
-
-
-**The Solution: Hybrid Search.** By combining the strengths of both approaches within PostgreSQL, the Vchord Suite bridges this gap. You can run a query that leverages:
-
-* `vchord_bm25` (powered by `pg_tokenizer`) for keyword precision.
-
-* `vchord` for semantic understanding.
-
-
-The results from both can be intelligently combined (e.g., using reciprocal rank fusion - RRF or Model-based rerank) to produce a final ranking that is more accurate, contextually relevant, and semantically aware than either method could achieve alone. This delivers significantly better retrieval performance for your RAG applications.
-
-<a id="use-case-2-beyond-text-ocr-free-rag-with-colqwen2-vectorchord"></a>
-### Use Case 2: Beyond Text - OCR-Free RAG with ColQwen2 & `vchord`
-
-Building RAG systems for documents like PDFs or scanned images often involves cumbersome pre-processing pipelines. Traditional methods rely heavily on Optical Character Recognition (OCR) and layout analysis to extract text. This process can be:
-
-* **Slow:** OCR can be computationally expensive.
-
-* **Error-Prone:** OCR accuracy varies significantly depending on document quality.
-
-* **Lossy:** Crucial visual contexts like tables, figures, formatting, and relative positioning is often lost during text extraction.
-
-
-**The Solution: OCR-Free, Visually-Aware RAG.** What if you could query documents based on *how they look* and their *content*, without explicit OCR?
-
-This is now achievable by combining:
-
-1. **Multi-Modal Vision Language Models (VLMs):** Models like ColQwen2 can process images (document pages) and generate embeddings that capture *both* textual content and visual layout information.
-
-2. **`vchord`'s Multi-Vector Capabilities:** `vchord` can efficiently store and search *multiple* vectors per document within PostgreSQL – allowing you to store embeddings representing different aspects (e.g., text content, visual layout).
-
-
-With this setup, you can query your document database using prompts that reference visual elements ("Find documents with a bar chart comparing sales figures") or combined textual and visual cues, directly within PostgreSQL. This simplifies your RAG stack, potentially boosts retrieval accuracy by preserving visual context, and eliminates the bottlenecks associated with traditional OCR pipelines.
-
-## Why Build RAG in PostgreSQL?
-
-Leveraging the Vchord Suite within PostgreSQL offers significant advantages:
-
-* **Unified Data:** Keep your source data, text, metadata, and vector embeddings all in one place.
-
-* **Reduced Complexity:** Eliminate the need for separate vector databases and synchronization pipelines.
-
-* **Leverage Existing Infrastructure:** Utilize your existing PostgreSQL expertise, tooling, and operational practices.
-
-* **Transactional Integrity:** Benefit from PostgreSQL's robust ACID compliance.
-
-* **Rich Ecosystem:** Access the wide array of tools and features available within the PostgreSQL ecosystem.
-
-
-<a id="Conclusion"></a>
-## Conclusion
-
-The Vchord Suite transforms PostgreSQL into a powerful, production-ready platform for building advanced RAG solutions. By integrating high-performance vector search (`vchord`), sophisticated keyword ranking (`vchord_bm25`), and flexible text processing (`pg_tokenizer`), you can implement cutting-edge techniques like hybrid search and OCR-free multi-modal retrieval directly within your database. Simplify your architecture, enhance retrieval accuracy, and unlock the full potential of RAG with Vchord in PostgreSQL.
-
-## Blog Posts
-
-In our recent blog posts, we shared some user cases where all Docker images can be replaced with VectorChord Suite image.
-
-* [Supercharge vector search with ColBERT rerank in PostgreSQL](/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/)
-
-* [Hybrid search with Postgres Native BM25 and VectorChord](/blog/post/hybrid-search-with-postgres-native-bm25-and-vectorchord/)
-
-* [Beyond Text: Unlock OCR-Free RAG in PostgreSQL with Modal & VectorChord](/blog/post/beyond-text-unlock-ocr-free-rag-in-postgresql-with-modal-and-vectorchord/)
-
-
-<a id="References"></a>
-## References
-
-* [https://vchord.pgsty.com/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/](/blog/post/vectorchord-store-400k-vectors-for-1-in-postgresql/)
-
-* [https://vchord.pgsty.com/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/](/blog/post/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/)
-
-* [https://vchord.pgsty.com/blog/post/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/](/blog/post/vectorchord-bm25-introducing-pgtokenizera-standalone-multilingual-tokenizer-for-advanced-search/)
+- [Hybrid search](/docs/vchord/use-case/hybrid-search/) — Rank by embeddings and BM25 in one query and merge the two lists with reciprocal rank fusion.
+- [ColBERT rerank](/docs/vchord/use-case/colbert-rerank/) — Retrieve with one embedding per passage, then rerank by token-level MaxSim.
+- [Visual document retrieval](/docs/vchord/use-case/colqwen2-modal/) — Search PDF pages as images with ColQwen2, without OCR.
+{.cards}

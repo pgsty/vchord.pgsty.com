@@ -19,7 +19,7 @@ An introduction to the `pgvecto.rs`.
 <a id="what-is-pgvecto-rs"></a>
 ## What is `pgvecto.rs`
 
-`pgvecto.rs` is a Postgres extension that provides vector similarity search functions. It is written in Rust and based on [pgrx](https://github.com/tcdi/pgrx). It is currently in the beta status, we invite you to try it out in production and provide us with feedback. Read more at [📝our launch blog](/blog/release/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/).
+`pgvecto.rs` is a Postgres extension that provides vector similarity search functions. It is written in Rust and based on [pgrx](https://github.com/tcdi/pgrx). It is currently in the beta status, we invite you to try it out in production and provide us with feedback. Read more at [📝our launch blog](/release/pgvectors-02-unifying-relational-queries-and-vector-search-in-postgresql/).
 
 ## Comparison with pgvector
 
@@ -139,11 +139,11 @@ For more usage of `svector`, please refer to [vector types](/docs/vectors/refere
 
 For more usage of `bvector`, please refer to [vector types](/docs/vectors/reference/vector-types/bvector/).
 
-## Roadmap 🗂️
+## Roadmap 🗂️ {#roadmap}
 
 Please check out [ROADMAP](/docs/vectors/community/roadmap/).
 
-## Contribute 😊
+## Contribute 😊 {#contribute}
 
 We welcome all kinds of contributions from the open-source community, individuals, and partners.
 

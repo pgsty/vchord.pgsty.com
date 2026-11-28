@@ -1,46 +1,45 @@
 ---
 title: "Benchmarks"
-description: "QPS throughput and NDCG@10 retrieval accuracy benchmarks for VectorChord-BM25 against Elasticsearch, Lucene, ParadeDB, and PostgreSQL GIN."
-weight: 30
+linkTitle: "Benchmarks"
+description: "Published throughput and relevance measurements for vchord_bm25 and hybrid search, with their datasets, versions, and sources."
+weight: 40
 icon: fa-solid fa-chart-bar
 ---
 
-## Throughput Benchmark (QPS vs. Elasticsearch, Lucene, ParadeDB, PG GIN)
+These are the published measurements of vchord_bm25, with what was measured and where it comes from. They were taken with the 0.x engine, before vchord_bm25 was rewritten around `tsvector`; repeat them on your own data before relying on them. Speed depends on vocabulary, query length, and `LIMIT`; relevance depends mostly on tokenization.
 
-VectorChord-BM25's **Block-WeakAnd** implementation with 128-document delta-bitpacked blocks and 1-byte fieldnorm quantization delivers up to **3x higher QPS** than Tantivy-based PostgreSQL extensions (`ParadeDB / pg_search`) and an order of magnitude higher QPS than native PostgreSQL `GIN` indexes on Top-10 ranked queries:
+## Against Elasticsearch {#elasticsearch}
 
-![VectorChord-BM25 RPS Benchmark](/docs/images/es-vchord-bm25-rps.png)
+TensorChord compared VectorChord-BM25 0.1 with Elasticsearch in February 2025 on the BEIR datasets of [bm25-benchmarks](https://github.com/xhluca/bm25-benchmarks), after aligning stop words, stemming, and how title and text fields are combined. The source does not state the hardware. Source: [VectorChord-BM25: 3x faster than Elasticsearch](/blog/vectorchord-bm25-revolutionize-postgresql-search-with-bm25-ranking-3x-faster-than-elasticsearch/).
 
-![VectorChord-BM25 NDCG@10 Benchmark](/docs/images/es-vchord-bm25-ndcg10.png)
+| Measure | VectorChord-BM25 | Elasticsearch |
+| --- | --- | --- |
+| Top-1000 queries per second, geometric mean | 112 | 49 |
+| Top-10 queries per second, geometric mean | 272 | 341 |
 
-### Why `vchord_bm25` Achieves High QPS
+VectorChord-BM25 was faster when many results were requested and slower for the top 10. NDCG@10 was comparable on most datasets and higher on trec-covid and scifact.
 
-1. **Zero Cross-Engine Serialization**: Unlike foreign-data-wrapper or external Tantivy/Lucene bridges, `vchord_bm25` stores its segments directly inside PostgreSQL buffer pages (`PostgresRelation`), avoiding tuple marshaling overhead.
-2. **Aggressive Block-Max Pruning**: On multi-term queries, Block-WeakAnd skips over 80%–95% of 128-document posting blocks without decompressing them once the Top-10 threshold stabilizes.
-3. **256-Entry Precomputed BM25 Lookup Table**: Quantizing document length into a 1-byte `fieldnorm` replaces expensive per-document floating-point math with a single array lookup.
+Per dataset, top-1000 throughput:
 
----
+![Top-1000 requests per second of VectorChord-BM25 and Elasticsearch on BEIR datasets](/docs/images/es-vchord-bm25-rps.png)
 
-## Retrieval Accuracy Benchmark (`NDCG@10` on BEIR & LoTTE)
+Per dataset, NDCG@10 of the top-1000 results:
 
-The table below (from our [BEIR / LoTTE Hybrid Search & ColBERT Reranking evaluation](/blog/post/supercharge-vector-search-with-colbert-rerank-in-postgresql/)) compares retrieval accuracy (`NDCG@10`) across:
+![NDCG@10 of VectorChord-BM25 and Elasticsearch on BEIR datasets](/docs/images/es-vchord-bm25-ndcg10.png)
 
-- **PostgreSQL `vchord` Dense Vector Search** (`Vector`)
-- **PostgreSQL `vchord_bm25` Lexical Search** (`BM25`)
-- **Hybrid Search (`vchord` + `vchord_bm25` with ColBERT Rerank)**
+## Hybrid search quality {#hybrid}
 
-| Dataset | Domain | Vector (`vchord`) | BM25 (`vchord_bm25`) | Hybrid + ColBERT Rerank |
-| :--- | :--- | :---: | :---: | :---: |
-| **scifact** | Scientific Fact-Checking | 0.676 | 0.665 | **0.751** |
-| **nfcorpus** | Bio-Medical IR | 0.340 | 0.325 | **0.370** |
-| **fiqa** | Financial QA | 0.405 | 0.236 | **0.415** |
-| **trec-covid** | Biomedical COVID-19 | 0.728 | 0.656 | **0.838** |
-| **LoTTE-lifestyle (search)** | Lifestyle QA | 0.735 | 0.635 | **0.779** |
-| **LoTTE-lifestyle (forum)** | Lifestyle Forum | 0.662 | 0.506 | **0.701** |
-| **LoTTE-recreation (search)** | Recreation QA | 0.642 | 0.564 | **0.708** |
-| **LoTTE-technology (search)** | Technology QA | 0.562 | 0.483 | **0.647** |
-| **LoTTE-writing (search)** | Writing QA | 0.726 | 0.674 | **0.793** |
-{.wide .expand}
+TensorChord measured NDCG@10 on four BEIR datasets in March 2025 with vchord 0.3, VectorChord-BM25 0.2 using pg_tokenizer's Unicode tokenizer, BGE-M3 embeddings, RRF with `k = 60`, and the `bge-reranker-v2-m3` cross-encoder. Source: [Hybrid search with Postgres native BM25 and VectorChord](/blog/hybrid-search-with-postgres-native-bm25-and-vectorchord/), code in [xieydd/vectorchord-hybrid-search](https://github.com/xieydd/vectorchord-hybrid-search).
 
-> [!TIP]
-> Combining **`vchord_bm25`** with **`vchord`** consistently outperforms either dense vector search or lexical BM25 alone across every evaluated dataset. See [Hybrid Search (BM25 + VectorChord)](/docs/bm25/usage/hybrid-search/) for SQL query templates.
+| Dataset | Vector search | BM25 | RRF of both | Cross-encoder rerank |
+| --- | --- | --- | --- | --- |
+| FiQA-2018 | 0.403 | 0.253 | 0.376 | 0.427 |
+| Quora | 0.884 | 0.787 | 0.870 | 0.891 |
+| SCIDOCS | 0.161 | 0.156 | 0.173 | 0.179 |
+| SciFact | 0.576 | 0.685 | 0.679 | 0.746 |
+
+RRF beat both single methods only on SCIDOCS; reranking the candidates with a cross-encoder scored highest on every dataset. [Hybrid search](/docs/bm25/usage/hybrid-search/#tuning) shows how to weight the two lists.
+
+## Release comparisons {#release-reports}
+
+The [1.3.0 performance report](https://github.com/pgsty/vchord_bm25/blob/1.3.0/docs/performance/2026-11-24-bm25.zh-CN.md) (in Chinese) compares 1.3.0 with 1.2.0 on a constructed 20,000-row corpus, on macOS `arm64` and Linux `x86_64` with PostgreSQL 18: build WAL, query plans and their buffer reads, maintenance, and parallel build time and memory.

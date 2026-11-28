@@ -23,13 +23,13 @@ cascade:
 > [!IMPORTANT] Successor Recommendation: `vchord_bm25` + `pg_tokenizer`
 > `pg_bestmatch.rs` was TensorChord's first-generation BM25 extension built on sparse vector dot products. For new production deployments, we recommend [`vchord_bm25`](/docs/bm25/) paired with [`pg_tokenizer`](/docs/tokenizer/), which replaces HNSW sparse-vector approximation with a native **Block-WeakAnd (WAND)** inverted index for 100% exact Top-K BM25 scoring and up to 3x higher throughput.
 
-## Key Capabilities
+## Key Capabilities {#key-capabilities}
 
 - **In-Database BM25 Sparse Vector Generation**: Maintains document frequency, term frequency, and document length statistics inside `bm25_catalog` and emits BM25-weighted sparse vectors for both documents and queries.
 - **Native [`pgvector`](/docs/vector/) & [`pgvecto.rs`](/docs/vectors/) Integration**: Outputs standard `sparsevec` (`pgvector 0.7.0+`) or `svector` (`pgvecto.rs`) values so you can score documents with `<#>` (negative inner product) and accelerate search with HNSW indexes.
 - **Built-in Tokenization**: Ships with a built-in HuggingFace `bert-base-uncased` WordPiece vocabulary (`30,522` dimensions) and a standalone `tokenize(text)` SQL function.
 
-## Documentation Sections
+## Documentation Sections {#documentation-sections}
 
 {{< cards >}}
 {{< card title="Getting Started" icon="fa-solid fa-rocket" link="/docs/bestmatch/getting-started/" >}}

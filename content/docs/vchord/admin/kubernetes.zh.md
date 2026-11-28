@@ -1,268 +1,178 @@
 ---
-title: "Kubernetes (Obsolete)"
-linkTitle: "Kubernetes (Obsolete)"
-description: "使用 CloudNative-PG 在 Kubernetes 中部署内置 VectorChord 扩展或挂载轻量级扩展镜像卷的 PostgreSQL 集群教程。"
+title: "Kubernetes（CloudNativePG）"
+linkTitle: "Kubernetes"
+description: "用 CloudNativePG 在 Kubernetes 上运行 vchord：用发布包构建运行镜像，或在 PostgreSQL 18 及以上版本把 vchord 作为扩展镜像挂载。"
 weight: 30
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/admin/kubernetes.md"
 aliases:
-  - "/zh/docs/admin/kubernetes/"
+  - "/docs/admin/kubernetes/"
   - "/vectorchord/admin/kubernetes/"
 icon: fa-solid fa-dharmachakra
 ---
 
-> [!WARNING]
-> **Obsolete（过时，待更新维护）**：PGSTY 维护版本的 Docker 和 Kubernetes 镜像尚未发布。以下上游说明仅供参考，后续更新。
+[CloudNativePG](https://cloudnative-pg.io/)（CNPG）用容器镜像在 Kubernetes 上运行 PostgreSQL 集群，它的镜像里没有 vchord。PGSTY 不发布容器镜像，需要用 [vchord 发布页](https://github.com/pgsty/vchord/releases/tag/1.5.0)上的 `.deb` 包自己构建。可以为 PostgreSQL 15 到 19 中任一大版本构建完整的运行镜像；PostgreSQL 18 及以上也可以只构建一个很小的扩展镜像，由 CNPG 挂载进它自己的运行镜像。
 
-如果您希望在运行于 Kubernetes 上的 PostgreSQL 中使用 `vectorchord`，本教程将为您提供完整的操作指引。在本教程中，我们将使用 [CloudNative-PG](https://cloudnative-pg.io/) 在 Kubernetes 中部署 PostgreSQL 集群。
+<a id="requirements"></a><a id="Requirements"></a>
 
-<a id="Requirements"></a>
-## 环境要求 {#requirements}
+## 安装 Operator {#install-cloudnative-pg}
 
-| 组件名称 | 版本要求 |
-|------|---------|
-| [helm](https://helm.sh/) | >= 2.4.1 |
-| [kubectl](https://kubernetes.io/docs/tasks/tools/) | >= 1.14 |
-| [Kubernetes](https://kubernetes.io/) | >= 1.24.0 |
-| [Kubernetes（使用镜像卷扩展 Image Volume Extensions）](https://kubernetes.io/) | >= 1.31.0 |
-{.wide .expand}
+集群里已经装了 CNPG 的话跳过这一步。
 
-## 安装 CloudNative-PG {#install-cloudnative-pg}
-
-我们使用 [CloudNative-PG (cnpg)](https://cloudnative-pg.io/) 在 Kubernetes 中部署 PostgreSQL 集群。您可以通过 [Helm](https://helm.sh/docs/intro/install/) 安装它：
-
-```shell
-$ sudo helm repo add cnpg https://cloudnative-pg.github.io/charts
-$ sudo helm upgrade --install cnpg   --namespace cnpg-system   --create-namespace   cnpg/cloudnative-pg
-$ helm list --all-namespaces
-NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                         APP VERSION
-cnpg                    cnpg-system     1               2024-12-30 16:37:55.9520917 +0800 CST   deployed        cloudnative-pg-0.23.0               1.25.0   
-$ kubectl get pod -n cnpg-system   
-NAME                                   READY   STATUS    RESTARTS   AGE
-cnpg-cloudnative-pg-54f97dbcdf-jm97n   1/1     Running   0          1m
+```bash
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm upgrade --install cnpg \
+  --namespace cnpg-system \
+  --create-namespace \
+  cnpg/cloudnative-pg
+kubectl get pods -n cnpg-system
 ```
 
-## 内置 `vectorchord` 的 PostgreSQL 镜像 {#postgresql-image-with-vectorchord}
+## 构建运行镜像 {#postgresql-image-with-vectorchord}
 
-在官方镜像仓库中，我们已经提供了预装 `vectorchord` 的 Docker 镜像，您可以在 [ghcr.io/tensorchord/cloudnative-vectorchord](https://github.com/tensorchord/cloudnative-vectorchord/pkgs/container/cloudnative-vectorchord) 中找到它。如果您希望构建自己的自定义镜像，可以参考以下 Dockerfile：
+这个镜像基于 CNPG 的 `standard` 镜像（已自带 pgvector），装上同一 PostgreSQL 大版本、同一 CPU 架构的 vchord 包：
 
 ```dockerfile
-ARG CNPG_TAG
+ARG PG_MAJOR=18
+FROM ghcr.io/cloudnative-pg/postgresql:${PG_MAJOR}-standard-trixie
 
-FROM ghcr.io/cloudnative-pg/postgresql:$CNPG_TAG-bookworm
-
-ARG CNPG_TAG
-ARG VECTORCHORD_TAG
+ARG PG_MAJOR
+ARG VCHORD_VERSION=1.5.0
 ARG TARGETARCH
+ARG DEB=postgresql-${PG_MAJOR}-vchord_${VCHORD_VERSION}-1_${TARGETARCH}.deb
+ARG URL=https://github.com/pgsty/vchord/releases/download/${VCHORD_VERSION}
 
-# 切换为 root 用户以安装软件包
 USER root
-ADD https://github.com/tensorchord/VectorChord/releases/download/$VECTORCHORD_TAG/postgresql-${CNPG_TAG%.*}-vchord_${VECTORCHORD_TAG#"v"}-1_$TARGETARCH.deb /tmp/vchord.deb
-RUN apt-get install -y /tmp/vchord.deb && rm -f /tmp/vchord.deb
-
-USER postgres
+ADD ${URL}/${DEB} ${URL}/${DEB}.sha256 /tmp/vchord/
+RUN cd /tmp/vchord && sha256sum -c ${DEB}.sha256 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ./${DEB} && \
+    rm -rf /tmp/vchord /var/lib/apt/lists/*
+USER 26
 ```
 
-## 创建 PostgreSQL 集群 {#create-postgresql-cluster}
+按节点的 CPU 架构构建，并推送到集群能拉取的镜像仓库：
 
-我们提供了一份用于在 Kubernetes 中创建 PostgreSQL 集群的示例 YAML 文件，您可以根据实际需求进行修改。请重点注意以下配置项：
-- 设置 `shared_preload_libraries` 以加载 `vchord` 共享库。
-- 执行 `CREATE EXTENSION IF NOT EXISTS vchord CASCADE;` 以创建 `vchord` 扩展。
+```bash
+docker buildx build --platform linux/amd64 --build-arg PG_MAJOR=18 \
+  -t registry.example.com/cnpg-vchord:18-1.5.0 --push .
+```
+
+## 创建集群 {#create-postgresql-cluster}
+
+预加载 `vchord`，并在应用数据库里创建扩展：
 
 ```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tensorchord
-type: kubernetes.io/basic-auth
-data:
-  password: dGVuc29yY2hvcmQ= # tensorchord
-  username: dGVuc29yY2hvcmQ= # tensorchord
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: vchord
 spec:
-  instances: 1
+  instances: 3
+  imageName: registry.example.com/cnpg-vchord:18-1.5.0
+  storage:
+    size: 50Gi
+  postgresql:
+    shared_preload_libraries:
+      - vchord
   bootstrap:
     initdb:
-      database: tensorchord
+      database: app
+      owner: app
       postInitApplicationSQL:
         - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-      owner: tensorchord
-      secret:
-        name: tensorchord
-      dataChecksums: true
-      encoding: 'UTF8'
-  storage:
-    size: 1Gi
-  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17
-  postgresql:
-    shared_preload_libraries: # 加载 vchord 共享库
-    - "vchord"
 ```
 
-您可以安装 `cnpg` 的 [kubectl 插件](https://cloudnative-pg.io/docs/1.28/kubectl-plugin)来管理您的 PostgreSQL 集群。现在，我们可以检查集群的运行状态：
-
-```shell
-$ sudo kubectl get pod
-vchord-1                                                 1/1     Running     0             42s
-
-$ kubectl cnpg status vchord
-Cluster Summary
-Name:                vchord
-Namespace:           default
-System ID:           7527554386501582867
-PostgreSQL Image:    ghcr.io/tensorchord/cloudnative-vectorchord:17
-Primary instance:    vchord-1
-Primary start time:  2025-07-16 05:55:51 +0000 UTC (uptime 53s)
-Status:              Cluster in healthy state
-Instances:           1
-Ready instances:     1
-Current Write LSN:   0/204FB50 (Timeline: 1 - WAL File: 000000010000000000000002)
-
-Certificates Status
-Certificate Name    Expiration Date                Days Left Until Expiration
-----------------    ---------------                --------------------------
-vchord-ca           2025-10-14 05:50:08 +0000 UTC  90.00
-vchord-replication  2025-10-14 05:50:08 +0000 UTC  90.00
-vchord-server       2025-10-14 05:50:08 +0000 UTC  90.00
-
-Continuous Backup status
-Not configured
-
-Physical backups
-No running physical backups found
-
-Streaming Replication status
-Not configured
-
-Unmanaged Replication Slot Status
-No unmanaged replication slots found
-
-Managed roles status
-No roles managed
-
-Tablespaces status
-No managed tablespaces
-
-Instances status
-Name      Database Size  Current LSN  Replication role  Status  QoS         Manager Version  Node
-----      -------------  -----------  ----------------  ------  ---         ---------------  ----
-vchord-1                 0/204FB50    Primary           OK      BestEffort  1.25.0           ip-10-0-2-29.ec2.internal
+```bash
+kubectl apply -f cluster.yaml
+kubectl get pods -l cnpg.io/cluster=vchord
 ```
 
-> 注意：本文仅提供最简配置示例，未包含逻辑复制、流式复制以及备份与恢复等高级配置。我们将在后续文章中专门介绍这些内容。您也可以参考 [CloudNative-PG 官方文档](https://cloudnative-pg.io/docs/)了解更多关于 `Cluster` 资源的配置选项。
+`instances: 3` 表示一个主库加两个流复制副本。要把查询分摊到副本上，见[可扩展性](/zh/docs/vchord/admin/scalability/)。
 
-## 连接到 PostgreSQL 集群 {#connect-to-postgresql-cluster}
+## 连接与验证 {#connect-to-postgresql-cluster}
 
-您可以使用 `kubectl port-forward` 转发端口并连接到 PostgreSQL 集群：
+CNPG 把 `app` 用户的密码存在 `vchord-app` 这个 Secret 里。转发主库服务的端口，查看已安装的版本：
 
-```shell
-$ kubectl port-forward services/vchord-rw 5432:5432
-$ psql -h 127.0.0.1 -d tensorchord -U tensorchord
-tensorchord=> \dx
-                                                 List of installed extensions
-  Name   | Version |   Schema   |                                         Description                                         
----------+---------+------------+---------------------------------------------------------------------------------------------
- plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
- vchord  | 1.1.1   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
- vector  | 0.8.1   | public     | vector data type and ivfflat and hnsw access methods
-(3 rows)
+```bash
+kubectl port-forward svc/vchord-rw 5432:5432 &
+export PGPASSWORD=$(kubectl get secret vchord-app -o jsonpath='{.data.password}' | base64 -d)
+psql -h 127.0.0.1 -U app -d app -c "SELECT extversion FROM pg_extension WHERE extname = 'vchord';"
 ```
 
-可以看到 `vchord` 扩展已成功安装。现在您无需额外安装步骤，即可直接按照[快速开始](/zh/docs/vchord/getting-started/overview/#quick-start)体验各项功能。
+```text
+ extversion
+------------
+ 1.5.0
+```
 
+## 以扩展镜像挂载 vchord {#lightweight-extension-images}
 
-## 轻量级扩展镜像 {#lightweight-extension-images}
+在 PostgreSQL 18 及以上版本，CNPG 可以把扩展镜像挂载成只读卷，并把它加进 `extension_control_path` 和 `dynamic_library_path`。这样运行镜像用 CNPG 官方的就行，升级 vchord 只需改一个镜像引用。前提条件：
 
-在 Kubernetes 上运行 PostgreSQL 时，扩展管理往往是最大的挑战之一。如果您想向[上述一体式镜像](#postgresql-image-with-vectorchord)中添加一个新扩展，通常必须重新构建镜像、备份 PostgreSQL 集群、应用包含新扩展的镜像，然后再恢复集群。这一繁琐流程源于 Kubernetes 中不可变容器（Immutable Containers）的设计理念。
+- PostgreSQL 18 及以上，CNPG 1.27 及以上。
+- Kubernetes 1.35 及以上；1.33 和 1.34 需要手动打开 `ImageVolume` 特性门控。
+- containerd 2.1 及以上，或 CRI-O 1.31 及以上。
 
-得益于 Andrew Dunstan 和 Matheus Alcantara 的贡献，一项针对 [PostgreSQL 18 的提案](https://commitfest.postgresql.org/patch/4913/)引入了一个新的配置选项（GUC）`extension_control_path`，允许用户为扩展控制文件指定额外的搜索目录。
+镜像里放 `lib/vchord.so` 和 `share/extension/`，这是 CNPG 默认查找的目录结构。下面的 Dockerfile 从发布页的 `.zip` 包取出这些文件：
 
-与此同时，在 Kubernetes 侧，[ImageVolume 特性](https://kubernetes.io/blog/2024/08/16/kubernetes-1-31-image-volume-source/)允许我们将容器镜像作为只读且不可变的卷直接挂载到运行中的 Pod 内部。这使得打包为独立 OCI 兼容容器镜像的 PostgreSQL 扩展，能够直接挂载到 CloudNativePG 集群内的指定目录中。
+```dockerfile
+FROM --platform=$BUILDPLATFORM debian:trixie-slim AS unpack
+ARG PG_MAJOR=18
+ARG VCHORD_VERSION=1.5.0
+ARG TARGETARCH
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip
+RUN case "$TARGETARCH" in amd64) arch=x86_64 ;; arm64) arch=aarch64 ;; esac && \
+    zip=postgresql-${PG_MAJOR}-vchord_${VCHORD_VERSION}_${arch}-linux-gnu.zip && \
+    cd /tmp && \
+    curl -fsSLO https://github.com/pgsty/vchord/releases/download/${VCHORD_VERSION}/${zip} && \
+    curl -fsSLO https://github.com/pgsty/vchord/releases/download/${VCHORD_VERSION}/${zip}.sha256 && \
+    sha256sum -c ${zip}.sha256 && \
+    unzip -q ${zip} -d /tmp/vchord && \
+    mkdir -p /out/lib /out/share && \
+    cp /tmp/vchord/pkglibdir/* /out/lib/ && \
+    cp -r /tmp/vchord/sharedir/extension /out/share/
 
-基于这两项特性，我们构建了轻量级的 `vectorchord` 扩展镜像 [vchord-scratch](https://github.com/tensorchord/VectorChord-images/pkgs/container/vchord-scratch)。
+FROM scratch
+COPY --from=unpack /out/ /
+```
 
-> [!TIP]
-> 如果您希望使用[`镜像卷扩展（Image Volume Extensions）`](https://cloudnative-pg.io/docs/1.28/imagevolume_extensions/)，需要满足以下要求：
-> - 使用 Kubernetes 1.31.0 或更高版本（推荐使用 1.33.0），并确保已启用 `ImageVolume` 特性门控（Feature Gate）。
-> - 使用 CloudNative-PG Helm Chart 0.26.0 或更高版本。
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 --build-arg PG_MAJOR=18 \
+  -t registry.example.com/vchord-ext:18-1.5.0 --push .
+```
 
+<a id="create-postgresql-cluster-with-image-volume-extensions"></a>
 
-### 使用镜像卷扩展创建 PostgreSQL 集群 {#create-postgresql-cluster-with-image-volume-extensions}
-
-您可以使用以下示例 YAML 文件创建一个挂载 `vectorchord` 扩展镜像的 PostgreSQL 集群，并根据实际需求进行修改。请重点注意以下配置项：
-- 设置 `shared_preload_libraries` 以加载 `vchord` 共享库。
-- 执行 `CREATE EXTENSION IF NOT EXISTS vchord CASCADE;` 以创建 `vchord` 扩展。
-- 设置 `extensions` 字段以指定 `vchord-scratch` 扩展镜像。
-- 设置 `extension_control_path` 和 `dynamic_library_path`，以指定扩展控制文件和共享库文件在镜像内的路径。
+然后在集群里引用它。vchord 依赖的 pgvector 由 `standard` 运行镜像提供：
 
 ```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tensorchord
-type: kubernetes.io/basic-auth
-data:
-  password: dGVuc29yY2hvcmQ= # tensorchord 
-  username: dGVuc29yY2hvcmQ= # tensorchord
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: vchord 
+  name: vchord
 spec:
-  instances: 1 
-  imageName: ghcr.io/cloudnative-pg/postgresql:18-system-bookworm
-  bootstrap:
-    initdb:
-      database: tensorchord
-      postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
-      owner: tensorchord
-      secret:
-        name: tensorchord
-      dataChecksums: true
-      encoding: 'UTF8'
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:18-standard-trixie
   storage:
-    size: 1Gi
+    size: 50Gi
   postgresql:
+    shared_preload_libraries:
+      - vchord
     extensions:
       - name: vchord
         image:
-          reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1
-        dynamic_library_path:
-          - /usr/lib/postgresql/18/lib/
-        extension_control_path:
-          - /usr/share/postgresql/18/
-    shared_preload_libraries:
-    - "vchord"
+          reference: registry.example.com/vchord-ext:18-1.5.0
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
 ```
 
-接下来，我们可以验证扩展是否已成功安装：
+## 升级与限制 {#limits}
 
-```shell
-$ kubectl port-forward services/vchord-rw 5432:5432
-$ psql -h
-$ psql -h 0.0.0.0 -U tensorchord -d tensorchord
-Password for user tensorchord: 
-psql (13.3 (Ubuntu 13.3-1.pgdg16.04+1), server 18.0 (Debian 18.0-1.pgdg12+3))
-WARNING: psql major version 13, server major version 18.
-         Some psql features might not work.
-SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
-Type "help" for help.
-
-tensorchord=> \dx
-                                                 List of installed extensions
-  Name   | Version |   Schema   |                                         Description                                         
----------+---------+------------+---------------------------------------------------------------------------------------------
- plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
- vchord  | 1.1.1   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
- vector  | 0.8.1   | public     | vector data type and ivfflat and hnsw access methods
-(3 rows)
-
-```
-
-> [!WARNING]
-> 镜像 `ghcr.io/cloudnative-pg/postgresql:18-system-bookworm` 默认已内置了 `vchord` 所需的 `pgvector` 扩展。不过，未来的版本中该基础镜像可能会移除内置的 `pgvector`（但短期内我们尚未看到这一趋势）。
+- 升级 vchord 时，用新版本构建镜像，修改 `imageName` 或扩展镜像的 `reference`，CNPG 会逐个重启实例。之后在每个数据库里执行 `ALTER EXTENSION vchord UPDATE;`。
+- 镜像要按集群的 PostgreSQL 大版本构建，为其他大版本编译的动态库加载不了。
+- `minimal` 运行镜像不带 pgvector。用它的话，`CREATE EXTENSION vchord CASCADE` 会失败，除非再挂载一个 pgvector 扩展镜像，或在自己的镜像里装上 pgvector。
+- 要加上 `vchord_bm25` 或 `pg_tokenizer`，在同一个运行镜像里装它们的 `.deb` 包即可，比如 [vchord_bm25 发布页](https://github.com/pgsty/vchord_bm25/releases/tag/1.3.0)上的 `postgresql-18-vchord-bm25_1.3.0-1_amd64.deb`。`pg_tokenizer` 的包要求 glibc 2.39 及以上，`trixie` 镜像满足，`bookworm` 镜像不满足。

@@ -26,11 +26,11 @@ If you do not know what code of conduct is, please have a look at [Your Code of 
 Our community is always looking for enthusiasts to help in all different ways.
 
 <a id="simply-start-using-pgvecto-rs"></a>
-### ⚽ Simply start using `pgvecto.rs`
+### ⚽ Simply start using `pgvecto.rs` {#simply-start-using-pgvectors}
 
 Go through the [Getting Started](/docs/vectors/getting-started/overview/) guide. Does everything work as expected? If not, we're always looking for improvements. Chat with us on [💬 Discord](https://discord.gg/KqswhpVgdU) or [file an issue](https://github.com/tensorchord/pgvecto.rs/issues/new/choose) on GitHub.
 
-### 🙋 Triaging Issues and Pull Requests
+### 🙋 Triaging Issues and Pull Requests {#triaging-issues-and-pull-requests}
 
 One great way you can contribute to the project without writing any code is to help triage issues and pull requests as they come in.
 
@@ -40,15 +40,15 @@ One great way you can contribute to the project without writing any code is to h
 - Ask for test plans and review code.
 
 <a id="contribute-to-pgvecto-rs"></a>
-### 👨‍💻 Contribute to `pgvecto.rs`
+### 👨‍💻 Contribute to `pgvecto.rs` {#contribute-to-pgvectors}
 
 If you find an issue you would like to fix, open a pull request. Please read [development tutorials](/docs/vectors/developers/development/) to get started.
 
-### 👉 Improve documentation
+### 👉 Improve documentation {#improve-documentation}
 
 Everyone loves documentation. If you find anything that is confusing or can be improved, you can click "Edit this page" at the bottom of most docs, which takes you to the GitHub interface to make and propose changes.
 
 <a id="discuss-pgvecto-rs-on-discord"></a>
-### 💬 Discuss `pgvecto.rs` on Discord
+### 💬 Discuss `pgvecto.rs` on Discord {#discuss-pgvectors-on-discord}
 
 Chat with us on [💬 Discord](https://discord.gg/KqswhpVgdU).

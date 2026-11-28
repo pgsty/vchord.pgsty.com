@@ -1,214 +1,115 @@
 ---
-title: "评估召回率"
-linkTitle: "评估召回率"
-description: "在向量搜索中，召回率（recall）是指索引返回的近似最近邻中真实最近邻所占的比例。VectorChord 提供了内置的召回率评估与查询采样工具。"
-weight: 90
+title: "测量召回率"
+linkTitle: "测量召回率"
+description: "测量查询返回了多少真正的最近邻，可以针对单个查询，也可以针对真实流量的样本，以便按目标调整 probes、epsilon 和 ef_search。"
+weight: 60
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/usage/measure-recall.md"
-math: true
 aliases:
-  - "/zh/docs/usage/measure-recall/"
+  - "/docs/usage/measure-recall/"
   - "/vectorchord/usage/measure-recall/"
 icon: fa-solid fa-bullseye
 ---
 
-{{< badge text="since v0.5.0" tone="info" >}}
+召回率是索引扫描返回的结果中真正最近邻所占的比例：一个 `LIMIT 10` 查询如果返回了精确扫描结果中的 9 行，召回率就是 0.9。调参要以它为准，因为 vchord 中每个提速的设置都会牺牲一部分召回率。请在自己的数据和查询上测量；在其他数据集上得到的基准数字没法预测它。
 
+## 测量单个查询 {#recall-evaluation}
 
-在向量搜索中，召回率（recall）是指索引返回的近似最近邻中真实最近邻所占的比例。例如，如果索引检索出 \(100\) 个近似最近邻，其中有 \(97\) 个属于真实最近邻，那么召回率就是 \(\frac{97}{100} = 0.97\)。
-
-> [!TIP]
-> 该功能目前处于预览阶段。
-
-
-## 召回率评估 {#recall-evaluation}
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-召回率衡量的是搜索返回的相关结果占全部应返回真实结果的比例。在使用索引时，您通常希望了解不同参数配置所对应的召回率和 QPS。`vchordrq_evaluate_query_recall` 函数正是为评估召回率而设计的：它接收一条返回行标识符的查询语句，并返回对应的召回率。
-
-`vchordrq_evaluate_query_recall` 函数内部依赖 [`ctid`](https://www.postgresql.org/docs/current/ddl-system-columns.html#DDL-SYSTEM-COLUMNS-CTID) 将查询结果与基准真相（ground truth）进行比对。因此，传入的 `query` 参数必须以 `SELECT ctid` 开头。
+`vchordrq_evaluate_query_recall` 先通过索引执行查询，再执行一次得到真实答案，返回两者共有的行所占比例。查询只能选择 `ctid`：
 
 ```sql
-SET vchordrq.probes = '100';
-SET vchordrq.epsilon = 1.0;
+SET vchordrq.probes = '20';
+
 SELECT vchordrq_evaluate_query_recall(query => $$
-  SELECT ctid FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 10
+    SELECT ctid FROM items ORDER BY embedding <=> '[3, 1, 2]' LIMIT 10
 $$);
 ```
 
-默认情况下，该函数通过执行另一次高精度索引扫描来生成估算的基准真相，并据此评估召回率。如果您希望通过全表扫描（table scan）生成精确的基准真相来评估召回率，请将函数参数 `exact_search` 设置为 `true`。
+走索引的那一次使用当前会话的设置，或者[存在索引上的设置](/zh/docs/vchord/usage/fallback-parameters/)，所以可以改一下 `vchordrq.probes` 或 `vchordrq.epsilon` 再测一次。
+
+<a id="estimated-ground-truth"></a><a id="exact-ground-truth"></a>
+
+默认情况下，真实答案来自第二次探查所有列表的 vchordrq 扫描，比读整张表快得多，结果也非常接近精确值。如果要测试高于 `1.9` 的 `epsilon`，把至少同样大的值传给 `accu_epsilon`。想要顺序扫描得到的精确答案，传 `exact_search => true`；多向量（`@#`）查询必须这样做。
 
 ```sql
-SET vchordrq.probes = '100';
-SET vchordrq.epsilon = 1.0;
-SELECT vchordrq_evaluate_query_recall(query => $$
-  SELECT ctid FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 10
-$$, exact_search => true);
+SELECT vchordrq_evaluate_query_recall(
+    query => $$ SELECT ctid FROM items ORDER BY embedding <=> '[3, 1, 2]' LIMIT 10 $$,
+    exact_search => true
+);
 ```
 
-对于 MaxSim（`@#`）查询，必须指定 `exact_search => true`；估算召回率模式会报错。使用精确搜索时，请保持顺序扫描开启。参阅[多向量检索](/zh/docs/vchord/usage/multi-vector-retrieval/)。
+## 测量真实流量 {#query-sampling}
 
-ANN 扫描使用当前设置，包括索引回退参数。未显式指定 `accu_probes` 时，估算基准扫描会探测索引各层的全部分区；无法确定唯一层数时，回退到精确搜索。函数会恢复内部修改过的所有 GUC 的值及来源，保持后续查询的回退行为。两次查询均以调用者权限执行。
+<a id="sampling-security"></a>
 
-## 查询采样 {#query-sampling}
-
-{{< badge text="since v0.5.2" tone="info" >}}
-
-为了方便评估生产或测试中的查询召回率，VectorChord 内置了查询采样方法。
+单个查询说明不了多少问题。要针对应用实际发出的查询调参，可以让 vchordrq 记录一部分查询，再对这批样本求平均召回率。记录功能默认关闭，只有超级用户能打开：
 
 ```sql
-SET vchordrq.query_sampling_enable = on;
-SET vchordrq.query_sampling_max_records = 1000;
-SET vchordrq.query_sampling_rate = 1;
+ALTER SYSTEM SET vchordrq.query_sampling_enable = on;
+ALTER SYSTEM SET vchordrq.query_sampling_max_records = 1000;  -- 每个索引保留的条数
+ALTER SYSTEM SET vchordrq.query_sampling_rate = 0.01;         -- 被记录的扫描比例
+SELECT pg_reload_conf();
 ```
 
-假设您已经执行了一条示例向量搜索：`SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 10`。
-
-在查询执行并被采样后，您可以检查捕获到的查询要素，包括模式名（schema）、索引名、表名、列名、操作符以及目标向量。
+积累一段流量后，计算某个索引已记录查询的平均召回率：
 
 ```sql
-SELECT * from vchordrq_sampled_queries('items_embedding_idx');
--- schema_name | index_name          | table_name | column_name | operator |    value
----------------+---------------------+------------+-------------+----------+--------------
--- public      | items_embedding_idx | items      | embedding   | <->      | [0.5,0.25,1]
+SELECT avg(vchordrq_evaluate_query_recall(
+    format('SELECT ctid FROM %I.%I ORDER BY %I OPERATOR(%s) %L LIMIT 10',
+           q.schema_name, q.table_name, q.column_name, q.operator, q.value),
+    exact_search => true))
+FROM vchordrq_sampled_queries('items_embedding_idx') AS q;
 ```
 
-1.3.0 中，读取查询采样需要超级用户或 `pg_read_all_stats` 权限。表所有者和 `SELECT` 权限不足以读取采样：查询向量可能包含其他用户的输入，甚至跨越行级安全（RLS）策略。两个采样函数均强制检查此权限；`vchordrq_sampled_queries` 视图对其他角色返回空结果，查询该视图还需具有视图本身的 `SELECT` 权限。预热仍按表所有者或 `SELECT` 权限授权。
+- 读取样本需要超级用户或 `pg_read_all_stats` 角色成员身份，因为样本中包含其他用户的查询向量，不受行级安全策略约束。
+- 样本保存在执行查询的那台服务器上、数据库之外：不会复制，不会被备份，也不会因回滚而删除。如果查询发往备库，就到备库上读取样本。
+- 只记录单向量的 vchordrq 扫描。
 
-查询采样默认关闭，属于本机非事务性诊断数据，不是审计日志：查询事务回滚后，样本仍可能保留。普通事务提交索引或数据库删除后会尽力清理样本；失败的 DDL 和 SAVEPOINT 回滚不会删除样本。`DROP INDEX CONCURRENTLY` 在等待期间会有内部提交，因此如果在该提交之后取消，可能留下无效索引，而旧样本已经被清理。提交后崩溃或通过 `COMMIT PREPARED` 提交删除可能留下不可达样本；`PREPARE TRANSACTION` 不会提前清理。`REINDEX CONCURRENTLY` 会更换索引 OID，采样历史随之重置。采样机制不提供保留期限或安全擦除保证。
+## 测量 vchordg {#vchordg}
 
-要测量已记录查询的平均召回率，您可以构造目标查询语句并调用评估函数：
+`vchordrq_evaluate_query_recall` 在计算真实答案时只关闭 vchordrq 索引，对 vchordg 查询来说等于拿图索引和自己比。请改为与顺序扫描对比：
 
 ```sql
-SELECT AVG(recall_value) FROM (
-    SELECT vchordrq_evaluate_query_recall(
-            format(
-                'SELECT ctid FROM %I.%I ORDER BY %I OPERATOR(%s) %L LIMIT 10',
-                lq.schema_name,
-                lq.table_name,
-                lq.column_name,
-                lq.operator,
-                lq.value
-            )
-    ) AS recall_value
-    FROM vchordrq_sampled_queries('items_embedding_idx') AS lq
-) AS eval_results;
+BEGIN;
+CREATE TEMP TABLE ann ON COMMIT DROP AS
+    SELECT id FROM items ORDER BY embedding <=> '[3, 1, 2]' LIMIT 10;
+
+SET LOCAL vchordg.enable_scan = off;
+SET LOCAL vchordrq.enable_scan = off;
+
+SELECT count(*) / 10.0 AS recall
+FROM ann
+WHERE id IN (SELECT id FROM items ORDER BY embedding <=> '[3, 1, 2]' LIMIT 10);
+COMMIT;
 ```
 
-如果您正在使用包含主库（primary）和备库（standby）的[流复制（replication）](https://www.postgresql.org/docs/current/runtime-config-replication.html)功能，请注意：采样到的查询不会通过复制或备份进行同步。相反，每台服务器都会根据自己实际处理的查询独立维护各自的采样查询集合。
-
-<a id="Reference"></a>
 ## 参考 {#reference}
 
-`vchordg` 和多向量查询不支持查询采样。MaxSim 召回率可以通过 `vchordrq_evaluate_query_recall(..., exact_search => true)` 评估。
+### 函数 {#functions}
 
-### 搜索参数（`vchordrq`） {#search-parameters}
+<a id="functions-vchordrq"></a><a id="vchordrq-evaluate-query-recall"></a>
 
-{{< badge text="vchordrq" tone="neutral" >}}
+```sql
+vchordrq_evaluate_query_recall(
+    query        text,                 -- SELECT ctid ... ORDER BY ... LIMIT k
+    exact_search boolean DEFAULT false,-- true：用顺序扫描得到真实答案
+    accu_probes  text    DEFAULT NULL, -- 计算真实答案时的 probes；NULL 表示探查所有列表
+    accu_epsilon real    DEFAULT 1.9   -- 计算真实答案时的 epsilon
+) RETURNS real
+```
 
-<a id="vchordrq-query-sampling-enable"></a>
-#### `vchordrq.query_sampling_enable` {#vchordrq-query-sampling-enable}
+<a id="vchordrq-sampled-queries-func"></a><a id="vchordrq-sampled-values"></a><a id="views"></a><a id="Views"></a><a id="views-vchordrq"></a><a id="vchordrq-sampled-queries-view"></a><a id="vchordrq_sampled_queries"></a><a id="vchordrq-sampled-queries"></a>
 
-{{< badge text="since v0.5.2" tone="info" >}}
+`vchordrq_sampled_queries(index regclass)` 返回某个索引已记录的查询，列为 `schema_name`、`index_name`、`table_name`、`column_name`、`operator` 和 `value`（文本形式的查询向量）。同名视图 `vchordrq_sampled_queries` 列出数据库中所有 vchordrq 索引的记录。`vchordrq_sampled_values(index regclass)` 只返回向量。
 
-- 说明：启用或禁用 `vchordrq` 索引扫描的查询采样。
-- 类型：布尔值（boolean）
-- 默认值：`off`
+### 设置 {#search-parameters}
 
-<a id="vchordrq-query-sampling-max-records"></a>
-#### `vchordrq.query_sampling_max_records` {#vchordrq-query-sampling-max-records}
+<a id="vchordrq-query-sampling-enable"></a><a id="vchordrq-query-sampling-max-records"></a><a id="vchordrq-query-sampling-rate"></a>
 
-{{< badge text="since v0.5.2" tone="info" >}}
+只有超级用户能修改。
 
-- 说明：控制每个索引最多记录的查询数量。该设置仅在 `vchordrq.query_sampling_enable` 开启时生效。
-- 类型：整数（integer）
-- 默认值：`0`
-- 取值范围：`[0, 10000]`
-- 示例：
-    - `vchordrq.query_sampling_max_records = 0` 将为每个索引保留 0 条查询。
-    - `vchordrq.query_sampling_max_records = 1000` 将为每个索引最多保留最近 1000 条查询。
-
-<a id="vchordrq-query-sampling-rate"></a>
-#### `vchordrq.query_sampling_rate` {#vchordrq-query-sampling-rate}
-
-{{< badge text="since v0.5.2" tone="info" >}}
-
-- 说明：控制记录查询的采样率。该设置仅在 `vchordrq.query_sampling_enable` 开启时生效。
-- 类型：实数（real）
-- 默认值：`0`
-- 取值范围：`[0, 1]`
-- 示例：
-    - `vchordrq.query_sampling_rate = 0` 不记录任何查询。
-    - `vchordrq.query_sampling_rate = 0.01` 记录约 1% 的查询。
-    - `vchordrq.query_sampling_rate = 1` 记录每一条查询（仅用于测试目的）。
-
-<a id="functions"></a>
-<a id="Functions"></a>
-### 函数（`vchordrq`） {#functions-vchordrq}
-
-{{< badge text="vchordrq" tone="neutral" >}}
-
-<a id="vchordrq-sampled-queries"></a>
-<a id="vchordrq_sampled_queries"></a>
-#### `vchordrq_sampled_queries` {#vchordrq-sampled-queries-func}
-
-{{< badge text="since v0.5.2" tone="info" >}}
-
-- 说明：检索指定 `vchordrq` 索引已记录的查询集合。
-- 返回值：`table`
-    - `schema_name: text`，查询中表的模式名
-    - `index_name: text`，查询中使用的索引名称
-    - `table_name: text`，查询中的表名
-    - `column_name: text`，参与索引扫描的列名
-    - `operator: text`，查询中使用的距离[操作符](/zh/docs/vchord/usage/indexing/#operator-classes)
-    - `value: text`，查询中目标向量的文本表示
-- 参数：
-    - `regclass`，`vchordrq` 索引的对象标识符
-- 示例：
-    - `SELECT vchordrq_sampled_queries('items_embedding_idx');`
-
-<a id="vchordrq-sampled-values"></a>
-#### `vchordrq_sampled_values` {#vchordrq-sampled-values}
-
-{{< badge text="since v0.5.2" tone="info" >}}
-
-- 说明：检索指定 `vchordrq` 索引已记录查询中的目标向量。
-- 返回值：`SETOF text`，已记录查询向量的文本表示集合。
-- 参数：
-    - `regclass`，`vchordrq` 索引的对象标识符
-- 示例：
-    - `SELECT vchordrq_sampled_values('items_embedding_idx');`
-- 注意：该函数仅用于调试目的。
-
-<a id="vchordrq-evaluate-query-recall"></a>
-#### `vchordrq_evaluate_query_recall` {#vchordrq-evaluate-query-recall}
-
-{{< badge text="since v0.5.0" tone="info" >}}
-
-- 说明：评估给定 `vchordrq` 查询的召回率。
-- 返回值：`real`
-- 参数：
-    - `query: text`，待评估召回率的查询语句
-    - `exact_search: boolean`，是否使用精确基准真相代替估算的基准真相
-    - `accu_probes: text`，用于生成估算基准真相的 `vchordrq.probes`
-    - `accu_epsilon: real`，用于生成估算基准真相的 `vchordrq.epsilon`（默认 `1.9`；为获得更准确的估算，应传入不低于被评估查询所用 `vchordrq.epsilon` 的值，例如 `4.0`）
-- 示例：
-    - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$);`
-    - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$, exact_search => true);`
-    - `SELECT vchordrq_evaluate_query_recall(query => $$ SELECT ctid FROM t ORDER BY val <-> '[0.5, 0.25, 1.0]' LIMIT 10 $$, accu_probes => '9999', accu_epsilon => 4.0);`
-
-<a id="views"></a>
-<a id="Views"></a>
-### 视图（`vchordrq`） {#views-vchordrq}
-
-{{< badge text="vchordrq" tone="neutral" >}}
-
-<a id="vchordrq-sampled-queries"></a>
-#### `vchordrq_sampled_queries` {#vchordrq-sampled-queries-view}
-
-{{< badge text="since v0.5.2" tone="info" >}}
-
-- 说明：检索**所有** `vchordrq` 索引已记录的查询集合。
-- 示例：
-    - `SELECT * from vchordrq_sampled_queries;`
-- 注意：该视图仅用于调试目的。
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `vchordrq.query_sampling_enable` | boolean | `off` | 记录一部分 vchordrq 查询。 |
+| `vchordrq.query_sampling_max_records` | integer | `0` | 每个索引保留的最近查询条数，最大 `10000`。 |
+| `vchordrq.query_sampling_rate` | real | `0` | 被记录的扫描比例，`0` 到 `1`。 |
+{.fields meta="type default"}

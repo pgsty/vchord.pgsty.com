@@ -1,7 +1,7 @@
 ---
 title: "Customer Stories"
 linkTitle: "Customer Stories"
-description: "Real-world production deployments of VectorChord at multi-billion vector scale."
+description: "How teams run vchord in production, with their data sizes, hardware, costs, and latencies."
 weight: 60
 icon: fa-solid fa-building
 upstream_link: ""

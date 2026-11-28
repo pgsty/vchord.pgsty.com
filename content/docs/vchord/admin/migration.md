@@ -1,7 +1,7 @@
 ---
-title: "Migration"
-linkTitle: "Migration"
-description: "Most of VectorChord's vector types are supported by pgvector."
+title: "Upgrade and Migration"
+linkTitle: "Upgrade & Migration"
+description: "Upgrade vchord in place, move pgvector HNSW or IVFFlat indexes to vchord without rewriting tables, or migrate from pgvecto.rs."
 weight: 10
 upstream_link: "https://github.com/tensorchord/pgvecto.rs-docs/blob/main/src/vectorchord/admin/migration.md"
 aliases:
@@ -10,216 +10,159 @@ aliases:
 icon: fa-solid fa-right-left
 ---
 
----
-outline: [2,3]
----
-# VectorChord Migration Overview
+<a id="vectorchord-migration-overview"></a>
 
-<a id="from-pgvecto-rs"></a>
-## From PGVecto.rs
+This page covers three moves: [upgrading vchord](#upgrade) to a newer release, [replacing pgvector indexes](#from-pgvector) with vchord indexes, and [migrating from pgvecto.rs](#from-pgvectors), which used its own vector types.
 
-Most of VectorChord's vector types are supported by `pgvector`.
-Therefore, migrating from PGVecto.rs to VectorChord is a simple inversion of [migrating from pgvector to PGVecto.rs](/docs/vectors/admin/migration/).
+## Upgrade vchord {#upgrade}
 
-> [!WARNING]
-> **Obsolete — pending updates and maintenance.** PGSTY has not yet published Docker or Kubernetes images for its maintained releases. These upstream instructions are retained for reference and will be updated.
+<a id="upgrading-vchord-to-130"></a>
 
-> [!TIP]
-> We provide migration image [modelzai/pgvectors-vchord](https://hub.docker.com/r/modelzai/pgvectors-vchord/tags) for pgvecto.rs to VectorChord and vice versa.
+vchord ships upgrade scripts from every earlier release, and 1.5.0 reads existing indexes in place.
 
+1. Install the 1.5.0 files for your PostgreSQL major, as described in [Installation](/docs/vchord/getting-started/installation/).
+1. Restart PostgreSQL so it loads the new library.
+1. Update the extension in every database that has it:
 
-<a id="Prerequisites"></a>
-### Prerequisites
+   ```sql
+   ALTER EXTENSION vchord UPDATE;
+   SELECT extversion FROM pg_extension WHERE extname = 'vchord';
+   ```
+{.steps}
 
-Let's suppose that you have a table with vector data, and the extension `PGVecto.rs` installed. A simple example would be:
+Depending on where you start, also do the following.
 
-```sql
-CREATE TABLE table_vector (id bigserial PRIMARY KEY, vec_f32 vectors.vector(3));
-CREATE TABLE table_float16 (id bigserial PRIMARY KEY, vec_f16 vectors.vecf16(3));
-CREATE TABLE table_binary (id bigserial PRIMARY KEY, vec_bits vectors.bvector(3));
+**From PostgreSQL 14.** vchord 1.4.0 and later do not support PostgreSQL 14. Stay on vchord 1.3.0 until PostgreSQL is upgraded to 15 or later, then upgrade vchord.
 
-```
+**From 1.3.0 or earlier.** The update passes through 1.4.0, which adds the SQL objects for [filter keys](/docs/vchord/usage/filtering/#filter-keys). A package downgrade does not undo that, so take a backup before upgrading if you may need to roll back.
 
-In addition, some rows will be inserted into the table, as follows:
+**From 1.2.x or earlier.** Releases since 1.3.0 changed three things you may have to act on:
 
-```sql
-INSERT INTO table_vector (vec_f32) VALUES ('[0.1, 0.1, 0.1]'), ('[0.2, 0.2, 0.2]');
-INSERT INTO table_float16 (vec_f16) VALUES ('[0.1, 0.1, 0.1]'), ('[-0.2, 0.2, 0.2]');
-INSERT INTO table_binary (vec_bits) VALUES ('[0, 0, 0]'), ('[0, 0, 1]');
-```
+- `build.external.table` must name a schema-qualified table, such as `'public.t_build'`. Existing indexes keep serving queries, but any rebuild (`REINDEX`, `VACUUM FULL`, `CLUSTER`, `TRUNCATE`, a restore) fails until the option is fixed. Find affected indexes and rewrite their options, keeping the rest of each TOML string:
 
-In most cases, there will also be one or more vector indexes:
+  ```sql
+  SELECT c.oid::regclass AS index_name, o.option_value
+  FROM pg_class AS c
+  JOIN pg_am AS am ON am.oid = c.relam
+  CROSS JOIN LATERAL pg_options_to_table(c.reloptions) AS o
+  WHERE am.amname = 'vchordrq'
+    AND o.option_name = 'options'
+    AND o.option_value LIKE '%external%';
 
-```sql
-CREATE INDEX index_vector ON table_vector USING vectors (vec_f32 vectors.vector_l2_ops) WITH (options = "[indexing.hnsw]");
--- CREATE INDEX index_float16 ON table_float16 USING vectors (vec_f16 vectors.vecf16_cos_ops) WITH (options = "[indexing.hnsw]");
--- CREATE INDEX index_binary ON table_binary USING vectors (vec_bits vectors.bvector_hamming_ops) WITH (options = "[indexing.hnsw]");
-```
+  ALTER INDEX public.t_val_idx SET (options = $$
+  [build.external]
+  table = 'public.t_build'
+  $$);
+  ```
 
-This is a typical scenario when `PGVecto.rs` is used. If the following requirements are met, the migration can be initiated.
+- Cosine distance on `rabitq8` and `rabitq4`, and the encoding of zero and one-dimensional vectors, were fixed. Rebuild `rabitq8` and `rabitq4` cosine indexes, and indexes holding such vectors, with `REINDEX INDEX CONCURRENTLY`.
+- Reading [sampled queries](/docs/vchord/usage/measure-recall/#query-sampling) requires superuser or membership in `pg_read_all_stats`, because samples can contain other users' query vectors. Grant the role to whoever tunes recall.
 
-- Please note that your `pgvector` and `VectorChord` extension is not installed in the `vectors` schema. This means that you can install `pgvector` and `PGVecto.rs` at the same time.
+**Graph indexes that lost recall.** A `VACUUM` before 1.5.0 could cut a region of a `vchordg` graph off from the rest. If recall dropped after large deletes, rebuild the index once with `REINDEX INDEX CONCURRENTLY`.
 
-### Steps to Migration
+## From pgvector {#from-pgvector}
 
-#### 1. Install VectorChord
+vchord indexes pgvector's own `vector` and `halfvec` columns with the same `<->`, `<#>`, and `<=>` operators, so moving from an `hnsw` or `ivfflat` index changes no table and no query. Build the new index next to the old one, compare, and drop the old one:
 
-Please follow the [instructions](/docs/vchord/getting-started/installation/) provided to install `VectorChord` and ensure that the extension is loaded by PostgreSQL.
+1. [Install vchord](/docs/vchord/getting-started/installation/) and create the extension.
+1. Build a vchordrq index without blocking writes. Choose `lists` from the row count as described in [Choose `lists`](/docs/vchord/usage/indexing/#lists):
 
-```sql
-CREATE EXTENSION vchord CASCADE;
-```
+   ```sql
+   CREATE INDEX CONCURRENTLY items_embedding_rq
+   ON items USING vchordrq (embedding vector_cosine_ops)
+   WITH (options = $$
+   residual_quantization = true
+   [build.internal]
+   lists = [4096]
+   spherical_centroids = true
+   build_threads = 8
+   $$, probes = '40');
+   ```
 
-> [!NOTE]
->
-> This will install vectorchord and pgvector at public schema, if other schema is picked, please substitute `public` with your schema at the migration command.
->
+1. [Measure recall](/docs/vchord/usage/measure-recall/) at the `probes` you set, and check with `EXPLAIN` which index your queries use. While both indexes exist, the planner chooses between them by estimated cost.
+1. Drop the old index:
 
+   ```sql
+   DROP INDEX CONCURRENTLY items_embedding_hnsw;
+   ```
+{.steps}
 
-> [!DETAILS]
->
-> The two extensions `VectorChord` and `PGVecto.rs` are now installed on PostgreSQL, but inside different schemas.
-> To validate it, please run `\dx` in psql. You will see that there are 3 extensions:
-> - `vectors` for `PGVecto.rs` at schema vectors
-> - `vector` for `pgvector` at schema public
-> - `vchord` for `VectorChord` at schema public
->
-> ```shell
-> postgres=# \dx
->                                                  List of installed extensions
->   Name   | Version |   Schema   |                                         Description                                          
-> ---------+---------+------------+----------------------------------------------------------------------------------------------
->  plpgsql | 1.0     | pg_catalog | PL/pgSQL procedural language
->  vchord  | 1.2.0   | public     | vchord: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
->  vector  | 0.8.0   | public     | vector data type and ivfflat and hnsw access methods
->  vectors | 0.4.0   | vectors    | vectors: Vector database plugin for Postgres, written in Rust, specifically designed for LLM
-> ```
->
+Session settings do not carry over: `hnsw.ef_search` and `ivfflat.probes` have no effect on vchord. Use `vchordrq.probes` and `vchordrq.epsilon`, or store them on the index as above.
 
+## From pgvecto.rs {#from-pgvectors}
 
-#### 2. Check existing indexes
+<a id="from-pgvecto-rs"></a><a id="prerequisites"></a><a id="Prerequisites"></a><a id="steps-to-migration"></a>
 
-For indexes created at vector columns, please retrieve the definition and record it in a convenient location.
-This information is necessary for the recovery of the indexes at a later stage.
+[pgvecto.rs](/docs/vectors/) stored vectors in its own types in the `vectors` schema. Migrating converts each column to the matching pgvector type and rebuilds its index with vchord. Converting a column rewrites the table under an `ACCESS EXCLUSIVE` lock, so plan a maintenance window for large tables.
 
-```sql
-postgres=# \di
-                       List of relations
- Schema |        Name        | Type  |  Owner   |     Table     
---------+--------------------+-------+----------+---------------
- public | index_float16      | index | postgres | table_float16
- public | index_vector       | index | postgres | table_vector
- public | table_binary_pkey  | index | postgres | table_binary
- public | table_float16_pkey | index | postgres | table_float16
- public | table_vector_pkey  | index | postgres | table_vector
-```
+| pgvecto.rs type | pgvector type | Conversion |
+| --- | --- | --- |
+| `vectors.vector(n)` | `vector(n)` | `col::real[]::public.vector` |
+| `vectors.vecf16(n)` | `halfvec(n)` | `col::vectors.vector::real[]::public.halfvec` |
+| `vectors.bvector(n)` | `bit(n)` | `array_to_string(col::vectors.vector::real[], '')::bit(n)` |
+| `vectors.svector(n)` | `sparsevec(n)` | shift indexes by one, see [below](#appendix-about-cast-of-sparse-vector) |
 
-#### 3. Migrate vector columns
+1. <a id="1-install-vectorchord"></a>Install vchord and pgvector into a schema other than `vectors`, usually `public`, so both extensions can exist during the conversion. Add `vchord` to `shared_preload_libraries` next to `vectors`, restart, and run `CREATE EXTENSION vchord CASCADE;`.
+1. <a id="2-check-existing-indexes"></a>Save the definitions of the pgvecto.rs indexes:
 
-To migrate from a `PGVecto.rs` vector column, the first step is to cast column datatypes between extensions.
+   ```sql
+   SELECT indexrelid::regclass, pg_get_indexdef(indexrelid)
+   FROM pg_index i
+   JOIN pg_class c ON c.oid = i.indexrelid
+   JOIN pg_am am ON am.oid = c.relam
+   WHERE am.amname = 'vectors';
+   ```
 
-Here provides the conversion path for each vector type of `VectorChord`:
+1. <a id="3-migrate-vector-columns"></a>Drop those indexes and convert each column:
 
-- `vector(PGVecto.rs) -> real[] -> vector(pgvector)`
-- `vecf16 -> vector(PGVecto.rs) -> real[] -> halfvec`
-- `bvector -> vector(PGVecto.rs) -> text[] -> real[] -> bit`
-- `svector -> text -> index++ -> text -> sparsevec`
+   ```sql
+   DROP INDEX index_vector;
 
-For sparse vector type `svector`, we need additional helper function to finish the casting, see the [appendix](#appendix-about-cast-of-sparse-vector).
+   ALTER TABLE table_vector
+       ALTER COLUMN vec TYPE public.vector(3)
+       USING vec::real[]::public.vector;
+   ```
 
-The migration will be completed in one command and no additional memory is required.
-However, you need to delete the index on the vector column in advance.
+1. <a id="4-recreate-index"></a>Create vchord indexes on the converted columns, as described in [vchordrq index](/docs/vchord/usage/indexing/).
+1. <a id="5-clean-the-environment"></a>When nothing uses the `vectors` types any more, run `DROP EXTENSION vectors;` and remove `vectors` from `shared_preload_libraries`.
+{.steps}
 
-> [!WARNING]
-> This step will cause some downtime, due to:
-> - a long `ACCESS EXCLUSIVE` lock by `ALTER TABLE ALTER COLUMN`
-
-
-```sql
--- The name of index can be found in step 2
-DROP INDEX IF EXISTS index_vector;
-
--- From vector type
-ALTER TABLE table_vector ALTER COLUMN vec_f32 TYPE public.vector(3) USING vec_f32::real[]::public.vector;
-
--- From halfvec type
-ALTER TABLE table_float16 ALTER COLUMN vec_f16 TYPE public.halfvec(3) USING vec_f16::vectors.vector::real[]::public.halfvec;
-
--- For bit type
-ALTER TABLE table_binary ALTER COLUMN vec_bits TYPE bit(3) USING array_to_string(vec_bits::vectors.vector::real[], '')::bit(3);
-```
-
-#### 4. Recreate index
-
-The next step is to recreate index on `vector` columns for `PGVecto.rs`.
-
-```sql
-CREATE INDEX ON index_vector USING vchordrq (vec_f32 vector_l2_ops) WITH (options = $$
-residual_quantization = true
-[build.internal]
-lists = [4096]
-spherical_centroids = false
-$$);
-```
-
-For more information on creating index at `VectorChord`, see [indexing](/docs/vchord/usage/indexing/).
-
-#### 5. Clean the environment
-
-You may now safely remove the `PGVecto.rs` extension if it is no longer required.
-
-```
-DROP extension vectors;
-```
+### Converting sparse vectors {#appendix-about-cast-of-sparse-vector}
 
 <a id="appendix-cast-of-sparse-vector"></a>
-### Appendix: cast of sparse vector {#appendix-about-cast-of-sparse-vector}
 
-We have discussed most types, but not the sparse vector. It is a little more complicated than other types. Suppose we have a table with a sparse vector column:
+pgvecto.rs numbers sparse vector dimensions from 0 (`{0:-1, 2:1}/5`); pgvector's `sparsevec` numbers them from 1 (`{1:-1, 3:1}/5`). This function shifts every index by one during the conversion:
 
-```sql
-CREATE TABLE table_sparse (id bigserial PRIMARY KEY, vec_sparse vectors.svector(3));
-INSERT INTO table_sparse (vec_sparse) VALUES ('{0:-0.1, 1:0.1, 2:0.1}/3'), ('{0:-0.4, 1:-0.4, 2:-0.4}/3');
-```
-
-Sparse vectors have a different text representation between `PGVecto.rs` and `pgvector`: The index starts from 0 in `PGVecto.rs` and from 1 in `pgvector`.
-
-For example, a typical sparse vector `[-1, 0, 1, 0, 2]` has a text representation of:
-- `{0:-1, 2:1, 4:2}/5` in `PGVecto.rs`
-- `{1:-1, 3:1, 5:2}/5` in `pgvector`
-
-So we need a helper function to handle this change by processing the string:
 ```sql
 CREATE OR REPLACE FUNCTION migrate_sparse(input_text text) RETURNS text AS $$
 DECLARE
     output_text text := '';
     cache_index_number text := '';
     number_started boolean := false;
+    ch text;
 BEGIN
     FOR i IN 1..length(input_text) LOOP
-        IF substring(input_text from i for 1) = ':' THEN
+        ch := substring(input_text FROM i FOR 1);
+        IF ch = ':' THEN
             output_text := output_text || (cache_index_number::int + 1)::text || ':';
             number_started := false;
-        ELSIF substring(input_text from i for 1) ~ '[,{]' THEN
+        ELSIF ch ~ '[,{]' THEN
             cache_index_number := '';
             number_started := true;
-            output_text := output_text || substring(input_text from i for 1);
-        ELSIF substring(input_text from i for 1) ~ '[0-9]' THEN
-            IF number_started THEN
-                cache_index_number := cache_index_number || substring(input_text from i for 1);
-            ELSE
-                output_text := output_text || substring(input_text from i for 1);
-            END IF;
+            output_text := output_text || ch;
+        ELSIF ch ~ '[0-9]' AND number_started THEN
+            cache_index_number := cache_index_number || ch;
         ELSE
-            output_text := output_text || substring(input_text from i for 1);
+            output_text := output_text || ch;
         END IF;
     END LOOP;
     RETURN output_text;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+ALTER TABLE table_sparse
+    ALTER COLUMN vec TYPE public.sparsevec
+    USING migrate_sparse(vec::text)::public.sparsevec;
 ```
 
-After that, the migration can continue smoothly:
-```sql
-ALTER TABLE table_sparse ALTER COLUMN vec_sparse TYPE public.sparsevec USING migrate_sparse(vec_sparse::text)::public.sparsevec;
-```
+vchord does not index `sparsevec`; use pgvector's HNSW index for sparse columns, or [vchord_bm25](/docs/bm25/) for keyword search.

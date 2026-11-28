@@ -1,185 +1,163 @@
 ---
-title: "多语言分词配方与限制"
-description: "面向英文、中文（结巴 Jieba）、日文（Lindera）的完整生产级分词配置方案及已知使用限制。"
-weight: 40
-icon: fa-solid fa-language
+title: "多语言配方"
+linkTitle: "配方"
+description: "用 pg_tokenizer 与 vchord_bm25 为英文、其他欧洲语言、中文和日文搭建 BM25 检索的完整 SQL。"
+weight: 30
+icon: fa-solid fa-earth-asia
 ---
 
-> [!NOTE]
-> 使用 `bm25vector` 的配方适用于历史 `vchord_bm25` 0.1–0.3。1.0.0 应将 `analyze_to_tsvector` 或 `tokenize_to_tsvector` 的输出存入 `tsvector` 列，并使用 `to_bm25query(vector, index)`。参阅[原生 BM25 示例](/zh/docs/tokenizer/overview/#native-fts)。
+每个配方从头到尾为一种语言搭好 BM25 检索：创建分析器或分词器，建一张由触发器维护 `tsvector` 列的表，建 vchord_bm25 索引，再执行一次排序查询。在已经[安装并预加载](/zh/docs/tokenizer/installation/#enable) pg_tokenizer 和 vchord_bm25 的数据库里运行，再把示例表换成你自己的表即可。
 
-本页提供可直接用于生产环境的英文、中文和日文全文 BM25 检索分词配置配方，并列出在实际运维中需要注意的关键限制事项。
+所有配方的结构都一样，原因见[限制](/zh/docs/tokenizer/overview/#limits)：
 
-## 配方一：带词干提取与停用词过滤的英文检索（`wiki_tocken`） {#recipe-1-english-with-stemming--stopwords-wiki_tocken}
+- `tsvector` 列由触发器填充，因为 pg_tokenizer 的函数是 `STABLE` 的，PostgreSQL 不允许把它们用在生成列里。
+- 查询文本与文档经过同一个分析器或分词器，两边才会得到相同的词位。
 
-将 Unicode 词边界切分、NLTK 停用词过滤、Porter2 词干提取与内置维基百科词表（`wiki_tocken`）结合使用：
+`<&>` 返回的是 BM25 分数的相反数，所以 `ORDER BY ... LIMIT` 先返回最匹配的行。函数调用都带了模式前缀，无论 `search_path` 如何设置，配方都能运行。
+
+## 英文 {#english}
+
+<a id="recipe-1-english-with-stemming--stopwords-wiki_tocken"></a><a id="recipe-2-english-custom-corpus-model-with-trigger"></a>
+
+分析器先把文本转成小写，按 Unicode 词边界切分（标点也随之去掉），删除 NLTK 英文停用词，再把每个词还原为 Porter2 词干，这样 "ranking"、"ranked" 和 "ranks" 可以互相匹配。
 
 ```sql
-SELECT create_tokenizer('eng_wiki', $$
-model = "wiki_tocken"
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+
+SELECT tokenizer_catalog.create_text_analyzer('en_text', $$
 character_filters = ["to_lowercase"]
 pre_tokenizer = "unicode_segmentation"
-[[token_filters]]
-skip_non_alphanumeric = {}
-[[token_filters]]
-stopwords = "nltk_english"
-[[token_filters]]
-stemmer = "english_porter2"
+token_filters = [
+    { stopwords = "nltk_english" },
+    { stemmer = "english_porter2" },
+]
 $$);
 
-SELECT tokenize('PostgreSQL databases are running analytical and vector workloads.', 'eng_wiki');
-```
-
-## 配方二：带自动触发器的英文自定义语料库模型 {#recipe-2-english-custom-corpus-model-with-trigger}
-
-源自上游 [`pg_tokenizer` 示例文档](https://github.com/pgsty/pg_tokenizer/blob/main/docs/03-examples.md)，该工作流直接基于 `documents` 表构建特定领域的英文词表，并通过触发器自动同步更新词频向量：
-
-```sql
-CREATE TABLE documents (
-    id SERIAL PRIMARY KEY,
-    passage TEXT,
-    embedding bm25vector
+CREATE TABLE en_docs (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
 );
 
-SELECT create_text_analyzer('text_analyzer1', $$
-pre_tokenizer = "unicode_segmentation"
-[[character_filters]]
-to_lowercase = {}
-[[character_filters]]
-unicode_normalization = "nfkd"
-[[token_filters]]
-skip_non_alphanumeric = {}
-[[token_filters]]
-stopwords = "nltk_english"
-[[token_filters]]
-stemmer = "english_porter2"
-$$);
+CREATE FUNCTION en_docs_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.body, 'en_text');
+    RETURN NEW;
+END;
+$$;
 
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name => 'tokenizer1',
-    model_name => 'model1',
-    text_analyzer_name => 'text_analyzer1',
-    table_name => 'documents',
-    source_column => 'passage',
-    target_column => 'embedding'
-);
+CREATE TRIGGER en_docs_terms BEFORE INSERT OR UPDATE OF body ON en_docs
+FOR EACH ROW EXECUTE FUNCTION en_docs_terms();
 
-INSERT INTO documents (passage) VALUES
-('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development and a proven architecture that has earned it a strong reputation for reliability, feature robustness, and performance.'),
-('Full-text search is a technique for searching a computer-stored document or a collection in a full-text database. Full-text search is distinguished from searches based on metadata or on parts of the original texts represented in databases (such as titles, abstracts, selected sections, or bibliographical references).'),
-('BM25 is a ranking function used by search engines to estimate the relevance of documents to a given search query. It is based on the probabilistic retrieval framework developed in the 1970s and 1980s by Stephen E. Robertson, Karen Spärck Jones, and others.'),
-('PostgreSQL supports advanced data types and performance optimization features, only available in the expensive commercial databases, such as Oracle and SQL Server. It is known for its resilience, integrity, and correctness.'),
-('The BM25 algorithm computes a score for each document in a collection based on the query terms appearing in the document, regardless of their proximity within the document. It is a bag-of-words retrieval function that ranks a set of documents based on the query terms appearing in each document.'),
-('PostgreSQL has a wide range of extensions and tools that make it suitable for various use cases, from small single-machine applications to large internet-facing applications with many concurrent users.'),
-('Full-text search in PostgreSQL allows users to perform complex queries on text data, including phrase searching, ranking of results, and support for multiple languages through configurations and dictionaries.'),
-('VectorChord-BM25 is a postgresql extension designed for bm25 ranking algorithm. Block-WeakAnd algorithm is implemented in it to accelerate the ranking process.'),
-('pg_tokenizer is a postgresql extension designed for full-text search. It provides a set of functions to preprocess text data and generate tokens for indexing and searching.'),
-('Look for organizations which use PostgreSQL for mission-critical or scaled applications. Look for organizations that have used PostgreSQL for a significant length of time.');
+INSERT INTO en_docs (body) VALUES
+    ('PostgreSQL is an open-source object-relational database system.'),
+    ('BM25 ranks documents by how often the query terms appear in them.'),
+    ('vchord_bm25 adds a BM25 index to PostgreSQL.'),
+    ('pg_tokenizer splits text into words before they are indexed.');
 
-CREATE INDEX documents_passage_bm25 ON documents USING bm25 (embedding bm25_ops);
+CREATE INDEX en_docs_bm25 ON en_docs USING bm25 (terms bm25_ops);
 
-SELECT id, passage, embedding <&> to_bm25query('documents_passage_bm25', tokenize('PostgreSQL BM25', 'tokenizer1')) AS rank
-FROM documents
-ORDER BY rank
+SELECT id, body
+FROM en_docs
+ORDER BY terms <&> to_bm25query(
+    tokenizer_catalog.analyze_to_tsvector('ranking documents in PostgreSQL', 'en_text'),
+    'en_docs_bm25')
 LIMIT 10;
 ```
 
-## 配方三：中文全文检索（`jieba` + 自定义模型） {#recipe-2-chinese-full-text-search-jieba--custom-model}
+如果要给已有的表建索引：加上 `terms` 列和触发器，执行一次 `UPDATE en_docs SET terms = tokenizer_catalog.analyze_to_tsvector(body, 'en_text');` 填充该列，再创建索引。
 
-处理中文文本时，推荐将 `jieba` 预分词器（`mode = "search"`，`enable_hmm = true`）与基于业务表训练的自定义语料词表模型结合使用（以下示例采用钱钟书《围城》选段作为测试语料）：
+## 其他以空格分词的语言 {#european}
+
+法语、德语、西班牙语、俄语等用空格分隔单词的语言，只需替换英文配方中的分析器。有两种做法：
+
+- 用 Snowball **词干提取器**（`stemmer`）加上你自己的停用词表。pg_tokenizer 提供 [30 种词干算法](/zh/docs/tokenizer/reference/#stemmers)，但只自带英文停用词表，其他语言的停用词表用 `create_stopwords` 创建。
+- 用一个 **`pg_dict`** 过滤器，指定 PostgreSQL 的 Snowball 词典，例如 `french_stem` 或 `german_stem`，也就是 `to_tsvector` 处理该语言时所用的词典。它一步完成转小写、去除该语言的停用词和词干提取。
 
 ```sql
-CREATE TABLE zh_docs (
-    id SERIAL PRIMARY KEY,
-    passage TEXT,
-    embedding bm25vector
-);
+SELECT tokenizer_catalog.create_text_analyzer('de_text', $$
+pre_tokenizer = "unicode_segmentation"
+token_filters = [{ pg_dict = "german_stem" }]
+$$);
 
--- 1. 创建启用 NFKD 规范化与结巴搜索引擎模式的中文文本分析器
-SELECT create_text_analyzer('text_analyzer1', $$
-character_filters = ["to_lowercase", { unicode_normalization = "nfkd" }]
-pre_tokenizer = { jieba = { mode = "search", enable_hmm = true } }
+SELECT tokenizer_catalog.apply_text_analyzer(
+    'Aus so krummen Holze, als woraus der Mensch gemacht ist, kann nichts ganz Gerades gezimmert werden.',
+    'de_text');
+```
+
+```text
+{krumm,holz,woraus,mensch,gemacht,ganz,gerad,gezimmert}
+```
+
+执行 `SELECT dictname FROM pg_ts_dict WHERE dictname LIKE '%\_stem';` 可以列出当前 PostgreSQL 提供的 Snowball 词典。
+
+## 中文 {#chinese}
+
+<a id="recipe-2-chinese-full-text-search-jieba--custom-model"></a><a id="recipe-3-chinese-full-text-search-jieba"></a>
+
+中文词与词之间没有空格，所以分析器用结巴词典来切词。NFKC 规范化把全角字母和数字转成 ASCII，转小写让中文里夹杂的英文单词不分大小写都能匹配，`skip_non_alphanumeric` 去掉结巴当作词返回的标点和空格。结巴默认的 `search` 模式还会输出长词内部的短词，所以查询“数据”也能命中“数据库”。
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
+
+SELECT tokenizer_catalog.create_text_analyzer('zh_text', $$
+character_filters = [{ unicode_normalization = "nfkc" }, "to_lowercase"]
+pre_tokenizer = { jieba = { mode = "search" } }
 token_filters = ["skip_non_alphanumeric"]
 $$);
 
--- 2. 创建自定义词表模型、分词器，并绑定自动更新触发器
-SELECT create_custom_model_tokenizer_and_trigger(
-    tokenizer_name     => 'tokenizer1',
-    model_name         => 'model1',
-    text_analyzer_name => 'text_analyzer1',
-    table_name         => 'zh_docs',
-    source_column      => 'passage',
-    target_column      => 'embedding'
+CREATE TABLE zh_docs (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
 );
 
--- 3. 写入中文语料（触发器会自动分词并填充 embedding 列）
-INSERT INTO zh_docs (passage) VALUES
-('红海早过了，船在印度洋面上开驶着，但是太阳依然不饶人地迟落早起，侵占去大部分的夜。'),
-('夜仿佛纸浸了油，变成半透明体；它给太阳拥抱住了，分不出身来，也许是给太阳陶醉了，所以夕照霞隐褪后的夜色也带着酡红。'),
-('到红消醉醒，船舱里的睡人也一身腻汗地醒来，洗了澡赶到甲板上吹海风，又是一天开始。'),
-('这是七月下旬，合中国旧历的三伏，一年最热的时候。在中国热得更比常年利害，事后大家都说是兵戈之象，因为这就是民国二十六年【一九三七年】。'),
-('这条法国邮船白康蒂号（VicomtedeBragelonne）正开向中国来。早晨八点多钟，冲洗过的三等舱甲板湿意未干，但已坐立满了人，法国人、德国流亡出来的犹太人、印度人、安南人，不用说还有中国人。'),
-('海风里早含着燥热，胖人身体给风吹干了，蒙上一层汗结的盐霜，仿佛刚在巴勒斯坦的死海里洗过澡。'),
-('毕竟是清晨，人的兴致还不没给太阳晒萎，烘懒，说话做事都很起劲。那几个新派到安南或中国租界当警察的法国人，正围了那年轻善撒娇的犹太女人在调情。'),
-('俾斯麦曾说过，法国公使大使的特点，就是一句外国话不会讲；这几位警察并不懂德文，居然传情达意，引得犹太女人格格地笑，比他们的外交官强多了。'),
-('这女人的漂亮丈夫，在旁顾而乐之，因为几天来，香烟、啤酒、柠檬水全靠这几个警察孝敬。船上买东西用法国钱，这犹太人只有一点儿沿着那位丹麦王子汉姆烈德（Hamlet）路线逃出来的德国马克。'),
-('当时德国跟日本虽在谈恋爱，尚未结婚，到中国来的犹太人还是德国公民，有他们本国的保护。这船上的犹太人有过路到香港的，有到上海居留的，聚在一起在讨论生计，声音活像小洋磁盆里托的石子。'),
-('几个年轻的安南人比手画脚，像猴子跳电线一样迅捷地交换着法语，华侨在旁羡慕地听着。这船上都是回家乡的中国人，像报纸上的标题，电影的字幕，标语，籍贯姓名年纪一张表上那几格，他们老早填满了，此番回来，不过把这些公式平滑无波地重演一次。'),
-('只有鼻梁上架着一副黑眼镜的苏小姐，心算着她离国这几年，家里有什么变化，她父亲是否老了，她母亲新添了什么病痛，她弟弟结婚了没有。'),
-('苏小姐在里昂研究法国文学，做了一篇《中国十八世纪的法国文学里的中国》的论文，刚得了博士。'),
-('方鸿渐也到甲板上来了，在苏小姐身旁走过，向她脱帽招呼。苏小姐一壁应着，一壁想他真算厚脸皮，昨天向自己借了照相机，今天见了面，提都不提。');
+CREATE FUNCTION zh_docs_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.terms := tokenizer_catalog.analyze_to_tsvector(NEW.body, 'zh_text');
+    RETURN NEW;
+END;
+$$;
 
--- 4. 创建 BM25 索引并执行检索
-CREATE INDEX zh_docs_passage_bm25 ON zh_docs USING bm25 (embedding bm25_ops);
+CREATE TRIGGER zh_docs_terms BEFORE INSERT OR UPDATE OF body ON zh_docs
+FOR EACH ROW EXECUTE FUNCTION zh_docs_terms();
 
-SELECT id, passage,
-       embedding <&> to_bm25query('zh_docs_passage_bm25', tokenize('苏小姐 法国', 'tokenizer1')) AS rank
+INSERT INTO zh_docs (body) VALUES
+    ('PostgreSQL 是一个开源的关系型数据库管理系统。'),
+    ('全文检索需要先把句子切分成词语，再建立倒排索引。'),
+    ('结巴分词根据词典和隐马尔可夫模型切分中文句子。'),
+    ('vchord_bm25 在 PostgreSQL 中按 BM25 分数对文档排序。');
+
+CREATE INDEX zh_docs_bm25 ON zh_docs USING bm25 (terms bm25_ops);
+
+SELECT id, body
 FROM zh_docs
-ORDER BY rank
+ORDER BY terms <&> to_bm25query(
+    tokenizer_catalog.analyze_to_tsvector('中文分词与全文检索', 'zh_text'),
+    'zh_docs_bm25')
 LIMIT 10;
 ```
 
-## 配方四：日文全文检索（`lindera` IPADIC） {#recipe-3-japanese-full-text-search-lindera-ipadic}
+pg_tokenizer 没有自带中文停用词表。如果想去掉“的”“了”这类高频词，用 `create_stopwords` 建一张停用词表，再在 `token_filters` 中加上 `{ stopwords = "<表名>" }`。
 
-从 Lindera 0.42 升级到 6.2 时，IPADIC 词元 ID 会变化，需要重新生成已存储的词元数组并重建相关索引。下方的词典配置仍然兼容，详见 [Lindera 升级说明](/zh/docs/tokenizer/models/#4-lindera-morphological-models-create_lindera_model)。
+## 日文 {#japanese}
 
-处理日文文本时，可创建基于 Lindera IPADIC 的形态学分词模型，并配置叠字符规范化、NFKC 规范化、日文停用词性（Stop-tags）过滤以及片假名词干提取（以下示例采用夏目漱石《吾輩は猫である》选段作为测试语料）：
+<a id="recipe-3-japanese-full-text-search-lindera-ipadic"></a><a id="recipe-4-japanese-full-text-search-lindera-ipadic"></a>
+
+日文同样没有空格，找出其中的词需要形态学词典。这个配方用 IPADIC 词典创建一个 [Lindera](/zh/docs/tokenizer/models/#lindera) 模型，再创建一个使用它的分词器，把词在词典中的 ID 作为词位存储。切分之前，模型先做 NFKC 规范化，统一全角和半角形式，并展开“々”这类重复符号；切分之后，按词性删掉助词、助动词和符号。
+
+配方使用 GitHub 发布包和源码构建中内置的 IPADIC 词典。Pigsty 软件包不含这个词典：请把 `embedded://ipadic` 换成为 Lindera 7 构建的 IPADIC 目录路径，并以超级用户或 `pg_read_server_files` 成员的身份运行配方。凡是加载这种模型的会话都需要该权限，包括插入数据时触发了触发器的应用角色，除非模型已经[预加载](/zh/docs/tokenizer/models/#preload)。
 
 ```sql
-CREATE TABLE jp_docs (
-    id SERIAL PRIMARY KEY,
-    passage TEXT,
-    embedding bm25vector
-);
+CREATE EXTENSION IF NOT EXISTS pg_tokenizer;
+CREATE EXTENSION IF NOT EXISTS vchord_bm25;
 
-INSERT INTO jp_docs (passage) VALUES
-('吾輩は猫である。名前はまだ無い。'),
-('どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。'),
-('吾輩はここで始めて人間というものを見た。しかもあとで聞くとそれは書生という人間中で一番獰悪な種族であったそうだ。'),
-('この書生というのは時々我々を捕えて煮て食うという話である。しかしその当時は何という考もなかったから別段恐しいとも思わなかった。'),
-('ただ彼の掌に載せられてスーと持ち上げられた時何だかフワフワした感じがあったばかりである。'),
-('掌の上で少し落ちついて書生の顔を見たのがいわゆる人間というものの見始であろう。この時妙なものだと思った感じが今でも残っている。'),
-('第一毛をもって装飾されべきはずの顔がつるつるしてまるで薬缶だ。その後猫にもだいぶ逢ったがこんな片輪には一度も出会わした事がない。'),
-('のみならず顔の真中があまりに突起している。そうしてその穴の中から時々ぷうぷうと煙を吹く。どうも咽せぽくて実に弱った。'),
-('これが人間の飲む煙草というものである事はようやくこの頃知った。'),
-('この書生の掌の裏でしばらくはよい心持に坐っておったが、しばらくすると非常な速力で運転し始めた。'),
-('書生が動くのか自分だけが動くのか分らないが無暗に眼が廻る。胸が悪くなる。到底助からないと思っていると、どさりと音がして眼から火が出た。'),
-('それまでは記憶しているがあとは何の事やらいくら考え出そうとしても分らない。'),
-('ふと気が付いて見ると書生はいない。たくさんおった兄弟が一疋も見えぬ。肝心の母親さえ姿を隠してしまった。'),
-('その上今までの所とは違って無暗に明るい。眼を明いていられぬくらいだ。果てな何でも容子がおかしいと、のそのそ這い出して見ると非常に痛い。'),
-('吾輩は藁の上から急に笹原の中へ棄てられたのである。');
-
-SELECT create_lindera_model('lindera_ipadic', $$
+SELECT tokenizer_catalog.create_lindera_model('ja_ipadic', $$
 [segmenter]
 mode = "normal"
-  [segmenter.dictionary]
-  kind = "ipadic"
-
-[[character_filters]]
-kind = "japanese_iteration_mark"
-  [character_filters.args]
-  normalize_kanji = true
-  normalize_kana = true
+dictionary = "embedded://ipadic"
 
 [[character_filters]]
 kind = "unicode_normalize"
@@ -187,24 +165,10 @@ kind = "unicode_normalize"
   kind = "nfkc"
 
 [[character_filters]]
-kind = "mapping"
-  [character_filters.args.mapping]
-  "リンデラ" = "Lindera"
-
-[[token_filters]]
-kind = "japanese_compound_word"
-  [token_filters.args]
-  kind = "ipadic"
-  tags = [
-    "名詞,数",
-    "名詞,接尾,助数詞",
-  ]
-  new_tag = "名詞,数"
-
-[[token_filters]]
-kind = "japanese_number"
-  [token_filters.args]
-  tags = ["名詞,数"]
+kind = "japanese_iteration_mark"
+  [character_filters.args]
+  normalize_kanji = true
+  normalize_kana = true
 
 [[token_filters]]
 kind = "japanese_stop_tags"
@@ -215,38 +179,44 @@ kind = "japanese_stop_tags"
     "助詞,並立助詞", "助詞,終助詞", "助詞,副助詞／並立助詞／終助詞",
     "助詞,連体化", "助詞,副詞化", "助詞,特殊", "助動詞", "記号",
     "記号,一般", "記号,読点", "記号,句点", "記号,空白", "記号,括弧閉",
-    "その他,間投", "フィラー", "非言語音"
+    "その他,間投", "フィラー", "非言語音",
   ]
-
-[[token_filters]]
-kind = "japanese_katakana_stem"
-  [token_filters.args]
-  min = 3
-
-[[token_filters]]
-kind = "remove_diacritical_mark"
-  [token_filters.args]
-  japanese = false
 $$);
 
-SELECT create_tokenizer('tokenizer1', $$
-model = "lindera_ipadic"
+SELECT tokenizer_catalog.create_tokenizer('ja_text', $$
+model = "ja_ipadic"
 $$);
 
-UPDATE jp_docs SET embedding = tokenize(passage, 'tokenizer1');
+CREATE TABLE ja_docs (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    body text NOT NULL,
+    terms tsvector
+);
 
-CREATE INDEX jp_docs_passage_bm25 ON jp_docs USING bm25 (embedding bm25_ops);
+CREATE FUNCTION ja_docs_terms() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.terms := tokenizer_catalog.tokenize_to_tsvector(NEW.body, 'ja_text');
+    RETURN NEW;
+END;
+$$;
 
-SELECT id, passage,
-       embedding <&> to_bm25query('jp_docs_passage_bm25', tokenize('人間 吾輩', 'tokenizer1')) AS rank
-FROM jp_docs
-ORDER BY rank
+CREATE TRIGGER ja_docs_terms BEFORE INSERT OR UPDATE OF body ON ja_docs
+FOR EACH ROW EXECUTE FUNCTION ja_docs_terms();
+
+INSERT INTO ja_docs (body) VALUES
+    ('PostgreSQL はオープンソースのリレーショナルデータベースです。'),
+    ('全文検索では文章を単語に分割してから索引を作ります。'),
+    ('日本語の文章には単語の間に空白がありません。'),
+    ('vchord_bm25 は PostgreSQL に BM25 のランキングを追加します。');
+
+CREATE INDEX ja_docs_bm25 ON ja_docs USING bm25 (terms bm25_ops);
+
+SELECT id, body
+FROM ja_docs
+ORDER BY terms <&> to_bm25query(
+    tokenizer_catalog.tokenize_to_tsvector('日本語の全文検索', 'ja_text'),
+    'ja_docs_bm25')
 LIMIT 10;
 ```
 
-## 运维注意事项与已知限制 {#operational-notes--known-limitations}
-
-1. **对象名称命名规范**：所有分词器、文本分析器、模型、停用词典和同义词典的名称只能包含字母、数字和下划线（`[A-Za-z0-9_]`），且不能以数字开头。
-2. **事务边界与对象缓存**：每个 PostgreSQL 后端连接都会在进程内存（`DashMap`）中缓存 `tokenizer`、`text_analyzer`、`model`、`stopwords` 和 `synonym` 对象。创建、删除或重建对象会立即清理当前后端，并在事务提交时发布缓存失效通知，回滚只清理本地缓存；其他后端会在下次查找前丢弃旧定义，回滚也不会留下刚创建的缓存对象。重建分析器或模型时，依赖它们的分词器也会一并失效。已经存储在 `INT[]`、`bm25vector` 或 `tsvector` 列中的值不会自动重算，主动替换定义后应重新回填。
-3. **只读从库上的模型预加载**：`add_preload_model` 会将预加载模型列表写入主节点本地的 `$PGDATA/pg_tokenizer` 目录。由于 PostgreSQL 关系表以外的文件系统文件不会通过 WAL 日志复制到从库，如果你在只读从库上也需要预加载模型，请在从库上独立执行一次 `add_preload_model`。
-4. **内置大语言模型分词器的内存开销**：`llmlingua2`（~200 MB）、`gemma2b`（~100 MB）和 `lindera` 等模型会占用较多内存。在生产环境中，请务必使用 `add_preload_model` 让模型在 postmaster 主进程中仅加载一次，避免在每个连接中重复占用内存；或者优先选用仅占用几兆字节内存的自定义语料模型（`create_custom_model`）。
+每个后端第一次分词时才加载词典。想在服务器启动时一次性加载，请[预加载这个模型](/zh/docs/tokenizer/models/#preload)。词典里没有的词会被丢弃，其中包括大多数拉丁字母写成的词，比如 PostgreSQL。韩文需要用 `lindera-ko-dic` 特性构建 pg_tokenizer，改用 `embedded://ko-dic`，并换成韩文的词性标签。
